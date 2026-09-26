@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hookse — Composable Uniswap v4 hooks</title>
+  <meta name="description" content="Hookse: compose, launch and list Uniswap v4 hooks. Pool-first token launches built from inspectable hook blocks." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230b0d10'/><path d='M12 6v12a5 5 0 0 0 10 0v-2' stroke='%23c6ff3d' stroke-width='3' fill='none' stroke-linecap='round'/></svg>" />
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="#" class="logo">
+        <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--accent)"/><path d="M12 6v12a5 5 0 0 0 10 0v-2" stroke="#0b0d10" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
+        <span>hookse</span>
+      </a>
+      <nav class="links" id="links">
+        <a href="#launch">Launch</a>
+        <a href="#hooks">Hooks</a>
+        <a href="#tokens">Tokens</a>
+        <a href="#build">Build</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <div class="nav-cta">
+        <span class="chain-pill"><i class="dot"></i>Testnet</span>
+        <button class="btn btn-accent" id="connectBtn">Connect</button>
+        <button class="burger" id="burger" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="grid-bg" aria-hidden="true"></div>
+      <div class="wrap hero-inner">
+        <p class="eyebrow mono">// modular infra for uniswap v4 hooks</p>
+        <h1>Snap hooks together.<br /><span class="accent">Launch the pool.</span></h1>
+        <p class="lead">Pick audited hook blocks, stack them into a single pool, and ship a token in minutes. Authors earn every time their hook powers a new launch.</p>
+        <div class="hero-cta">
+          <a href="#launch" class="btn btn-accent btn-lg">Launch a token →</a>
+          <a href="#hooks" class="btn btn-ghost btn-lg">Browse hooks</a>
+        </div>
+        <div class="stats">
+          <div><b data-count="1284">0</b><span>tokens launched</span></div>
+          <div><b data-count="46">0</b><span>listed hooks</span></div>
+          <div><b data-count="312" data-prefix="$" data-suffix="k">0</b><span>paid to authors</span></div>
+          <div><b data-count="9.4" data-prefix="$" data-suffix="M" data-dec="1">0</b><span>24h volume</span></div>
+        </div>
+      </div>
+      <div class="ticker" aria-hidden="true"><div class="ticker-track" id="ticker"></div></div>
+    </section>
+
+    <!-- LAUNCH / COMPOSER -->
+    <section id="launch" class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow mono">01 / launch</p>
+          <h2>Compose your pool</h2>
+          <p class="muted">Toggle hook blocks on the left. The preview updates live with the resulting fee schedule and hook permissions.</p>
+        </div>
+
+        <div class="composer">
+          <form class="card composer-form" id="launchForm" autocomplete="off">
+            <div class="row">
+              <label>Name<input name="name" placeholder="Pepe Hook" maxlength="32" required /></label>
+              <label>Ticker<input name="ticker" placeholder="PHOOK" maxlength="8" required /></label>
+            </div>
+            <div class="row">
+              <label>Supply<input name="supply" type="number" value="1000000000" min="1" /></label>
+              <label>Initial ETH<input name="eth" type="number" value="0.5" step="0.01" min="0" /></label>
+            </div>
+            <p class="label">Hook blocks</p>
+            <div class="block-list" id="blockList"></div>
+            <button class="btn btn-accent btn-block" type="submit">Deploy pool</button>
+            <p class="tiny muted">Demo only — nothing is deployed on-chain.</p>
+          </form>
+
+          <aside class="card preview" id="preview">
+            <div class="preview-top">
+              <div class="avatar" id="pvAvatar">?</div>
+              <div>
+                <h3 id="pvName">Untitled</h3>
+                <span class="mono muted" id="pvTicker">$TICKER</span>
+              </div>
+            </div>
+            <div class="kv"><span>Buy fee</span><b id="pvBuy">0.30%</b></div>
+            <div class="kv"><span>Sell fee</span><b id="pvSell">0.30%</b></div>
+            <div class="kv"><span>Active hooks</span><b id="pvCount">0</b></div>
+            <div class="kv"><span>Author royalties</span><b id="pvRoyalty">0.00%</b></div>
+            <p class="label">Permissions</p>
+            <div class="flags" id="pvFlags"></div>
+            <p class="label">Hook address bits</p>
+            <code class="mono addr" id="pvAddr">0x…0000</code>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOOK MARKETPLACE -->
+    <section id="hooks" class="section alt">
+      <div class="wrap">
+        <div class="section-head split">
+          <div>
+            <p class="eyebrow mono">02 / marketplace</p>
+            <h2>Hook marketplace</h2>
+          </div>
+          <div class="filters" id="filters">
+            <button class="chip active" data-f="all">All</button>
+            <button class="chip" data-f="fee">Fees</button>
+            <button class="chip" data-f="protect">Protection</button>
+            <button class="chip" data-f="reward">Rewards</button>
+            <button class="chip" data-f="supply">Supply</button>
+          </div>
+        </div>
+        <div class="hook-grid" id="hookGrid"></div>
+      </div>
+    </section>
+
+    <!-- TOKENS -->
+    <section id="tokens" class="section">
+      <div class="wrap">
+        <div class="section-head split">
+          <div>
+            <p class="eyebrow mono">03 / live</p>
+            <h2>Fresh launches</h2>
+          </div>
+          <input class="search" id="tokenSearch" placeholder="Search ticker…" />
+        </div>
+        <div class="table-wrap card">
+          <table class="tokens">
+            <thead><tr><th>Token</th><th>Hooks</th><th>Price</th><th>24h</th><th>MCap</th><th>Age</th></tr></thead>
+            <tbody id="tokenRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- BUILD -->
+    <section id="build" class="section alt">
+      <div class="wrap build">
+        <div>
+          <p class="eyebrow mono">04 / build</p>
+          <h2>Write a hook.<br />Get paid per launch.</h2>
+          <p class="muted">Implement the block interface, pass the automated checks, and list. Every pool that includes your block routes a slice of its fees back to your address — forever.</p>
+          <ol class="steps">
+            <li><b>Implement</b> the <span class="mono">IHookBlock</span> interface.</li>
+            <li><b>Submit</b> source + tests for verification.</li>
+            <li><b>Set</b> your royalty (0–0.25%).</li>
+            <li><b>Earn</b> whenever a launch composes your block.</li>
+          </ol>
+          <a href="#" class="btn btn-ghost">Read the docs →</a>
+        </div>
+        <pre class="code card"><code><span class="c">// SPDX-License-Identifier: MIT</span>
+<span class="k">pragma</span> solidity ^0.8.26;
+
+<span class="k">import</span> {IHookBlock} <span class="k">from</span> <span class="s">"hookse/IHookBlock.sol"</span>;
+
+<span class="k">contract</span> <span class="t">MaxWallet</span> <span class="k">is</span> IHookBlock {
+    <span class="t">uint256</span> <span class="k">public immutable</span> cap;
+
+    <span class="k">constructor</span>(<span class="t">uint256</span> _cap) { cap = _cap; }
+
+    <span class="k">function</span> <span class="f">afterSwap</span>(Ctx <span class="k">calldata</span> c)
+        <span class="k">external view returns</span> (<span class="t">bytes4</span>)
+    {
+        <span class="k">if</span> (c.isBuy) <span class="k">require</span>(
+            c.balanceAfter &lt;= cap, <span class="s">"cap"</span>
+        );
+        <span class="k">return</span> <span class="k">this</span>.afterSwap.selector;
+    }
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="section">
+      <div class="wrap narrow">
+        <div class="section-head">
+          <p class="eyebrow mono">05 / faq</p>
+          <h2>Questions</h2>
+        </div>
+        <details><summary>What is a hook block?</summary><p>A small, single-purpose Uniswap v4 hook — like a max-wallet cap or a burn on buy — designed to be stacked with others inside one router hook.</p></details>
+        <details><summary>Is launching permissionless?</summary><p>Yes. Anyone can compose blocks and open a pool. Liquidity is seeded at creation, so there's no presale step.</p></details>
+        <details><summary>How do hook authors get paid?</summary><p>Each block declares a royalty. When a swap runs through a pool that uses the block, that share of the fee is sent to the author's address.</p></details>
+        <details><summary>Can I inspect what a pool does?</summary><p>Every pool page lists its active blocks, parameters and source links, so traders can verify rules before swapping.</p></details>
+        <details><summary>Is this site live?</summary><p>No — this is a front-end demo. All numbers and tokens shown are mock data.</p></details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap foot-inner">
+      <a href="#" class="logo small">
+        <svg viewBox="0 0 32 32" width="22" height="22" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--accent)"/><path d="M12 6v12a5 5 0 0 0 10 0v-2" stroke="#0b0d10" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
+        <span>hookse</span>
+      </a>
+      <div class="foot-links">
+        <a href="#">Docs</a><a href="#">GitHub</a><a href="#">X</a><a href="#">Telegram</a>
+      </div>
+      <p class="tiny muted">© 2026 Hookse. Demo interface. Not financial advice.</p>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
