@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hook · Hookse</title>
+  <meta name="description" content="Hook on Hookse" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23fc72ff'/><path d='M11 7v11a5 5 0 0 0 10 0v-3' stroke='%230b0d12' stroke-width='3.2' fill='none' stroke-linecap='round'/></svg>" />
+  <script>try{var t=localStorage.getItem("hookse-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
+</head>
+<body data-nav="hooks">
+  <div class="app">
+    <aside id="sidebar"></aside>
+    <main class="app-main">
+
+      <p class="crumb"><a href="hooks.html">Hooks</a> / <span id="crumb">Native block</span></p>
+      <div class="app-head">
+        <div class="hook-title" id="title"></div>
+        <div class="btn-row"><a class="btn btn-pink btn-sm" id="buildWith" href="builder.html">Build with it</a><button class="btn btn-dark btn-sm" data-go="mechanics">View mechanics</button></div>
+      </div>
+      <div class="card callout" id="tradeoff"></div>
+      <div class="subtabs" id="dtabs"><button class="on" data-t="overview">Overview</button><button data-t="mechanics">Mechanics</button><button data-t="params">Parameters</button><button data-t="evidence">Evidence</button></div>
+      <section data-panel="overview">
+        <div class="card kv-grid" id="stats"></div>
+        <div class="card pad sec-gap"><p class="form-h">How it behaves</p><p class="muted behave" id="behave"></p></div>
+      </section>
+      <section data-panel="mechanics" hidden><div class="card pad"><ul class="mech" id="mech"></ul></div></section>
+      <section data-panel="params" hidden><div class="card table-card"><table class="table"><thead><tr><th>Parameter</th><th>Config field</th><th class="r">Default</th><th class="r">Range</th></tr></thead><tbody id="params"></tbody></table></div></section>
+      <section data-panel="evidence" hidden><div class="card pad prose" id="evidence"></div></section>
+      <h2 class="h-sm sec-h">Other blocks</h2>
+      <div class="feat-row" id="others"></div>
+
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script type="module" src="shell.js"></script>
+  <script type="module" src="hook.js"></script>
+</body>
+</html>

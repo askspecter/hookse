@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy · Hookse</title>
+  <meta name="description" content="Privacy on Hookse" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23fc72ff'/><path d='M11 7v11a5 5 0 0 0 10 0v-3' stroke='%230b0d12' stroke-width='3.2' fill='none' stroke-linecap='round'/></svg>" />
+  <script>try{var t=localStorage.getItem("hookse-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
+</head>
+<body data-nav="privacy">
+  <div class="app">
+    <aside id="sidebar"></aside>
+    <main class="app-main">
+
+      <div class="app-head"><div><p class="kicker">Legal</p><h1>Privacy</h1><p class="lede muted">Last updated 26 September 2026. This is a plain-language template; have it reviewed before relying on it.</p></div></div>
+      <div class="prose">
+        <h2>What we collect</h2><p>Hookse is a static website. It has no accounts and does not run its own servers for the app. Your wallet address is read in your browser when you connect, and is public on the blockchain anyway.</p>
+        <h2>Stored in your browser</h2><p>Your theme, accent colour and last wallet connection method are kept in your browser's local storage. Clear site data to remove them.</p>
+        <h2>Third parties</h2><p>The site loads fonts from Google Fonts and code from jsDelivr, reads Robinhood Chain through its public RPC, and, if enabled, connects wallets through Reown. Each has its own privacy policy.</p>
+        <h2>On-chain data</h2><p>Launches, trades and claims are public, permanent blockchain transactions. We cannot delete them.</p>
+</div>
+
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script type="module" src="shell.js"></script>
+
+</body>
+</html>

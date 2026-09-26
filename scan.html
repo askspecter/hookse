@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scan · Hookse</title>
+  <meta name="description" content="Scan on Hookse" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23fc72ff'/><path d='M11 7v11a5 5 0 0 0 10 0v-3' stroke='%230b0d12' stroke-width='3.2' fill='none' stroke-linecap='round'/></svg>" />
+  <script>try{var t=localStorage.getItem("hookse-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
+</head>
+<body data-nav="scan">
+  <div class="app">
+    <aside id="sidebar"></aside>
+    <main class="app-main">
+
+      <div class="app-head">
+        <div><p class="kicker">Hookse Scan</p><h1>Read any v4 hook</h1>
+        <p class="lede muted">Paste a Uniswap v4 hook address. Its permissions are encoded in the last 14 bits of the address, so they can be decoded without trusting anyone.</p></div>
+      </div>
+      <form class="card pad scan-form" id="scanForm">
+        <input id="addr" class="filter" placeholder="0x… hook address" autocomplete="off" />
+        <button class="btn btn-pink btn-sm">Decode</button>
+      </form>
+      <div id="scanOut"></div>
+      <section class="card pad sec-gap" id="listing">
+        <p class="form-h">List a hook</p>
+        <p class="muted small">Want your hook in the catalog? Decode it here, then send the address, source link and tests. Listing needs verified source and a review; it is never automatic.</p>
+        <div class="btn-row sec-gap-s"><a class="btn btn-dark btn-sm" href="community.html#ideas">Send for review</a><a class="btn btn-dark btn-sm" href="docs.html#hook-permissions">Permission bits explained</a></div>
+      </section>
+
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script type="module" src="shell.js"></script>
+  <script type="module" src="scan.js"></script>
+</body>
+</html>

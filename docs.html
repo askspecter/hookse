@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Docs · Hookse</title>
+  <meta name="description" content="Docs on Hookse" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23fc72ff'/><path d='M11 7v11a5 5 0 0 0 10 0v-3' stroke='%230b0d12' stroke-width='3.2' fill='none' stroke-linecap='round'/></svg>" />
+  <script>try{var t=localStorage.getItem("hookse-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
+</head>
+<body data-nav="docs">
+  <div class="app">
+    <aside id="sidebar"></aside>
+    <main class="app-main">
+
+      <div class="docs-layout">
+        <nav class="docs-nav">
+          <p>Overview</p><a href="#overview">What Hookse is</a><a href="#architecture">Architecture</a>
+          <p>Pons V2 launches</p><a href="#pons">How a launch works</a><a href="#launching">PonsLauncher</a><a href="#splitter">CreatorFeeSplitter</a><a href="#fee-model">Fee model</a>
+          <p>v4 hook</p><a href="#blocks">Rule blocks</a><a href="#hook-permissions">Hook permissions</a><a href="#v4-launcher">Direct v4 launcher</a>
+          <p>Reference</p><a href="#addresses">Contracts &amp; addresses</a><a href="#events">Events</a><a href="#wallets">Wallets &amp; config</a>
+          <p>Security</p><a href="#limitations">Known limitations</a><a href="#trust">Trust assumptions</a>
+        </nav>
+        <article class="prose">
+          <p class="kicker">Developer docs</p>
+          <h1 class="doc-h1">Hookse developer docs</h1>
+          <pre>git clone &lt;repo&gt; &amp;&amp; cd engine &amp;&amp; npm install &amp;&amp; npm test</pre>
+
+          <h2 id="overview">What Hookse is</h2>
+          <p>Hookse launches coins on Pons V2 from its own launcher so that each coin's creator fees are split automatically: 80% to the creator, 20% to the Hookse treasury. It also ships a Uniswap v4 hook with five switchable rule blocks for pools opened directly on v4.</p>
+
+          <h2 id="architecture">Architecture</h2>
+          <table><tr><th>Layer</th><th>Contracts</th><th>Role</th></tr>
+            <tr><td>Pons launches</td><td><code>PonsLauncher</code>, <code>CreatorFeeSplitter</code></td><td>Launch on Pons V2; route creator fees 80/20.</td></tr>
+            <tr><td>v4 hook</td><td><code>HookseHook</code></td><td>Rule blocks for Uniswap v4 pools.</td></tr>
+            <tr><td>Direct v4 launches</td><td><code>HookseLauncher</code>, <code>HookseToken</code></td><td>Mint a token and seed a locked v4 pool on the hook.</td></tr>
+            <tr><td>Site</td><td><code>web3.js</code>, <code>config.js</code></td><td>Static pages that read and write the contracts with viem.</td></tr>
+          </table>
+
+          <h2 id="pons">How a launch works</h2>
+          <ol>
+            <li><code>PonsLauncher.launch</code> clones a <code>CreatorFeeSplitter</code> and initializes it with the caller as creator.</li>
+            <li>It calls Pons <code>launchToken</code> with <code>creatorFeeRecipient = splitter</code>, paying the Pons launch fee.</li>
+            <li>Any ETH above the launch fee buys on the new curve for the creator.</li>
+            <li>The launch is stored: token, curve, splitter, creator, time.</li>
+          </ol>
+
+          <h2 id="launching">PonsLauncher</h2>
+          <pre>function launch(LaunchParams p) payable returns (uint256 id)   // msg.value = launchFee + optional buy
+function launches(uint256 id) view returns (address token, address curve, address splitter, address creator, uint64 launchedAt)
+function launchesOf(address creator) view returns (uint256[])
+function idOf(address token) view returns (uint256)
+function launchCount() view returns (uint256)
+function setTreasury(address) // owner only</pre>
+          <p>Pass <code>expectedEconomics = pons.previewLaunchEconomics(0, address(0))</code>. Pons reverts if its terms changed, instead of silently launching on different ones.</p>
+
+          <h2 id="splitter">CreatorFeeSplitter</h2>
+          <pre>function harvest()                 // anyone: sweep curve → claim escrow → 20% treasury, 80% owed to creator
+function claim() returns (uint256) // creator: harvest, then pay everything owed
+function setCreator(address next)  // creator: hand over the share
+function claimable() view returns (uint256)
+function totalToCreator() view returns (uint256)
+function totalToTreasury() view returns (uint256)</pre>
+          <p>The splitter has no function to change the Pons fee recipient and no admin withdraw.</p>
+
+          <h2 id="fee-model">Fee model</h2>
+          <table><tr><th>Stream</th><th>Who pays</th><th>Where it goes</th></tr>
+            <tr><td>Pons launch fee</td><td>Creator, once</td><td>Pons</td></tr>
+            <tr><td>Creator tax (0 to Pons max)</td><td>Traders on the curve and pool</td><td>Splitter → 80% creator, 20% Hookse treasury</td></tr>
+            <tr><td>Pons protocol fees</td><td>Traders</td><td>Pons, per its own terms</td></tr>
+            <tr><td>v4 hook takes and royalties</td><td>Traders in Hookse v4 pools</td><td>Burn, LPs, pot or block authors (see below)</td></tr>
+          </table>
+
+          <h2 id="blocks">Rule blocks</h2>
+          <table><tr><th>Block</th><th>Bit</th><th>Config fields</th></tr>
+            <tr><td>Anti-Snipe</td><td>1</td><td><code>snipeBlocks</code>, <code>snipeMaxBuy</code>, <code>snipeFee</code></td></tr>
+            <tr><td>Surge Fee</td><td>2</td><td><code>surgeMaxFee</code>, <code>surgeRefSize</code></td></tr>
+            <tr><td>Auto Burn</td><td>4</td><td><code>burnBps</code></td></tr>
+            <tr><td>LP Rewards</td><td>8</td><td><code>lpBps</code></td></tr>
+            <tr><td>Nth-Buy Pot</td><td>16</td><td><code>potBps</code>, <code>potEvery</code>, <code>potMinBuy</code></td></tr>
+          </table>
+          <p>Fees are in pips (3000 = 0.30%) and takes in basis points. LP fee is capped at 10%; takes plus up to 0.25% royalty per block are capped at 10% of the swap's unspecified amount.</p>
+
+          <h2 id="hook-permissions">Hook permissions</h2>
+          <p>Uniswap v4 reads a hook's permissions from the last 14 bits of its address. HookseHook needs <code>beforeInitialize</code> (bit 13), <code>beforeSwap</code> (7), <code>afterSwap</code> (6) and <code>afterSwapReturnDelta</code> (2), so it is deployed with CREATE2 at a mined salt. Decode any address on <a href="scan.html">Scan</a>.</p>
+
+          <h2 id="v4-launcher">Direct v4 launcher</h2>
+          <p><code>HookseLauncher.launch(name, symbol, supply, startTick, config)</code> mints a fixed supply, opens an ETH/token pool on HookseHook and seeds the whole supply as single-sided liquidity locked in the launcher. <code>collectCreatorFees(token)</code> sends the position's LP fees to the creator.</p>
+
+          <h2 id="addresses">Contracts &amp; addresses</h2>
+          <table><tr><th>Contract</th><th>Robinhood Chain (4663)</th></tr>
+            <tr><td>Pons V2 factory</td><td><code>0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e</code></td></tr>
+            <tr><td>PonsLauncher</td><td id="addrLauncher"><code>not deployed yet</code></td></tr>
+          </table>
+          <p>Deploy with <code>TREASURY=0x… npx hardhat run scripts/deploy-pons.js --network robinhood</code>, then set <code>ponsLauncher</code> and <code>startBlock</code> in <code>config.js</code>.</p>
+
+          <h2 id="events">Events</h2>
+          <pre>PonsLauncher:       Launched(uint256 indexed id, address indexed creator, address indexed token, address curve, address splitter, uint256 devBuy)
+CreatorFeeSplitter: Harvested(uint256 toCreator, uint256 toTreasury)
+                    Withdrawn(address indexed creator, uint256 amount)
+                    CreatorChanged(address indexed previous, address indexed next)</pre>
+
+          <h2 id="wallets">Wallets &amp; config</h2>
+          <p>The site connects browser wallets directly, and mobile wallets through Reown AppKit when <code>reownProjectId</code> is set in <code>config.js</code>. It switches the wallet to Robinhood Chain right before a transaction.</p>
+
+          <h2 id="limitations">Known limitations</h2>
+          <ul>
+            <li>Not audited.</li>
+            <li>Before graduation, fees sit on the curve until swept, so <code>claimable()</code> can read low until someone harvests.</li>
+            <li>After graduation, pool fees reach the splitter only when Pons' sweep operator credits them.</li>
+            <li>The Nth-Buy Pot counter is public; its winner falls back to <code>tx.origin</code> when a router passes no recipient.</li>
+            <li>Auto Burn only applies to exact-input buys.</li>
+          </ul>
+
+          <h2 id="trust">Trust assumptions</h2>
+          <ul>
+            <li>The Hookse owner can change the treasury address for future harvests. It cannot touch creators' 80%.</li>
+            <li>Pons controls its own factory, curve and escrow and can change its terms.</li>
+            <li>The HookseHook owner sets block-author royalties (max 0.25% each) and the one-time launcher address.</li>
+          </ul>
+        </article>
+        <aside class="toc"><b>On this page</b><a href="#overview">Overview</a><a href="#pons">Launch flow</a><a href="#fee-model">Fee model</a><a href="#blocks">Rule blocks</a><a href="#addresses">Addresses</a><a href="#limitations">Limitations</a></aside>
+      </div>
+
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script type="module" src="shell.js"></script>
+  <script type="module" src="docs.js"></script>
+</body>
+</html>

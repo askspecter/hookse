@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Learn · Hookse</title>
+  <meta name="description" content="Learn on Hookse" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23fc72ff'/><path d='M11 7v11a5 5 0 0 0 10 0v-3' stroke='%230b0d12' stroke-width='3.2' fill='none' stroke-linecap='round'/></svg>" />
+  <script>try{var t=localStorage.getItem("hookse-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
+</head>
+<body data-nav="learn">
+  <div class="app">
+    <aside id="sidebar"></aside>
+    <main class="app-main">
+
+      <div class="app-head">
+        <div><p class="kicker">Learn</p><h1>How Hookse works</h1>
+        <p class="lede muted">Short guides for creators, traders and builders. For contract-level detail, read the Docs.</p></div>
+        <a class="btn btn-dark btn-sm" href="docs.html">Open the docs</a>
+      </div>
+      <div class="grid3">
+        <a class="card pad lane" href="#launching"><b>Launching a coin</b><p class="muted small">From the form to a live bonding curve in one transaction.</p></a>
+        <a class="card pad lane" href="#fees"><b>Creator fees, 80/20</b><p class="muted small">Where fees come from, who gets what, and how to claim.</p></a>
+        <a class="card pad lane" href="#graduation"><b>Curve and graduation</b><p class="muted small">What happens when a coin's curve sells out.</p></a>
+        <a class="card pad lane" href="#hooks"><b>What is a hook?</b><p class="muted small">Uniswap v4 hooks in plain words, and Hookse's rule blocks.</p></a>
+        <a class="card pad lane" href="#safety"><b>Staying safe</b><p class="muted small">What the contracts can and cannot do, and the risks.</p></a>
+        <a class="card pad lane" href="#glossary"><b>Glossary</b><p class="muted small">Curve, splitter, escrow, harvest and more.</p></a>
+      </div>
+      <div class="prose">
+        <h2 id="launching">Launching a coin</h2>
+        <p>Fill in a name, ticker and optional logo, description and socials on the <a href="launch.html">Launch</a> page. You pay the Pons launch fee and, if you like, some extra ETH to buy your own coin in the same transaction. Hookse creates a fee splitter for the coin, then asks Pons V2 to deploy the token and its bonding curve with that splitter as the creator-fee recipient.</p>
+        <h2 id="fees">Creator fees, 80/20</h2>
+        <p>Pons charges a creator tax on trades. For coins launched here, that tax goes to the coin's fee splitter. When anyone harvests, the splitter sends 20% to the Hookse treasury and keeps 80% for you. You withdraw it in <a href="portfolio.html">Portfolio</a> with one click. You can hand your share to another wallet at any time.</p>
+        <p>On Pons, the creator shown for your coin is the splitter's address, not your wallet. That is expected: the splitter is what makes the automatic split possible.</p>
+        <h2 id="graduation">Curve and graduation</h2>
+        <p>A new coin trades on a bonding curve: the price rises as people buy. When the curve sells out, Pons graduates the coin into a Uniswap v4 pool whose liquidity is locked for good. After graduation, pool fees reach the splitter when Pons' operator sweeps them.</p>
+        <h2 id="hooks">What is a hook?</h2>
+        <p>Uniswap v4 lets a pool call a contract, the hook, before and after swaps. Hookse's hook bundles five rule blocks (Anti-Snipe, Surge Fee, Auto Burn, LP Rewards and Nth-Buy Pot) that a pool switches on at creation. Browse them in <a href="hooks.html">Hooks</a> and combine them in the <a href="builder.html">Builder</a>.</p>
+        <h2 id="safety">Staying safe</h2>
+        <ul>
+          <li>The contracts are not audited. Treat every launch as high risk.</li>
+          <li>The splitter cannot change the Pons fee recipient, and has no admin withdraw. The treasury address can be changed by the Hookse owner; your 80% cannot.</li>
+          <li>Pons can change its own fees or terms. Launches check <code>expectedEconomics</code> and revert if they changed mid-transaction.</li>
+          <li>Anyone can create a coin with any name. Check the token address before trading.</li>
+        </ul>
+        <h2 id="glossary">Glossary</h2>
+        <table><tr><th>Term</th><th>Meaning</th></tr>
+          <tr><td>Bonding curve</td><td>Pons' pricing contract for a new coin, before graduation.</td></tr>
+          <tr><td>Fee splitter</td><td>The per-coin Hookse contract that receives Pons creator fees and splits them 80/20.</td></tr>
+          <tr><td>Escrow</td><td>Pons contract that holds creator fees until the recipient claims.</td></tr>
+          <tr><td>Harvest</td><td>Sweep the curve, claim from escrow and split. Anyone can call it.</td></tr>
+          <tr><td>Claim</td><td>Harvest, then send the creator's 80% to their wallet. Creator only.</td></tr>
+        </table>
+      </div>
+
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script type="module" src="shell.js"></script>
+
+</body>
+</html>

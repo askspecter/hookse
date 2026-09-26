@@ -1,0 +1,35 @@
+{
+  "name": "Hookse",
+  "description": "Launch coins on Pons V2 with an 80/20 creator fee split; Uniswap v4 hook rule blocks.",
+  "chain": { "id": 4663, "name": "Robinhood Chain", "rpc": "https://rpc.mainnet.chain.robinhood.com", "explorer": "https://robinhoodchain.blockscout.com" },
+  "contracts": {
+    "ponsFactory": "0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e",
+    "ponsLauncher": null
+  },
+  "abis": {
+    "ponsLauncher": [
+      "function launch((string name,string symbol,string logo,string description,(string twitter,string telegram,string discord,string website,string farcaster) socials,uint16 creatorTaxBps,uint256 launchConfigId,bytes32 expectedEconomics,bytes32 salt,uint256 minTokensOut) p) payable returns (uint256)",
+      "function launchCount() view returns (uint256)",
+      "function launches(uint256) view returns (address token,address curve,address splitter,address creator,uint64 launchedAt)",
+      "function launchesOf(address creator) view returns (uint256[])",
+      "function idOf(address token) view returns (uint256)",
+      "function treasury() view returns (address)"
+    ],
+    "creatorFeeSplitter": [
+      "function harvest()",
+      "function claim() returns (uint256)",
+      "function setCreator(address next)",
+      "function creator() view returns (address)",
+      "function claimable() view returns (uint256)",
+      "function totalToCreator() view returns (uint256)",
+      "function totalToTreasury() view returns (uint256)"
+    ],
+    "ponsFactory": [
+      "function launchFee() view returns (uint256)",
+      "function maxCreatorTaxBps() view returns (uint16)",
+      "function previewLaunchEconomics(uint256 launchConfigId, address pairToken) view returns (bytes32)"
+    ]
+  },
+  "feeSplit": { "creatorBps": 8000, "treasuryBps": 2000 },
+  "docs": "docs.html"
+}

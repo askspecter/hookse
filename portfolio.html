@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Portfolio · Hookse</title>
+  <meta name="description" content="Portfolio on Hookse" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23fc72ff'/><path d='M11 7v11a5 5 0 0 0 10 0v-3' stroke='%230b0d12' stroke-width='3.2' fill='none' stroke-linecap='round'/></svg>" />
+  <script>try{var t=localStorage.getItem("hookse-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
+</head>
+<body data-nav="portfolio">
+  <div class="app">
+    <aside id="sidebar"></aside>
+    <main class="app-main">
+
+      <div class="app-head">
+        <div><p class="kicker">Robinhood Chain · your wallet</p><h1>Portfolio</h1>
+        <p class="lede muted">Creator fees from the coins you launched, and your liquidity positions.</p></div>
+        <div class="btn-row"><a href="launch.html" class="btn btn-dark btn-sm">Launch a coin</a></div>
+      </div>
+      <div class="subtabs" id="ptabs"><button class="on" data-p="fees">Creator fees</button><button data-p="positions">Positions</button></div>
+      <div class="notice" id="notLive" hidden>Claiming is off until the Hookse Pons launcher is deployed and set in <span class="mono">config.js</span>.</div>
+      <section id="p-fees">
+        <section class="card claim-top">
+          <div><span class="k">Claimable now</span><b id="sumClaim">—</b></div>
+          <div><span class="k">Claimed to date</span><b id="sumPaid">—</b></div>
+          <div><span class="k">Your coins</span><b id="sumCoins">—</b></div>
+          <div class="claim-cta"><button class="btn btn-pink btn-sm" id="claimAll" disabled>Claim all</button></div>
+        </section>
+        <div class="disc-bar">
+          <h2 class="h-sm">Your coins</h2>
+          <input id="lookup" class="filter push" placeholder="Look up a coin by token address…" />
+        </div>
+        <div class="card table-card">
+          <table class="table">
+            <thead><tr><th>Coin</th><th>Fee splitter</th><th class="r">Claimable</th><th class="r">Paid to creator</th><th class="r">Treasury</th><th class="r"></th></tr></thead>
+            <tbody id="rows"><tr><td colspan="6" class="dim">Connect your wallet to see coins you launched.</td></tr></tbody>
+          </table>
+        </div>
+        <p class="fine">Claimable shows fees already swept into the splitter or the Pons escrow. Fees still on a coin's bonding curve are swept when you claim. Anyone can press Harvest to push fees through; your 80% always stays yours.</p>
+      </section>
+      <section id="p-positions" hidden>
+        <div class="empty">
+          <b>Liquidity positions</b>
+          <p>Pons locks each graduated pool's liquidity, so there is nothing to manage there. Positions you open in Hookse v4 pools will show here.</p>
+          <div class="btn-row"><button class="btn btn-pink btn-sm" data-connect>Connect wallet</button><a href="app.html" class="btn btn-dark btn-sm">Explore pools</a></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script type="module" src="shell.js"></script>
+  <script type="module" src="claim.js"></script>
+  <script type="module" src="portfolio.js"></script>
+</body>
+</html>

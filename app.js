@@ -40,12 +40,13 @@ const RULES = [
 ];
 
 const INTEGRATIONS = [
-  { name: "Perpline", av: "P", st: "live", desc: "Launch a coin and trade it as a perpetual in the same flow." },
-  { name: "Arbkeeper", av: "A", st: "live", desc: "Captures price gaps between venues during the swap and shares the profit with the pool's LPs instead of external searchers." },
-  { name: "Questpool", av: "Q", st: "soon", desc: "Game-economy hooks: rewards, sinks and settlement handled by the pool itself." },
-  { name: "Tradehall", av: "T", st: "live", desc: "A standalone trading venue listing Hookse tokens." },
+  { name: "Pons V2", av: "P", st: "live", href: "docs.html#pons", desc: "Every Hookse coin launches on a Pons V2 bonding curve and graduates into a locked Uniswap v4 pool." },
+  { name: "Uniswap v4", av: "U", st: "live", href: "docs.html#blocks", desc: "Hooks, the PoolManager and routing. The Hookse rule blocks are a standard v4 hook." },
+  { name: "Robinhood Chain", av: "R", st: "live", href: "docs.html#addresses", desc: "Chain 4663, where the launcher, fee splitters and pools live." },
+  { name: "Arb Recapture", av: "A", st: "soon", href: "hooks.html", desc: "An add-on that keeps arbitrage value inside the pool for its LPs. In development." },
 ];
 
+const AUDIENCE_LINKS = { "Traders": "app.html", "Liquidity providers": "portfolio.html", "Launchers": "launch.html", "Hook builders": "builder.html", "Analysts": "scan.html", "Integrators": "integrations.html", "Agents": "agents.html" };
 const AUDIENCES = [
   ["Traders", "Check every rule before a swap", "Each market shows its decoded blocks plus the on-chain proof."],
   ["Liquidity providers", "Positions, fees, migration", "Mint, manage and move liquidity between hooked pools."],
@@ -57,24 +58,25 @@ const AUDIENCES = [
 ];
 
 const ACTIONS = [
-  ["Launch", "Create a token with its own rule set, paired with ETH, a stablecoin or the platform token."],
-  ["Open a pool", "Attach hooks to an asset that already trades by opening a fresh hooked pair."],
-  ["Builder", "Pick blocks, tune each parameter and preview the result before you sign."],
-  ["Integrate", "Launch from your own app and keep managing liquidity on the same venue."],
-  ["Agents", "Read a pool's rules, get quotes and swap from a skill file any agent can load."],
-  ["Build a block", "Write a new block and submit it for review to enter the catalog."],
-  ["In review", "Leverage hooks we are building ourselves, currently under audit."],
-  ["Arb Recapture", "Pools keep the arbitrage they generate. The router blocks outside arbitrage and shares what it captures.", true],
-  ["Partners", "Game-economy hooks with Questpool, coming soon."],
+  ["Launch", "Launch a coin on Pons V2 in one transaction. You keep 80% of its creator fees.", "launch.html", true],
+  ["Claim fees", "See every coin you launched and withdraw your share of creator fees.", "portfolio.html"],
+  ["Builder", "Pick blocks, tune each parameter and preview the result before you sign.", "builder.html"],
+  ["Integrate", "Launch from your own app; your users still claim their fees here.", "integrations.html"],
+  ["Agents", "Contract calls and a manifest file any bot or agent can use.", "agents.html"],
+  ["Build a block", "Write a new block and submit it for review to enter the catalog.", "scan.html#listing"],
+  ["Scan a hook", "Decode any Uniswap v4 hook's permissions from its address.", "scan.html"],
+  ["Learn", "Short guides on curves, graduation, fees and risks.", "learn.html"],
+  ["Docs", "Contracts, fee model, events and addresses.", "docs.html"],
 ];
 
 const FAQ = [
-  ["What is Hookse?", "A launchpad and catalog for Uniswap v4 hooks. You pick small single-purpose blocks, stack them in one pool, and launch or trade on top."],
+  ["What is Hookse?", "A launchpad on Pons V2 plus a catalog of Uniswap v4 hook blocks. Launch a coin, keep 80% of its creator fees, and compose pool rules in the builder."],
+  ["How do creator fees work?", "Each coin's Pons creator fees go to its own fee splitter contract. 80% is yours to claim in Portfolio; 20% goes to the Hookse treasury."],
   ["Which rules can a pool use right now?", "Anti-Snipe, Surge Fee, Auto Burn, LP Rewards, Nth-Buy Pot and Arb Recapture. Parameters are fixed when the pool opens."],
   ["How does the Nth-Buy Pot pick winners?", "It is not random: a public counter increments on every qualifying buy and pays the pot when it hits N."],
   ["Where are Hookse tokens traded?", "In their hooked v4 pool, and through any aggregator or venue that routes to Uniswap v4."],
   ["Can I add hooks to a token that already exists?", "Yes. Open a new hooked pair for it; the original pools are left untouched."],
-  ["Is any of this live?", "No. This site is a front-end demo and all data shown is mock data."],
+  ["Is the data on this page live?", "The stats, pools table and ticker on this landing page are sample data. Launch, Portfolio, Discover and Community read the chain once the launcher is deployed."],
 ];
 
 const COLORS = ["#fc72ff", "#c8f135", "#4c82fb", "#ffc700", "#8b5cf6", "#40b66b", "#ff8a00"];
@@ -94,26 +96,26 @@ const pct = n => `<span class="${n >= 0 ? "up" : "down"}">${n >= 0 ? "+" : ""}${
 
 /* ---------- render sections ---------- */
 $("#integrations").innerHTML = INTEGRATIONS.map(x => `
-  <a href="#" class="card integ" data-demo="${x.name}">
+  <a href="${x.href}" class="card integ">
     <div class="ava">${x.av}</div>
     <div><b>${x.name}</b><span class="tag ${x.st === "live" ? "tag-live" : "tag-soon"}">${x.st === "live" ? "Live" : "Coming soon"}</span><p>${x.desc}</p></div>
   </a>`).join("");
 
 $("#rulesGrid").innerHTML = RULES.map(r => `
-  <a href="#" class="card rule" data-demo="${r.name}">
+  <a href="${r.partner ? "hooks.html" : "hook.html?id=" + ({ antisnipe: "anti-snipe", surge: "surge-fee", burn: "auto-burn", lp: "lp-rewards", pot: "nth-buy-pot" })[r.id]}" class="card rule">
     ${icon(r.ic, r.c)}
     <h4>${r.name}</h4>
     <p>${r.desc}</p>
     ${r.partner
-      ? `<div class="pow">Run with <b>Arbkeeper</b><span class="ext">arbkeeper.example ↗</span></div>`
+      ? `<div class="pow"><b>Partner add-on</b><span class="ext">In development</span></div>`
       : `<div class="gas">~${r.gas}K gas per swap · locked at pool open</div>`}
   </a>`).join("");
 
 $("#audiences").innerHTML = AUDIENCES.map(([k, h, p]) => `
-  <a href="#" class="card aud" data-demo="${k}"><span class="k">${k}</span><h4>${h}</h4><p>${p}</p></a>`).join("");
+  <a href="${AUDIENCE_LINKS[k]}" class="card aud"><span class="k">${k}</span><h4>${h}</h4><p>${p}</p></a>`).join("");
 
-$("#actions").innerHTML = ACTIONS.map(([h, p, isNew]) => `
-  <a href="#" class="card act" data-demo="${h}"><b>${h}</b>${isNew ? ' <span class="tag tag-new">New</span>' : ""}<p>${p}</p></a>`).join("");
+$("#actions").innerHTML = ACTIONS.map(([h, p, href, isNew]) => `
+  <a href="${href}" class="card act"><b>${h}</b>${isNew ? ' <span class="tag tag-new">New</span>' : ""}<p>${p}</p></a>`).join("");
 
 $("#faqList").innerHTML = FAQ.map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join("");
 
