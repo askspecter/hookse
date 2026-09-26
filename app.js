@@ -1,23 +1,7 @@
-// Hookse demo front-end. All data below is mock data.
-
-const HOOKS = [
-  { id: "antisnipe", icon: "🛡️", name: "Anti-Snipe", cat: "protect", desc: "Caps buy size and adds a decaying tax during the first blocks after launch.", buy: 5, sell: 0, royalty: 0.05, flags: ["beforeSwap"], uses: 612, author: "0x7a1…c09" },
-  { id: "surge", icon: "⚡", name: "Surge Fee", cat: "fee", desc: "Fee scales up with trade size relative to pool depth, dampening large swings.", buy: 0.5, sell: 0.5, royalty: 0.05, flags: ["beforeSwap", "dynamicFee"], uses: 488, author: "0x3f2…b71" },
-  { id: "burn", icon: "🔥", name: "Auto Burn", cat: "supply", desc: "Routes a share of every buy's output to the dead address.", buy: 1, sell: 0, royalty: 0.03, flags: ["afterSwap", "returnsDelta"], uses: 401, author: "0x91c…2ee" },
-  { id: "lprewards", icon: "💧", name: "LP Rewards", cat: "reward", desc: "Streams a cut of fees to in-range liquidity providers, weighted by time.", buy: 0.5, sell: 0.5, royalty: 0.04, flags: ["afterSwap", "afterAddLiquidity"], uses: 355, author: "0x0bd…a44" },
-  { id: "nthbuy", icon: "🎰", name: "Nth-Buy Pot", cat: "reward", desc: "Collects a small pot from trades and pays it out to every Nth qualifying buy.", buy: 1, sell: 1, royalty: 0.05, flags: ["afterSwap"], uses: 207, author: "0x5e8…19d" },
-  { id: "maxwallet", icon: "📏", name: "Max Wallet", cat: "protect", desc: "Rejects buys that would push a wallet above a fixed share of supply.", buy: 0, sell: 0, royalty: 0.02, flags: ["afterSwap"], uses: 544, author: "0xc44…7f0" },
-  { id: "cooldown", icon: "⏱️", name: "Sell Cooldown", cat: "protect", desc: "Enforces a minimum block gap between consecutive sells from one address.", buy: 0, sell: 0, royalty: 0.02, flags: ["beforeSwap"], uses: 176, author: "0x2aa…e63" },
-  { id: "buyback", icon: "🔁", name: "Buyback", cat: "supply", desc: "Accrues sell fees in ETH and periodically market-buys and burns tokens.", buy: 0, sell: 2, royalty: 0.04, flags: ["afterSwap", "returnsDelta"], uses: 139, author: "0x8d0…4b2" },
-  { id: "timefee", icon: "📉", name: "Decay Fee", cat: "fee", desc: "Starts with a high fee that steps down linearly to a floor over 24 hours.", buy: 2, sell: 2, royalty: 0.03, flags: ["beforeSwap", "dynamicFee"], uses: 298, author: "0xe17…d88" },
-];
-
-const ALL_FLAGS = ["beforeSwap", "afterSwap", "dynamicFee", "returnsDelta", "afterAddLiquidity", "beforeInit"];
-const BASE_FEE = 0.3;
+// Hookse demo front-end. Every number, pool and partner below is mock data.
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const byId = Object.fromEntries(HOOKS.map(h => [h.id, h]));
 
 /* ---------- toast ---------- */
 let toastTimer;
@@ -26,154 +10,169 @@ function toast(msg) {
   t.textContent = msg;
   t.classList.add("show");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2400);
 }
 
-/* ---------- nav ---------- */
+/* ---------- nav + hero menu ---------- */
 $("#burger").addEventListener("click", () => $("#links").classList.toggle("open"));
 $$("#links a").forEach(a => a.addEventListener("click", () => $("#links").classList.remove("open")));
-$("#connectBtn").addEventListener("click", e => {
-  const b = e.currentTarget;
-  if (b.dataset.on) { b.textContent = "Connect"; delete b.dataset.on; return; }
-  b.textContent = "0x4c…9a1e";
-  b.dataset.on = "1";
-  toast("Demo wallet connected");
-});
+$("#moreBtn").addEventListener("click", e => { e.stopPropagation(); $(".more-wrap").classList.toggle("open"); });
+document.addEventListener("click", () => $(".more-wrap").classList.remove("open"));
 
-/* ---------- stat counters ---------- */
-function animateCount(el) {
-  const target = parseFloat(el.dataset.count);
-  const dec = +(el.dataset.dec || 0);
-  const pre = el.dataset.prefix || "", suf = el.dataset.suffix || "";
-  const start = performance.now(), dur = 1400;
-  const step = now => {
-    const p = Math.min((now - start) / dur, 1);
-    const v = target * (1 - Math.pow(1 - p, 3));
-    el.textContent = pre + v.toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec }) + suf;
+/* ---------- data ---------- */
+const ICONS = {
+  shield: '<path d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6z"/>',
+  bars: '<path d="M5 20V10M12 20V4M19 20v-7"/>',
+  flame: '<path d="M12 3c1 4 6 6 6 11a6 6 0 0 1-12 0c0-3 2-4 3-6 1 2 2 2 3 2 0-3-1-5 0-7z"/>',
+  drop: '<path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/>',
+  pot: '<path d="M5 10h14l-1.5 9h-11zM8 10V7a4 4 0 0 1 8 0v3"/>',
+  cycle: '<path d="M4 12a8 8 0 0 1 14-5l2 2M20 12a8 8 0 0 1-14 5l-2-2M20 4v5h-5M4 20v-5h5"/>',
+};
+const icon = (k, c) => `<div class="ico" style="color:${c};background:${c}22;border-color:${c}44"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[k]}</svg></div>`;
+
+const RULES = [
+  { id: "antisnipe", name: "Anti-Snipe", ic: "shield", c: "#8b5cf6", desc: "Limits buy size right after open and routes an extra LP fee during the opening blocks.", gas: 160 },
+  { id: "surge", name: "Surge Fee", ic: "bars", c: "#ff8a00", desc: "Bigger trades pay a higher fee, relative to pool depth.", gas: 120 },
+  { id: "burn", name: "Auto Burn", ic: "flame", c: "#ff4d4d", desc: "Sends a slice of each buy's output straight to the dead address.", gas: 140 },
+  { id: "lp", name: "LP Rewards", ic: "drop", c: "#40b66b", desc: "Shares fees with in-range liquidity providers over time.", gas: 150 },
+  { id: "pot", name: "Nth-Buy Pot", ic: "pot", c: "#ffc700", desc: "An on-chain counter pays the pot to every Nth qualifying buy.", gas: 180 },
+  { id: "arb", name: "Arb Recapture", ic: "cycle", c: "#4c82fb", desc: "Keeps cross-venue arbitrage profit inside the pool rather than leaking it to outside bots.", partner: true },
+];
+
+const INTEGRATIONS = [
+  { name: "Perpline", av: "P", st: "live", desc: "Launch a coin and trade it as a perpetual in the same flow." },
+  { name: "Arbkeeper", av: "A", st: "live", desc: "Captures price gaps between venues during the swap and shares the profit with the pool's LPs instead of external searchers." },
+  { name: "Questpool", av: "Q", st: "soon", desc: "Game-economy hooks: rewards, sinks and settlement handled by the pool itself." },
+  { name: "Tradehall", av: "T", st: "live", desc: "A standalone trading venue listing Hookse tokens." },
+];
+
+const AUDIENCES = [
+  ["Traders", "Check every rule before a swap", "Each market shows its decoded blocks plus the on-chain proof."],
+  ["Liquidity providers", "Positions, fees, migration", "Mint, manage and move liquidity between hooked pools."],
+  ["Launchers", "New token or existing asset", "Pick token, hooks and fee split, then review before deploying."],
+  ["Hook builders", "Compose, list, get paid", "Templates with royalty terms enforced by contract, priced up front."],
+  ["Analysts", "Inspect any v4 hook", "Read callbacks and permission bits straight from a hook address."],
+  ["Integrators", "SDK and intake lanes", "Public catalog, launch, pool and execution endpoints."],
+  ["Agents", "Machine-readable manifests", "Discovery files, signed approvals and launch packets for bots."],
+];
+
+const ACTIONS = [
+  ["Launch", "Create a token with its own rule set, paired with ETH, a stablecoin or the platform token."],
+  ["Open a pool", "Attach hooks to an asset that already trades by opening a fresh hooked pair."],
+  ["Builder", "Pick blocks, tune each parameter and preview the result before you sign."],
+  ["Integrate", "Launch from your own app and keep managing liquidity on the same venue."],
+  ["Agents", "Read a pool's rules, get quotes and swap from a skill file any agent can load."],
+  ["Build a block", "Write a new block and submit it for review to enter the catalog."],
+  ["In review", "Leverage hooks we are building ourselves, currently under audit."],
+  ["Arb Recapture", "Pools keep the arbitrage they generate. The router blocks outside arbitrage and shares what it captures.", true],
+  ["Partners", "Game-economy hooks with Questpool, coming soon."],
+];
+
+const FAQ = [
+  ["What is Hookse?", "A launchpad and catalog for Uniswap v4 hooks. You pick small single-purpose blocks, stack them in one pool, and launch or trade on top."],
+  ["Which rules can a pool use right now?", "Anti-Snipe, Surge Fee, Auto Burn, LP Rewards, Nth-Buy Pot and Arb Recapture. Parameters are fixed when the pool opens."],
+  ["How does the Nth-Buy Pot pick winners?", "It is not random: a public counter increments on every qualifying buy and pays the pot when it hits N."],
+  ["Where are Hookse tokens traded?", "In their hooked v4 pool, and through any aggregator or venue that routes to Uniswap v4."],
+  ["Can I add hooks to a token that already exists?", "Yes. Open a new hooked pair for it; the original pools are left untouched."],
+  ["Is any of this live?", "No. This site is a front-end demo and all data shown is mock data."],
+];
+
+const COLORS = ["#fc72ff", "#c8f135", "#4c82fb", "#ffc700", "#8b5cf6", "#40b66b", "#ff8a00"];
+let seed = 11;
+const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const POOLS = [["HFROG", "WETH"], ["MOONP", "WETH"], ["BCRAB", "USDG"], ["GIGA", "WETH"], ["TWHL", "HOOK"], ["SCAT", "WETH"], ["BURNY", "USDG"], ["POTL", "WETH"], ["LAZY", "HOOK"], ["DDUCK", "WETH"]]
+  .map(([a, b], i) => ({
+    a, b, color: COLORS[i % COLORS.length],
+    rules: RULES.slice(0, 5).filter(() => rand() > 0.55).slice(0, 3),
+    tvl: 8000 + rand() * 900000, change: (rand() - 0.4) * 90, vol: 2000 + rand() * 400000, apr: rand() * 180,
+    price: rand() * 0.003, mcap: 30000 + rand() * 3e6,
+  }));
+POOLS.forEach((p, i) => { if (!p.rules.length) p.rules.push(RULES[i % 5]); });
+
+const usd = n => n >= 1e6 ? "$" + (n / 1e6).toFixed(2) + "M" : n >= 1e3 ? "$" + (n / 1e3).toFixed(1) + "K" : "$" + n.toFixed(2);
+const pct = n => `<span class="${n >= 0 ? "up" : "down"}">${n >= 0 ? "+" : ""}${n.toFixed(1)}%</span>`;
+
+/* ---------- render sections ---------- */
+$("#integrations").innerHTML = INTEGRATIONS.map(x => `
+  <a href="#" class="card integ" data-demo="${x.name}">
+    <div class="ava">${x.av}</div>
+    <div><b>${x.name}</b><span class="tag ${x.st === "live" ? "tag-live" : "tag-soon"}">${x.st === "live" ? "Live" : "Coming soon"}</span><p>${x.desc}</p></div>
+  </a>`).join("");
+
+$("#rulesGrid").innerHTML = RULES.map(r => `
+  <a href="#" class="card rule" data-demo="${r.name}">
+    ${icon(r.ic, r.c)}
+    <h4>${r.name}</h4>
+    <p>${r.desc}</p>
+    ${r.partner
+      ? `<div class="pow">Run with <b>Arbkeeper</b><span class="ext">arbkeeper.example ↗</span></div>`
+      : `<div class="gas">~${r.gas}K gas per swap · locked at pool open</div>`}
+  </a>`).join("");
+
+$("#audiences").innerHTML = AUDIENCES.map(([k, h, p]) => `
+  <a href="#" class="card aud" data-demo="${k}"><span class="k">${k}</span><h4>${h}</h4><p>${p}</p></a>`).join("");
+
+$("#actions").innerHTML = ACTIONS.map(([h, p, isNew]) => `
+  <a href="#" class="card act" data-demo="${h}"><b>${h}</b>${isNew ? ' <span class="tag tag-new">New</span>' : ""}<p>${p}</p></a>`).join("");
+
+$("#faqList").innerHTML = FAQ.map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join("");
+
+/* ---------- discover table ---------- */
+const HEADS = {
+  pools: ["Pool", "Hook · rules", "TVL", "24h", "Volume APR"],
+  hooks: ["Hook", "What it does", "Pools", "Gas", "Status"],
+  tokens: ["Token", "Rules", "Price", "24h", "Market cap"],
+};
+let tab = "pools";
+const tokCell = (p, pair) => `<div class="tok"><div class="av" style="background:${p.color}">${p.a.slice(0, 2)}</div><span>${p.a}${pair ? " / " + p.b : ""}</span></div>`;
+const ruleChips = p => `<div class="chips">${p.rules.map(r => `<span class="chip">${r.name}</span>`).join("")}</div>`;
+
+function renderTable() {
+  const q = $("#filter").value.trim().toLowerCase();
+  $("#thead").innerHTML = "<tr>" + HEADS[tab].map((h, i) => `<th class="${i >= 2 ? "r" : ""}">${h}</th>`).join("") + "</tr>";
+  let rows;
+  if (tab === "hooks") {
+    rows = RULES.filter(r => !q || r.name.toLowerCase().includes(q)).map(r => `<tr>
+      <td><div class="tok">${icon(r.ic, r.c)}<span>${r.name}</span></div></td><td class="dim">${r.desc}</td>
+      <td class="r mono">${POOLS.filter(p => p.rules.includes(r)).length}</td><td class="r mono">${r.gas ? "~" + r.gas + "K" : "—"}</td>
+      <td class="r"><span class="tag tag-live">Sealed</span></td></tr>`);
+  } else {
+    rows = POOLS.filter(p => !q || (p.a + p.b).toLowerCase().includes(q) || p.rules.some(r => r.name.toLowerCase().includes(q))).map(p => tab === "pools"
+      ? `<tr><td>${tokCell(p, true)}</td><td>${ruleChips(p)}</td><td class="r mono">${usd(p.tvl)}</td><td class="r mono">${pct(p.change)}</td><td class="r mono">${p.apr.toFixed(1)}%</td></tr>`
+      : `<tr><td>${tokCell(p)}</td><td>${ruleChips(p)}</td><td class="r mono">$${p.price.toFixed(6)}</td><td class="r mono">${pct(p.change)}</td><td class="r mono">${usd(p.mcap)}</td></tr>`);
+  }
+  $("#tbody").innerHTML = rows.join("") || `<tr><td colspan="5" class="dim">Nothing matches “${q}”.</td></tr>`;
+  $("#discStatus").textContent = `${rows.length} ${tab} · mock data`;
+}
+$("#tabs").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  tab = b.dataset.tab;
+  $$("#tabs button").forEach(x => x.classList.toggle("active", x === b));
+  renderTable();
+});
+$("#filter").addEventListener("input", renderTable);
+$("#tbody").addEventListener("click", e => { if (e.target.closest("tr .tok")) toast("Detail pages aren't part of this demo"); });
+// Simulate the indexer loading, like a live page would.
+setTimeout(renderTable, 900);
+
+/* ---------- stats ---------- */
+function countUp(el) {
+  const target = +el.dataset.count, pre = el.dataset.prefix || "";
+  const t0 = performance.now();
+  const step = t => {
+    const p = Math.min((t - t0) / 1200, 1);
+    el.textContent = pre + Math.round(target * (1 - Math.pow(1 - p, 3))).toLocaleString("en-US");
     if (p < 1) requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
 }
-const io = new IntersectionObserver(entries => entries.forEach(e => {
-  if (e.isIntersecting) { animateCount(e.target); io.unobserve(e.target); }
-}));
-$$("[data-count]").forEach(el => io.observe(el));
+setTimeout(() => $$("[data-count]").forEach(countUp), 700);
 
-/* ---------- mock tokens ---------- */
-const NAMES = [["Hook Frog", "HFROG"], ["Moon Pipe", "MPIPE"], ["Based Crab", "BCRAB"], ["Gigahook", "GIGA"], ["Tiny Whale", "TWHL"], ["Surge Cat", "SCAT"], ["Burnie", "BURN"], ["Pot Luck", "POTL"], ["Lazy Llama", "LAZY"], ["Rocket Rug", "NORUG"], ["Degen Duck", "DDUCK"], ["Neon Ape", "NAPE"]];
-const COLORS = ["#c6ff3d", "#3de0ff", "#ff7ab6", "#ffd166", "#a78bfa", "#3ddc84"];
-let seed = 7;
-const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-
-const TOKENS = NAMES.map(([name, tk], i) => {
-  const hooks = HOOKS.filter(() => rand() > 0.62).slice(0, 4);
-  if (!hooks.length) hooks.push(HOOKS[i % HOOKS.length]);
-  return {
-    name, tk, hooks,
-    color: COLORS[i % COLORS.length],
-    price: rand() * 0.004,
-    change: (rand() - 0.4) * 160,
-    mcap: 20000 + rand() * 2400000,
-    age: Math.floor(rand() * 300) + 2,
-  };
+/* ---------- placeholder links ---------- */
+document.addEventListener("click", e => {
+  const a = e.target.closest('a[href="#"], [data-demo]');
+  if (!a || a.closest(".more-menu")) return;
+  if (a.getAttribute("href") === "#") e.preventDefault();
+  if (a.dataset.demo) toast(`${a.dataset.demo}: not wired up in this demo`);
 });
-
-const fmtUsd = n => n >= 1e6 ? "$" + (n / 1e6).toFixed(2) + "M" : n >= 1e3 ? "$" + (n / 1e3).toFixed(1) + "k" : "$" + n.toFixed(2);
-const fmtAge = m => m < 60 ? m + "m" : Math.floor(m / 60) + "h";
-
-function renderTokens(q = "") {
-  q = q.trim().toLowerCase();
-  const rows = TOKENS.filter(t => !q || t.tk.toLowerCase().includes(q) || t.name.toLowerCase().includes(q));
-  $("#tokenRows").innerHTML = rows.length ? rows.map(t => `
-    <tr>
-      <td><div class="tk"><div class="av" style="background:${t.color}">${t.tk.slice(0, 2)}</div><div><b>${t.name}</b><small>$${t.tk}</small></div></div></td>
-      <td><div class="mini-hooks">${t.hooks.map(h => `<span title="${h.name}">${h.icon}</span>`).join("")}</div></td>
-      <td>$${t.price.toFixed(6)}</td>
-      <td class="${t.change >= 0 ? "up" : "down"}">${t.change >= 0 ? "+" : ""}${t.change.toFixed(1)}%</td>
-      <td>${fmtUsd(t.mcap)}</td>
-      <td class="muted">${fmtAge(t.age)}</td>
-    </tr>`).join("") : `<tr><td colspan="6" class="muted">No tokens match “${q}”.</td></tr>`;
-}
-$("#tokenSearch").addEventListener("input", e => renderTokens(e.target.value));
-$("#tokenRows").addEventListener("click", e => {
-  const row = e.target.closest("tr");
-  if (row && row.querySelector(".tk")) toast("Pool pages are not part of this demo");
-});
-renderTokens();
-
-/* ---------- ticker ---------- */
-const tickerItems = TOKENS.map(t => `<span><b>$${t.tk}</b><em class="${t.change >= 0 ? "up" : "down"}">${t.change >= 0 ? "▲" : "▼"} ${Math.abs(t.change).toFixed(1)}%</em></span>`).join("");
-$("#ticker").innerHTML = tickerItems + tickerItems;
-
-/* ---------- marketplace ---------- */
-function renderHooks(filter = "all") {
-  $("#hookGrid").innerHTML = HOOKS.filter(h => filter === "all" || h.cat === filter).map(h => `
-    <article class="card hook">
-      <div class="hook-top"><div class="ic">${h.icon}</div><span class="tag">${h.cat}</span></div>
-      <h3>${h.name}</h3>
-      <p>${h.desc}</p>
-      <div class="hook-meta"><span>used <b>${h.uses}</b>×</span><span>royalty <b>${h.royalty}%</b></span><span>${h.author}</span></div>
-    </article>`).join("");
-}
-$("#filters").addEventListener("click", e => {
-  const b = e.target.closest(".chip");
-  if (!b) return;
-  $$(".chip").forEach(c => c.classList.toggle("active", c === b));
-  renderHooks(b.dataset.f);
-});
-renderHooks();
-
-/* ---------- composer ---------- */
-const selected = new Set(["antisnipe", "burn"]);
-
-$("#blockList").innerHTML = HOOKS.map(h => `
-  <button type="button" class="block" data-id="${h.id}">
-    <span class="ic">${h.icon}</span>
-    <span><b>${h.name}</b><small>${h.buy || h.sell ? `+${h.buy}% / +${h.sell}%` : "no fee"}</small></span>
-    <span class="tog"></span>
-  </button>`).join("");
-
-$("#blockList").addEventListener("click", e => {
-  const b = e.target.closest(".block");
-  if (!b) return;
-  const id = b.dataset.id;
-  selected.has(id) ? selected.delete(id) : selected.add(id);
-  updatePreview();
-});
-
-function updatePreview() {
-  const f = $("#launchForm");
-  const name = f.elements.name.value.trim() || "Untitled";
-  const tk = f.elements.ticker.value.trim().toUpperCase() || "TICKER";
-  const hooks = [...selected].map(id => byId[id]);
-
-  $$(".block").forEach(b => b.classList.toggle("on", selected.has(b.dataset.id)));
-  $("#pvName").textContent = name;
-  $("#pvTicker").textContent = "$" + tk;
-  $("#pvAvatar").textContent = tk.slice(0, 2);
-
-  const buy = BASE_FEE + hooks.reduce((s, h) => s + h.buy, 0);
-  const sell = BASE_FEE + hooks.reduce((s, h) => s + h.sell, 0);
-  const roy = hooks.reduce((s, h) => s + h.royalty, 0);
-  $("#pvBuy").textContent = buy.toFixed(2) + "%";
-  $("#pvSell").textContent = sell.toFixed(2) + "%";
-  $("#pvCount").textContent = hooks.length;
-  $("#pvRoyalty").textContent = roy.toFixed(2) + "%";
-
-  const active = new Set(hooks.flatMap(h => h.flags));
-  $("#pvFlags").innerHTML = ALL_FLAGS.map(fl => `<span class="flag ${active.has(fl) ? "on" : ""}">${fl}</span>`).join("");
-
-  // v4 hook permissions live in the low bits of the hook address
-  const bits = ALL_FLAGS.reduce((acc, fl, i) => acc | (active.has(fl) ? 1 << i : 0), 0);
-  $("#pvAddr").textContent = "0x" + "b00c".padEnd(36, "0") + bits.toString(16).padStart(4, "0");
-}
-
-$("#launchForm").addEventListener("input", updatePreview);
-$("#launchForm").addEventListener("submit", e => {
-  e.preventDefault();
-  const f = e.target;
-  const tk = f.elements.ticker.value.trim().toUpperCase();
-  if (!selected.size) return toast("Pick at least one hook block");
-  toast(`$${tk} pool simulated with ${selected.size} hook${selected.size > 1 ? "s" : ""} ✓`);
-});
-updatePreview();
