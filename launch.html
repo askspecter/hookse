@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Launch · Hookse</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23fc72ff'/><path d='M11 7v11a5 5 0 0 0 10 0v-3' stroke='%230b0d12' stroke-width='3.2' fill='none' stroke-linecap='round'/></svg>" />
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="index.html" class="logo">
+        <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--pink)"/><path d="M11 7v11a5 5 0 0 0 10 0v-3" stroke="var(--bg)" stroke-width="3.2" fill="none" stroke-linecap="round"/></svg>
+        <span>Hookse</span>
+      </a>
+      <nav class="links" id="links">
+        <a href="launch.html">Launch</a>
+        <a href="claim.html">Claim</a>
+        <a href="index.html#rules">Hooks</a>
+        <a href="index.html#faq">FAQ</a>
+      </nav>
+      <button class="btn btn-pink btn-sm nav-app" data-connect>Connect wallet</button>
+      <button class="burger" id="burger" aria-label="Menu"><span></span><span></span></button>
+    </div>
+  </header>
+  <main class="wrap page">
+    <div class="page-head">
+      <p class="eyebrow">Pons V2 · Robinhood Chain</p>
+      <h1>Launch a coin</h1>
+      <p class="lede">Your coin starts on a Pons V2 bonding curve and graduates into a permanently locked Uniswap v4 pool. Creator fees are split automatically and you claim yours here.</p>
+    </div>
+    <div class="notice" id="notLive" hidden>Launching is off until the Hookse Pons launcher is deployed and set in <span class="mono">config.js</span>.</div>
+
+    <div id="result"></div>
+    <div class="launch-grid">
+      <form class="card form" id="launchForm" autocomplete="off">
+        <div class="row2">
+          <label>Name<input name="name" maxlength="32" placeholder="Hook Frog" required /></label>
+          <label>Ticker<input name="symbol" maxlength="10" placeholder="HFROG" required /></label>
+        </div>
+        <label>Logo URL<input name="logo" type="url" placeholder="https://…/logo.png" /></label>
+        <label>Description<textarea name="description" rows="3" maxlength="500" placeholder="What is this coin about?"></textarea></label>
+        <details class="socials">
+          <summary>Socials (optional)</summary>
+          <div class="row2">
+            <label>X / Twitter<input name="twitter" placeholder="https://x.com/…" /></label>
+            <label>Telegram<input name="telegram" placeholder="https://t.me/…" /></label>
+            <label>Discord<input name="discord" placeholder="https://discord.gg/…" /></label>
+            <label>Website<input name="website" placeholder="https://…" /></label>
+          </div>
+        </details>
+        <label>Creator tax <span class="dim" id="taxOut">1.00%</span>
+          <input name="tax" type="range" min="0" max="500" step="10" value="100" />
+          <small class="dim">Charged by Pons on trades. <span id="taxMax"></span></small>
+        </label>
+        <label>Buy at launch (ETH, optional)<input name="devBuy" type="number" min="0" step="0.001" placeholder="0" />
+          <small class="dim">Bought on the curve in the same transaction and sent to your wallet.</small>
+        </label>
+        <button class="btn btn-pink btn-lg" id="launchBtn" type="submit">Launch coin</button>
+      </form>
+
+      <aside class="card summary">
+        <div class="coin-preview">
+          <div class="coin-av" id="pvAv">?</div>
+          <div><b id="pvName">Your coin</b><span class="mono dim" id="pvSym">$TICKER</span></div>
+        </div>
+        <dl>
+          <dt>Launch fee (Pons)</dt><dd id="fee">—</dd>
+          <dt>Buy at launch</dt><dd id="pvBuy">0 ETH</dd>
+          <dt>You pay</dt><dd id="pvTotal">—</dd>
+          <dt>Creator tax</dt><dd id="pvTax">1.00%</dd>
+        </dl>
+        <div class="split">
+          <div class="split-bar"><span style="width:80%"></span></div>
+          <div class="split-legend"><span><i class="c1"></i>80% to you</span><span><i class="c2"></i>20% Hookse treasury</span></div>
+        </div>
+        <p class="fine">On Pons, the coin's creator-fee recipient is its own <b>fee splitter</b> contract, not your wallet. The splitter can never be changed. It sends 80% of creator fees to you (claim on the <a href="claim.html">Claim</a> page) and 20% to the Hookse treasury.</p>
+      </aside>
+    </div>
+  </main>
+  <footer class="footer">
+    <p>Hookse · launches on Pons V2 · Uniswap v4 hooks · not financial advice</p>
+    <nav><a href="launch.html">launch</a><a href="claim.html">claim creator fees</a><a href="index.html#faq">faq</a></nav>
+  </footer>
+  <div class="toast" id="toast"></div>
+  <script type="module" src="launch.js"></script>
+  <script src="nav.js"></script>
+</body>
+</html>

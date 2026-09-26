@@ -216,3 +216,61 @@ h2 { font-size: 28px; font-weight: 600; letter-spacing: -.015em; line-height: 1.
   .filter { flex: 1; width: auto; }
   h2 { font-size: 24px; }
 }
+
+/* ---------- inner pages (launch / claim) ---------- */
+.page { padding: 48px 24px 64px; }
+.page-head { margin-bottom: 24px; max-width: 720px; }
+.page-head h1 { font-size: 38px; font-weight: 600; letter-spacing: -.02em; }
+.page-head .lede { font-size: 17px; margin-top: 8px; }
+.notice { border: 1px solid rgba(255, 199, 0, .4); background: rgba(255, 199, 0, .08); color: #ffe08a; padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; }
+.launch-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; align-items: start; }
+.form { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+.form label { display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 13px; font-weight: 500; }
+.form input, .form textarea { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; color: var(--text); outline: none; width: 100%; resize: vertical; }
+.form input:focus, .form textarea:focus { border-color: var(--pink); }
+.form input[type=range] { padding: 0; accent-color: var(--pink); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.socials summary { cursor: pointer; color: var(--muted); font-weight: 500; margin-bottom: 10px; }
+.summary { padding: 22px; position: sticky; top: 86px; }
+.coin-preview { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
+.coin-preview b { display: block; font-size: 18px; }
+.coin-av { width: 48px; height: 48px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; font-weight: 700; color: #2a0628; background: linear-gradient(135deg, var(--pink), var(--violet)); }
+.coin-av img { width: 100%; height: 100%; object-fit: cover; }
+.summary dl { display: grid; grid-template-columns: 1fr auto; gap: 10px 12px; font-size: 14px; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.summary dt { color: var(--muted); }
+.summary dd { font-family: var(--mono); text-align: right; }
+.split { margin: 16px 0 12px; }
+.split-bar { height: 8px; border-radius: 99px; background: var(--violet); overflow: hidden; }
+.split-bar span { display: block; height: 100%; background: var(--pink); }
+.split-legend { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 8px; }
+.split-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; }
+.split-legend .c1 { background: var(--pink); }
+.split-legend .c2 { background: var(--violet); }
+.fine { color: var(--dim); font-size: 12px; margin-top: 12px; line-height: 1.6; }
+.fine a, .done a, .table a { color: var(--pink); }
+.done { padding: 16px 18px; margin-bottom: 16px; border-color: rgba(64, 182, 107, .5); }
+.done p { margin-top: 6px; color: var(--muted); }
+.claim-top { display: grid; grid-template-columns: repeat(3, 1fr) auto; align-items: center; margin-bottom: 28px; }
+.claim-top > div { padding: 20px 24px; border-right: 1px solid var(--line); }
+.claim-top > div:last-child { border-right: 0; }
+.claim-cta { padding: 20px 24px; }
+.claim-top .k { color: var(--muted); font-size: 13px; }
+.claim-top b { display: block; font-size: 26px; font-family: var(--mono); margin-top: 4px; }
+.h-sm { font-size: 18px; }
+.btn-xs { padding: 5px 10px; font-size: 12px; border-radius: 7px; }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+.nowrap { white-space: nowrap; }
+.tiny { font-size: 11px; }
+.tok .av { background: linear-gradient(135deg, var(--pink), var(--violet)); }
+@media (max-width: 860px) {
+  .launch-grid { grid-template-columns: 1fr; }
+  .summary { position: static; }
+  .claim-top { grid-template-columns: 1fr 1fr; }
+  .claim-top > div { border-bottom: 1px solid var(--line); }
+  .claim-top > div:nth-child(2n) { border-right: 0; }
+}
+@media (max-width: 640px) {
+  .page { padding: 32px 16px 48px; }
+  .row2 { grid-template-columns: 1fr; }
+  .page-head h1 { font-size: 30px; }
+}

@@ -22,7 +22,17 @@ module.exports = {
     settings: { evmVersion: "cancun", viaIR: true, optimizer: { enabled: true, runs: 44444444 } },
   },
   networks: {
-    hardhat: { hardfork: "cancun", allowUnlimitedContractSize: true },
+    hardhat: {
+      hardfork: "cancun",
+      allowUnlimitedContractSize: true,
+      // FORK=1 runs tests against a Robinhood Chain mainnet fork (real Pons V2).
+      ...(process.env.FORK && { forking: { url: process.env.ROBINHOOD_RPC || "https://rpc.mainnet.chain.robinhood.com" }, chainId: 4663 }),
+    },
+    robinhood: {
+      url: process.env.ROBINHOOD_RPC || "https://rpc.mainnet.chain.robinhood.com",
+      chainId: 4663,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+    },
     ...(process.env.RPC_URL && {
       target: { url: process.env.RPC_URL, accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [] },
     }),
