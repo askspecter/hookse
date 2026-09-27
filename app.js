@@ -38,10 +38,10 @@ const RULES = [
 ];
 
 const INTEGRATIONS = [
-  { name: "Pons V2", av: "P", st: "live", href: "/docs#pons", desc: "Every Rigs coin launches on a Pons V2 bonding curve and graduates into a locked Uniswap v4 pool." },
-  { name: "Uniswap v4", av: "U", st: "live", href: "/docs#blocks", desc: "Hooks, the PoolManager and routing. The Rigs rule blocks are a standard v4 hook." },
-  { name: "Robinhood Chain", av: "R", st: "live", href: "/docs#addresses", desc: "Chain 4663, where the launcher, fee splitters and pools live." },
-  { name: "WalletConnect", av: "W", st: "live", href: "/docs#wallets", desc: "Mobile and desktop wallets connect through Reown AppKit." },
+  { name: "Pons V2", av: "P", img: "/assets/pons.jpg", st: "live", href: "/docs#pons", desc: "Every Rigs coin launches on a Pons V2 bonding curve and graduates into a locked Uniswap v4 pool." },
+  { name: "Uniswap v4", av: "U", img: "/assets/uniswap.jpg", st: "live", href: "/docs#blocks", desc: "Hooks, the PoolManager and routing. The Rigs rule blocks are a standard v4 hook." },
+  { name: "Robinhood Chain", av: "R", img: "/assets/robinhood.png", st: "live", href: "/docs#addresses", desc: "Chain 4663, where the launcher, fee splitters and pools live." },
+  { name: "WalletConnect", av: "W", img: "/assets/walletconnect.jpg", st: "live", href: "/docs#wallets", desc: "Mobile and desktop wallets connect through Reown AppKit." },
 ];
 
 const AUDIENCE_LINKS = { "Traders": "/app", "Liquidity providers": "/portfolio", "Launchers": "/launch", "Hook builders": "/builder", "Analysts": "/scan", "Integrators": "/integrations", "Agents": "/agents" };
@@ -81,7 +81,7 @@ const FAQ = [
 /* ---------- render sections ---------- */
 $("#integrations").innerHTML = INTEGRATIONS.map(x => `
   <a href="${x.href}" class="card integ">
-    <div class="ava">${x.av}</div>
+    <div class="ava">${x.img ? `<img src="${x.img}" alt="" width="32" height="32" />` : x.av}</div>
     <div><b>${x.name}</b><span class="tag ${x.st === "live" ? "tag-live" : "tag-soon"}">${x.st === "live" ? "Live" : "Coming soon"}</span><p>${x.desc}</p></div>
   </a>`).join("");
 
