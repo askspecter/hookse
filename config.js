@@ -10,10 +10,9 @@ export const CONFIG = {
   startBlock: 73912247,
   creatorShareBps: 8000,
   poolManager: "0x8366a39CC670B4001A1121B8F6A443A643e40951",
-  // v4 hook + launcher: redeploy on deploy.html (the earlier pair predates existing-asset pools).
-  rigsHook: "",
-  rigsLauncher: "",
-  rigsAuctions: "",
+  rigsHook: "0x9B2c27AD954b3e20F8739670D9c26a18e9daE0C4",
+  rigsLauncher: "0x9b33583252B833864e35b555cB3d5F0cFFABeDfa",
+  rigsAuctions: "0x4d96761b25bc1E552dBB2d4B2f01A8cF1e64320C",
   // Where hook ideas and integration requests are emailed. Empty hides those forms.
   contactEmail: "",
   reownProjectId: "5c559ec7c86f657976f14d599d5e66b5",

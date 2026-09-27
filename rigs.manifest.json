@@ -11,8 +11,9 @@
     "ponsFactory": "0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e",
     "ponsLauncher": "0xC8aD3EaeD98980f94c36F842d99ecFB96511E4DD",
     "poolManager": "0x8366a39CC670B4001A1121B8F6A443A643e40951",
-    "rigsHook": "0x9f383082b9B1C69EC54730b4e6B644a6a81fe0c4",
-    "rigsLauncher": "0x69460B1fE8de1548571e9d7e42677C1B58d2b05b"
+    "rigsHook": "0x9B2c27AD954b3e20F8739670D9c26a18e9daE0C4",
+    "rigsLauncher": "0x9b33583252B833864e35b555cB3d5F0cFFABeDfa",
+    "rigsAuctions": "0x4d96761b25bc1E552dBB2d4B2f01A8cF1e64320C"
   },
   "abis": {
     "ponsLauncher": [
