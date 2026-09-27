@@ -44,6 +44,20 @@ async function deploy(name, args) {
   return { address: getAddress(rc.contractAddress), block: Number(rc.blockNumber) };
 }
 
+/**
+ * Deploys through the CREATE2 deployer. Some mobile wallets cap direct contract creations at
+ * 1.2M gas but not ordinary contract calls, so large contracts go through this path.
+ */
+async function deployViaFactory(name, args) {
+  const a = await artifact(name);
+  const initCode = encodeDeployData({ abi: a.abi, bytecode: a.bytecode, args });
+  const salt = toHex(crypto.getRandomValues(new Uint8Array(32)));
+  const address = getAddress(`0x${keccak256(concat(["0xff", st.create2, salt, keccak256(initCode)])).slice(-40)}`);
+  const rc = await write({ address: st.create2, abi: (await artifact("Create2Deployer")).abi, functionName: "deploy", args: [salt, initCode] });
+  if (!(await hasCode(address))) throw new Error(`${name} not found at ${address}`);
+  return { address, block: Number(rc.blockNumber) };
+}
+
 /** Finds a CREATE2 salt that puts the hook on an address carrying exactly its v4 permission bits. */
 async function mineSalt(factory, initCode, onProgress) {
   const codeHash = keccak256(initCode);
@@ -102,8 +116,8 @@ const STEPS = {
       },
     },
     {
-      id: "hookseLauncher", title: "Deploy v4 launcher", note: "HookseLauncher, bound to the hook and PoolManager.", needs: ["hookseHook"],
-      run: async () => { st.hookseLauncher = (await deploy("HookseLauncher", [st.poolManager, st.hookseHook])).address; },
+      id: "hookseLauncher", title: "Deploy v4 launcher", note: "HookseLauncher, bound to the hook and PoolManager. Sent through the CREATE2 deployer.", needs: ["hookseHook", "create2"],
+      run: async () => { st.hookseLauncher = (await deployViaFactory("HookseLauncher", [st.poolManager, st.hookseHook])).address; },
     },
     {
       id: "launcherSet", title: "Connect hook to launcher", note: "hook.setLauncher(launcher). Can only be done once.", needs: ["hookseLauncher"],

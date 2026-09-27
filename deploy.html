@@ -29,7 +29,7 @@
       </div>
 
       <div class="notice sec-gap" id="depError" hidden></div>
-      <p class="muted small sec-gap">Gas per step: Pons steps are under 1M each; the v4 hook and v4 launcher need about 3M each. The page sets the gas limit itself. If your wallet caps transactions at 1.2M (some mobile wallets do), raise the limit in the wallet or use MetaMask for the v4 steps.</p>
+      <p class="muted small sec-gap">Gas per step: Pons steps are under 1M each; the v4 hook and v4 launcher need about 3M each and are sent through the CREATE2 deployer, because some mobile wallets cap direct contract creations at 1.2M. The page sets every gas limit itself.</p>
 
       <h2 class="h-sm sec-h">1 · Pons V2 launcher (80/20 creator fees)</h2>
       <section class="card pad stack">
