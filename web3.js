@@ -173,7 +173,10 @@ export function coinAvatar(symbol, logo, cls = "av") {
 export const addrLink = (a) => `<a class="mono" href="${CONFIG.explorer}/address/${a}" target="_blank" rel="noopener">${short(a)}</a>`;
 
 let toastTimer;
+const CANCELLED = /cancel|rejected|denied/i;
 export function toast(msg) {
+  // Nothing to report when the person closed or declined their own wallet prompt.
+  if (!msg || CANCELLED.test(msg)) return;
   let t = $("#toast");
   if (!t) { t = document.createElement("div"); t.id = "toast"; t.className = "toast"; document.body.append(t); }
   t.textContent = msg;
@@ -184,7 +187,7 @@ export function toast(msg) {
 
 export function friendlyError(err) {
   const m = err?.shortMessage || err?.message || String(err);
-  if (/User rejected|denied/i.test(m)) return "Cancelled in wallet";
+  if (/User rejected|denied|cancel/i.test(m)) return "";
   if (/insufficient funds/i.test(m)) return "Not enough ETH for this transaction";
   return m.split("\n")[0].slice(0, 180);
 }

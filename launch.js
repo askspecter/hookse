@@ -415,7 +415,7 @@ document.addEventListener("click", async (e) => {
     // Instant markets keep no logo on-chain: the creator signs once (no gas) to show it on Rigs.
     if (d.mode === "instant" && !existing() && (d.logo || d.description)) {
       btn.textContent = "Sign to save the logo (no gas)…";
-      await saveMeta(token, { logo: d.logo, description: d.description }).catch((err) => toast(`Coin is live; logo not saved: ${friendlyError(err)}`));
+      await saveMeta(token, { logo: d.logo, description: d.description }).catch((err) => toast(friendlyError(err) ? `Coin is live; logo not saved: ${friendlyError(err)}` : "Coin is live. Add the logo later on its coin page."));
     }
     $("#result").innerHTML = `<div class="card done"><b>$${esc(symbol)} is live${d.mode === "pons" ? " on Pons" : ""}.</b>
       <p><a href="/coin?token=${token}">Open the coin page →</a> · ${d.mode === "pons" ? `<a href="${CONFIG.ponsCoinUrl}${token}" target="_blank" rel="noopener">Pons ↗</a> · ` : ""}
@@ -437,5 +437,5 @@ Promise.all([
   client.readContract({ address: CONFIG.ponsFactory, abi: ABI.pons, functionName: "launchFee" }),
   client.readContract({ address: CONFIG.ponsFactory, abi: ABI.pons, functionName: "maxCreatorTaxBps" }).catch(() => 500),
 ]).then(([fee, max]) => { pons = { fee, maxTax: Number(max) }; if (d.tax > pons.maxTax) d.tax = pons.maxTax; render(); })
-  .catch(() => toast(`Could not read Pons settings from ${CONFIG.chainName}`));
+  .catch((err) => console.warn("Pons settings unavailable; read again at signing", err));
 render();

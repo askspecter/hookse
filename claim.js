@@ -4,12 +4,13 @@ import {
 } from "./web3.js";
 
 let coins = [];
+let loadFailed = false;
 if (!live) $("#notLive").hidden = false;
 
 function renderRows() {
   const me = getAccount();
   if (!coins.length) {
-    $("#rows").innerHTML = `<tr><td colspan="6" class="dim">${me ? "No coins launched from this wallet yet. <a href=\"/launch\">Launch one →</a>" : "Connect your wallet to see coins you launched."}</td></tr>`;
+    $("#rows").innerHTML = `<tr><td colspan="6" class="dim">${loadFailed ? "Could not reach the chain. Refresh to try again." : me ? "No coins launched from this wallet yet. <a href=\"/launch\">Launch one →</a>" : "Connect your wallet to see coins you launched."}</td></tr>`;
   } else {
     $("#rows").innerHTML = coins.map((c, i) => {
       const mine = me && c.creator && getAddress(c.creator) === me;
@@ -36,6 +37,7 @@ function renderRows() {
 async function loadMine(account) {
   if (!live || !account) { coins = []; return renderRows(); }
   $("#rows").innerHTML = `<tr><td colspan="6" class="dim">Reading ${esc(CONFIG.chainName)}…</td></tr>`;
+  loadFailed = false;
   try {
     const ids = await client.readContract({ address: CONFIG.ponsLauncher, abi: ABI.launcher, functionName: "launchesOf", args: [account] });
     const all = await Promise.all(ids.map((id) => loadLaunch(id)));
@@ -44,7 +46,7 @@ async function loadMine(account) {
     await loadMeta(coins.map((c) => c.token)).catch(() => {});
   } catch (err) {
     console.error(err);
-    toast("Could not load your coins");
+    loadFailed = true;
     coins = [];
   }
   renderRows();
@@ -80,7 +82,8 @@ $("#claimAll").addEventListener("click", async () => {
       await write({ address: c.splitter, abi: ABI.splitter, functionName: "claim" });
       await refresh(i);
     } catch (err) {
-      toast(`$${c.symbol}: ${friendlyError(err)}`);
+      const m = friendlyError(err);
+      if (m) toast(`$${c.symbol}: ${m}`);
       return;
     }
   }
