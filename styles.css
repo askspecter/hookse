@@ -656,3 +656,16 @@ details.subcard summary { cursor: pointer; }
 .kv { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14px; }
 .kv > span { color: var(--muted); }
 .kv > b { font-family: var(--mono); font-weight: 500; text-align: right; }
+/* mobile menu: same order as the desktop sidebar, minus search, wallet and stat (wallet lives in the top bar) */
+@media (max-width: 900px) {
+  .sidebar .side-search, .sidebar .side-connect, .sidebar .side-stat { display: none; }
+  .sidebar .side-foot { border-top: 0; padding-top: 8px; gap: 14px; }
+  .sidebar .side-net { padding: 14px 16px; font-size: 15px; border-radius: 12px; }
+  .sidebar .side-foot .side-h { font-size: 13px; margin-top: 8px; }
+  .sidebar .seg button { padding: 12px 0; font-size: 15px; }
+  .sidebar .accents { gap: 26px; padding: 6px 10px; }
+  .sidebar .accents button { width: 26px; height: 26px; }
+  .sidebar .side-links { font-size: 14px; gap: 10px 18px; padding: 8px 4px 0; }
+  .sidebar .side-h:not(.side-foot .side-h) { font-size: 13px; }
+}
+@media (max-width: 900px) { .sidebar .side-net .mono { display: none; } }
