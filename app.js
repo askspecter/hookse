@@ -14,7 +14,6 @@ function toast(msg) {
 }
 
 /* ---------- nav + hero menu ---------- */
-$("#burger").addEventListener("click", () => $("#links").classList.toggle("open"));
 $$("#links a").forEach(a => a.addEventListener("click", () => $("#links").classList.remove("open")));
 $("#moreBtn").addEventListener("click", e => { e.stopPropagation(); $(".more-wrap").classList.toggle("open"); });
 document.addEventListener("click", () => $(".more-wrap").classList.remove("open"));
