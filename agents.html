@@ -7,9 +7,12 @@
   <meta name="description" content="Agents on Rigs" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23fc72ff'/><path d='M11 7v11a5 5 0 0 0 10 0v-3' stroke='%230b0d12' stroke-width='3.2' fill='none' stroke-linecap='round'/></svg>" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png" />
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+  <meta name="theme-color" content="#05070c" />
   <script>try{var t=localStorage.getItem("rigs-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
 </head>
 <body data-nav="agents">
@@ -27,16 +30,16 @@
         <div class="path"><span class="eyebrow">Path one</span><h2>The skill file</h2></div>
         <p class="muted">One short markdown file: every live address, how a pool key and pool id are formed, how to quote and trade, how to launch, and the calls that pay out what a pool owes you.</p>
         <pre class="curl mono" id="curl">curl <span id="skillUrl">/agents/SKILL.md</span></pre>
-        <div class="btn-row"><a class="btn btn-pink" href="agents/SKILL.md" target="_blank" rel="noopener">Open the skill file</a><a class="btn btn-dark" href="rigs.manifest.json" target="_blank" rel="noopener">Manifest (JSON)</a></div>
+        <div class="btn-row"><a class="btn btn-primary" href="agents/SKILL.md" target="_blank" rel="noopener">Open the skill file</a><a class="btn btn-dark" href="rigs.manifest.json" target="_blank" rel="noopener">Manifest (JSON)</a></div>
       </section>
 
       <section class="card agent-card">
         <h2>What an agent can do</h2>
-        <div class="cap"><p class="eyebrow">Read</p><p>Read a pool's frozen rules and fee from RigsHook, and its price straight from the PoolManager.</p><a class="link-pink" href="/docs#blocks">Rule blocks and config</a></div>
-        <div class="cap"><p class="eyebrow">Trade</p><p>Simulate a buy or sell for an exact quote, then send it through RigsRouter, or the Pons curve for bonding-curve coins.</p><a class="link-pink" href="/coin">How coin pages trade</a></div>
-        <div class="cap"><p class="eyebrow">Launch</p><p>Open a Pons V2 coin with the 80/20 creator split, a new-token Rigs pool, or a pool for a token that already exists, each in one transaction.</p><a class="link-pink" href="/docs#pons">Launching</a></div>
-        <div class="cap"><p class="eyebrow">Auction</p><p>Create a Dutch auction for any token, buy at the current price, or end and withdraw as the seller.</p><a class="link-pink" href="/docs#auctions">Auctions</a></div>
-        <div class="cap"><p class="eyebrow">Claim</p><p>Collect the creator's 80% of Pons fees, a pool's founding LP fees, and pot winnings or royalties to your own address.</p><a class="link-pink" href="/docs#splitter">Claiming</a></div>
+        <div class="cap"><p class="eyebrow">Read</p><p>Read a pool's frozen rules and fee from RigsHook, and its price straight from the PoolManager.</p><a class="link-accent" href="/docs#blocks">Rule blocks and config</a></div>
+        <div class="cap"><p class="eyebrow">Trade</p><p>Simulate a buy or sell for an exact quote, then send it through RigsRouter, or the Pons curve for bonding-curve coins.</p><a class="link-accent" href="/coin">How coin pages trade</a></div>
+        <div class="cap"><p class="eyebrow">Launch</p><p>Open a Pons V2 coin with the 80/20 creator split, a new-token Rigs pool, or a pool for a token that already exists, each in one transaction.</p><a class="link-accent" href="/docs#pons">Launching</a></div>
+        <div class="cap"><p class="eyebrow">Auction</p><p>Create a Dutch auction for any token, buy at the current price, or end and withdraw as the seller.</p><a class="link-accent" href="/docs#auctions">Auctions</a></div>
+        <div class="cap"><p class="eyebrow">Claim</p><p>Collect the creator's 80% of Pons fees, a pool's founding LP fees, and pot winnings or royalties to your own address.</p><a class="link-accent" href="/docs#splitter">Claiming</a></div>
       </section>
 
       <section class="card agent-card">

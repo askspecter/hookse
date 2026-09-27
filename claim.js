@@ -21,7 +21,7 @@ function renderRows() {
         <td class="r mono dim">${eth(c.totalToTreasury, 6)} ETH</td>
         <td class="r nowrap">
           <button class="btn btn-dark btn-xs" data-harvest="${i}">Harvest</button>
-          ${mine ? `<button class="btn btn-pink btn-xs" data-claim="${i}">Claim</button>` : `<span class="dim tiny">creator ${addrLink(c.creator)}</span>`}
+          ${mine ? `<button class="btn btn-primary btn-xs" data-claim="${i}">Claim</button>` : `<span class="dim tiny">creator ${addrLink(c.creator)}</span>`}
         </td></tr>`;
     }).join("");
   }

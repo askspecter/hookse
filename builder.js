@@ -146,7 +146,7 @@ $("#create").addEventListener("click", async (e) => {
     });
     const n = await w.client.readContract({ address: w.CONFIG.rigsLauncher, abi: w.ABI.rigsLauncher, functionName: "tokenCount" });
     const token = await w.client.readContract({ address: w.CONFIG.rigsLauncher, abi: w.ABI.rigsLauncher, functionName: "tokens", args: [n - 1n] });
-    $("#createNote").innerHTML = `Pool opened for <b>$${esc(symbol)}</b>: token ${w.addrLink(token)} · <a class="link-pink" href="${w.CONFIG.explorer}/tx/${rc.transactionHash}" target="_blank" rel="noopener">transaction ↗</a> · <a class="link-pink" href="/app#pools">see it in Discover</a>`;
+    $("#createNote").innerHTML = `Pool opened for <b>$${esc(symbol)}</b>: token ${w.addrLink(token)} · <a class="link-accent" href="${w.CONFIG.explorer}/tx/${rc.transactionHash}" target="_blank" rel="noopener">transaction ↗</a> · <a class="link-accent" href="/app#pools">see it in Discover</a>`;
     w.toast(`$${symbol} pool created`);
   } catch (err) {
     console.error(err);

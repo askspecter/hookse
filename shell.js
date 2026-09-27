@@ -30,7 +30,7 @@ const NAV = [
 ];
 const LEARN = [["learn", "Learn", "book"], ["docs", "Docs", "doc"], ["community", "Community", "people"]];
 const EXTRA = [["deploy", "Deploy contracts (admin)"], ["hooks", "Hooks catalog"], ["token", "Token"], ["updates", "Updates"], ["index", "Home"], ["privacy", "Privacy"], ["terms", "Terms"]];
-const ACCENTS = { pink: "#fc72ff", blue: "#4c82fb", green: "#40b66b", amber: "#e0a030" };
+const ACCENTS = { blue: "#1591ff", cyan: "#22b2ff", green: "#40b66b", amber: "#e0a030" };
 
 const store = {
   get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
@@ -39,10 +39,10 @@ const store = {
 
 function applyTheme() {
   const theme = store.get("rigs-theme") || "dark";
-  const accent = store.get("rigs-accent") || "pink";
+  const accent = ACCENTS[store.get("rigs-accent")] ? store.get("rigs-accent") : "blue";
   const resolved = theme === "system" ? (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark") : theme;
   document.documentElement.dataset.theme = resolved;
-  document.documentElement.style.setProperty("--pink", ACCENTS[accent] || ACCENTS.pink);
+  document.documentElement.style.setProperty("--accent", ACCENTS[accent]);
   document.querySelectorAll("[data-theme-set]").forEach((b) => b.classList.toggle("on", b.dataset.themeSet === theme));
   document.querySelectorAll("[data-accent]").forEach((b) => b.classList.toggle("on", b.dataset.accent === accent));
 }
@@ -58,8 +58,8 @@ if (side) {
   side.innerHTML = `
     <div class="side-top">
       <a href="/" class="logo side-logo">
-        <svg viewBox="0 0 32 32" width="24" height="24" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--pink)"/><path d="M11 7v11a5 5 0 0 0 10 0v-3" stroke="#0b0d12" stroke-width="3.2" fill="none" stroke-linecap="round"/></svg>
-        <span>RIGS</span>
+        <img class="logo-img" src="/assets/logo-64.png" width="28" height="28" alt="Rigs" />
+        <span>Rigs</span>
       </a>
       <button class="side-close" id="sideClose" aria-label="Close menu">×</button>
     </div>
@@ -68,20 +68,20 @@ if (side) {
     <p class="side-h">Learn</p>
     <nav class="side-nav">${LEARN.map(link).join("")}</nav>
     <div class="side-foot">
-      <button class="btn btn-pink side-connect" data-connect>${icon("wallet", 15)}<span>Connect wallet</span></button>
-      <label class="side-net"><img class="chain-ic" src="/assets/robinhood.png" alt="" />Network
-        <select id="netSel"><option value="all">All networks</option><option value="4663" selected>Robinhood Chain</option></select>
+      <button class="btn btn-primary side-connect" data-connect>${icon("wallet", 15)}<span>Connect wallet</span></button>
+      <label class="side-net"><img class="chain-ic" src="/assets/robinhood.png" alt="" />
+        <select id="netSel" aria-label="Network"><option value="all">All networks</option><option value="4663" selected>Robinhood Chain</option></select>
         <span class="mono dim">4663</span></label>
       <p class="side-h">Appearance</p>
       <div class="seg">${["light", "system", "dark"].map((t) => `<button data-theme-set="${t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join("")}</div>
       <div class="accents">${Object.entries(ACCENTS).map(([k, c]) => `<button data-accent="${k}" style="--c:${c}" aria-label="${k} accent"></button>`).join("")}</div>
       <div class="side-stat">${icon("flame", 16)}<div><small>Rigs launches</small><b class="mono" id="sideLaunches">—</b></div></div>
-      <nav class="side-links"><a href="/token">Token</a><a href="/updates">Updates</a><a href="/docs#fee-model">Methodology</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></nav>
+      <nav class="side-links"><a href="/token">Token</a><a href="/updates">Updates</a><a href="/docs#fee-model">Methodology</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a class="x-link" href="https://x.com/userigsfun" target="_blank" rel="noopener" aria-label="Rigs on X"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>@userigsfun</a></nav>
     </div>`;
   const bar = document.createElement("div");
   bar.className = "mobile-bar";
-  bar.innerHTML = `<a href="/" class="logo side-logo"><svg viewBox="0 0 32 32" width="26" height="26"><rect width="32" height="32" rx="8" fill="var(--pink)"/><path d="M11 7v11a5 5 0 0 0 10 0v-3" stroke="#0b0d12" stroke-width="3.2" fill="none" stroke-linecap="round"/></svg><span>RIGS</span></a>
-    <button class="btn btn-pink bar-connect" data-connect>${icon("wallet", 16)}<span>Connect wallet</span></button>
+  bar.innerHTML = `<a href="/" class="logo side-logo"><img class="logo-img" src="/assets/logo-64.png" width="28" height="28" alt="Rigs" /><span>Rigs</span></a>
+    <button class="btn btn-primary bar-connect" data-connect>${icon("wallet", 16)}<span>Connect wallet</span></button>
     <button class="menu-btn" id="sideToggle" aria-label="Menu"><span></span><span></span><span></span></button>`;
   document.body.prepend(bar);
   const scrim = document.createElement("div");

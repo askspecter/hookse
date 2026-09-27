@@ -155,7 +155,7 @@ function stepHtml(s, i) {
     <span class="dep-n">${done ? "✓" : i + 1}</span>
     <div><b>${s.title}</b><small class="dim">${s.note}</small></div>
     <span class="dep-val">${val}</span>
-    <button class="btn ${done ? "btn-dark" : "btn-pink"} btn-xs" data-step="${s.id}" ${blocked || done ? "disabled" : ""}>${done ? "Done" : "Sign"}</button>
+    <button class="btn ${done ? "btn-dark" : "btn-primary"} btn-xs" data-step="${s.id}" ${blocked || done ? "disabled" : ""}>${done ? "Done" : "Sign"}</button>
   </div>`;
 }
 
@@ -207,7 +207,7 @@ document.addEventListener("click", async (e) => {
     render();
     const box = document.getElementById("depError");
     box.hidden = false;
-    box.innerHTML = `<b>${esc(s.title)} failed.</b> ${esc(err.shortMessage || err.message).replace(/https?:\/\/\S+/, (u) => `<a class="link-pink" href="${u}" target="_blank" rel="noopener">View transaction ↗</a>`)}`;
+    box.innerHTML = `<b>${esc(s.title)} failed.</b> ${esc(err.shortMessage || err.message).replace(/https?:\/\/\S+/, (u) => `<a class="link-accent" href="${u}" target="_blank" rel="noopener">View transaction ↗</a>`)}`;
   }
 });
 
@@ -224,7 +224,7 @@ async function checkPm() {
   try {
     if (!(await hasCode(a))) { note.innerHTML = `<span class="warn-t">No contract at this address on ${esc(CONFIG.chainName)}.</span>`; return render(); }
     const [controller, owner] = await Promise.all(["protocolFeeController", "owner"].map((fn) => client.readContract({ address: a, abi: PM_ABI, functionName: fn })));
-    note.innerHTML = `Responds like a v4 PoolManager (owner ${addrLink(owner)}, fee controller ${addrLink(controller)}). <a class="link-pink" href="${CONFIG.explorer}/address/${a}" target="_blank" rel="noopener">Check it on the explorer ↗</a> before confirming.`;
+    note.innerHTML = `Responds like a v4 PoolManager (owner ${addrLink(owner)}, fee controller ${addrLink(controller)}). <a class="link-accent" href="${CONFIG.explorer}/address/${a}" target="_blank" rel="noopener">Check it on the explorer ↗</a> before confirming.`;
   } catch {
     note.innerHTML = `<span class="warn-t">This contract does not answer like a Uniswap v4 PoolManager.</span>`;
   }

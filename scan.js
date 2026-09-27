@@ -36,7 +36,7 @@ async function scan(addr) {
     const { client, CONFIG } = await import("./web3.js");
     const code = await client.getCode({ address: addr });
     $("#codeInfo").innerHTML = code && code !== "0x"
-      ? `Contract found on ${CONFIG.chainName} (${(code.length - 2) / 2} bytes). <a class="link-pink" href="${CONFIG.explorer}/address/${addr}" target="_blank" rel="noopener">Open in explorer ↗</a>`
+      ? `Contract found on ${CONFIG.chainName} (${(code.length - 2) / 2} bytes). <a class="link-accent" href="${CONFIG.explorer}/address/${addr}" target="_blank" rel="noopener">Open in explorer ↗</a>`
       : `No contract at this address on ${CONFIG.chainName}. The bits above only describe what a hook here would be allowed to do.`;
   } catch {
     $("#codeInfo").textContent = "Could not reach the chain to check the deployed code.";

@@ -161,7 +161,7 @@ function stepHook() {
       <div class="kv"><span>Base fee</span><b>${pct(d.baseFee)}</b></div>
       <div class="kv"><span>Buy total</span><b>${pct(buy)}</b></div><div class="kv"><span>Sell total</span><b>${pct(sell)}</b></div></div>
     <div class="subcard"><p class="form-h">Hook blocks · click to add</p><div class="rule-list">${BLOCKS.map(block).join("")}</div>
-      <p class="muted small">One block per behavior. Open <a class="link-pink" href="/builder">the Builder</a> for the diagram and swap flow.</p></div>`}
+      <p class="muted small">One block per behavior. Open <a class="link-accent" href="/builder">the Builder</a> for the diagram and swap flow.</p></div>`}
     <details class="subcard"><summary class="form-h">Suggested settings</summary><ul class="recs">
       <li><b>Base fee</b> · 0.30% for most new tokens; 1% for very thin markets.</li>
       <li><b>Anti-Snipe</b> · On for new tokens: a short window with a max buy.</li>
@@ -213,7 +213,7 @@ function stepFees() {
         <div class="kv"><span>You pay</span><b>${pons.fee == null || buy == null ? "—" : eth(pons.fee + buy, 6) + " ETH"}</b></div></div>
       <div class="subcard"><p class="form-h">Creator fees</p>
         <div class="split"><div class="split-bar"><span style="width:80%"></span></div><div class="split-legend"><span><i class="c1"></i>80% to you</span><span><i class="c2"></i>20% Rigs treasury</span></div></div>
-        <p class="muted small">On Pons, the coin's creator-fee recipient is its own fee splitter contract, not your wallet. It can never be changed. Claim your 80% in <a class="link-pink" href="/portfolio">Portfolio</a>.</p></div>`;
+        <p class="muted small">On Pons, the coin's creator-fee recipient is its own fee splitter contract, not your wallet. It can never be changed. Claim your 80% in <a class="link-accent" href="/portfolio">Portfolio</a>.</p></div>`;
   }
   if (existing()) {
     const amt = Number(d.tokenAmount) || 0;
@@ -234,7 +234,7 @@ function stepFees() {
 function stepReview() {
   const errs = errors();
   const acct = getAccount();
-  const row = (k, v, step) => `<div class="rv"><div><small>${k}</small><b>${v}</b></div>${step ? `<button class="link-pink" data-go="${step}">Edit</button>` : ""}</div>`;
+  const row = (k, v, step) => `<div class="rv"><div><small>${k}</small><b>${v}</b></div>${step ? `<button class="link-accent" data-go="${step}">Edit</button>` : ""}</div>`;
   const hook = d.mode === "instant" ? (BLOCKS.filter((b) => on().has(b.id)).map((b) => b.name).join(", ") || "Base fee only") : "Pons V2 curve rules";
   return `<h2 class="wiz-h">Review and launch</h2>
     <div class="rv-head"><b>${existing() ? "Existing asset" : "New token"}</b><span class="badge gray">Nothing is sent yet</span></div>
@@ -249,14 +249,14 @@ function stepReview() {
         : row("Creator tax", `${(d.tax / 100).toFixed(2)}% · 80% to you`, 4) + row("Dev buy", d.devBuy ? `${esc(d.devBuy)} ETH` : "none", 4)}
       ${row("Creator", acct ? addrLink(acct) : "Connect a wallet to bind the creator", null)}
     </div>
-    ${errs.length ? `<div class="fixbox"><b>Fix before launching</b><ul>${errs.map(([m, s]) => `<li>${esc(m)} <button class="link-pink" data-go="${s}">Go to ${STEPS[s - 1]}</button></li>`).join("")}</ul></div>` : ""}
+    ${errs.length ? `<div class="fixbox"><b>Fix before launching</b><ul>${errs.map(([m, s]) => `<li>${esc(m)} <button class="link-accent" data-go="${s}">Go to ${STEPS[s - 1]}</button></li>`).join("")}</ul></div>` : ""}
     <details class="subcard"><summary class="form-h">What the transaction sends</summary><pre class="mono small">${esc(existing()
       ? `1. approve(RigsLauncher, ${d.tokenAmount} ${subject?.symbol || ""}) if needed\n2. RigsLauncher.openExisting(${d.tokenAddr}, amount, startTick ${existingTick()}, ${JSON.stringify(configFor(d.baseFee, on(), d.values))})`
       : d.mode === "instant"
       ? `RigsLauncher.launch(\n  "${d.name}", "${d.symbol.toUpperCase()}", ${SUPPLY}e18,\n  startTick ${startTickFor(SUPPLY, Number(d.mcap))},\n  ${JSON.stringify(configFor(d.baseFee, on(), d.values))}\n)`
       : `PonsLauncher.launch({ name: "${d.name}", symbol: "${d.symbol.toUpperCase()}", creatorTaxBps: ${d.tax}, … })\nvalue: launch fee${d.devBuy ? ` + ${d.devBuy} ETH dev buy` : ""}`)}</pre></details>
     ${!acct ? `<div class="gatebox"><b>Launch is gated</b><p>Connect the creator wallet: it becomes the coin's creator and receives its fees.</p><button class="btn btn-dark btn-sm" data-connect-now>Connect wallet</button></div>` : ""}
-    <button class="btn btn-pink btn-lg" id="sign" ${errs.length || !acct ? "disabled" : ""}>Sign &amp; launch</button>
+    <button class="btn btn-primary btn-lg" id="sign" ${errs.length || !acct ? "disabled" : ""}>Sign &amp; launch</button>
     ${errs.length || !acct ? `<p class="gated">Waiting on: ${[errs.length ? "fixes" : "", !acct ? "wallet" : ""].filter(Boolean).join(", ")}</p>` : ""}`;
 }
 
@@ -264,7 +264,7 @@ function stepReview() {
 
 function nav() {
   return `<div class="wiz-nav"><button class="btn btn-dark btn-sm" data-go="${d.step - 1}" ${d.step === 1 ? "hidden" : ""}>‹ Back</button>
-    ${d.step < 5 ? `${stepErrors(d.step).length ? `<span class="err-t">${esc(stepErrors(d.step)[0][0])}${stepErrors(d.step).length > 1 ? ` (+${stepErrors(d.step).length - 1} more on this step)` : ""}</span>` : ""}<button class="btn btn-pink btn-sm push" data-go="${d.step + 1}">Continue ›</button>` : ""}</div>`;
+    ${d.step < 5 ? `${stepErrors(d.step).length ? `<span class="err-t">${esc(stepErrors(d.step)[0][0])}${stepErrors(d.step).length > 1 ? ` (+${stepErrors(d.step).length - 1} more on this step)` : ""}</span>` : ""}<button class="btn btn-primary btn-sm push" data-go="${d.step + 1}">Continue ›</button>` : ""}</div>`;
 }
 
 function render() {

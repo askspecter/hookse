@@ -36,7 +36,7 @@ function render() {
         <td>${web3.addrLink(l.creator || l.creatorAtLaunch)}</td>
         <td class="r mono">${web3.eth(l.totalToCreator, 5)} ETH</td>
         <td class="r dim">${ago(l.launchedAt)}</td>
-        <td class="r nowrap"><a class="link-pink" href="/coin?token=${l.token}">Trade</a> · <a class="link-pink" href="/portfolio?token=${l.token}">Fees</a></td></tr>`);
+        <td class="r nowrap"><a class="link-accent" href="/coin?token=${l.token}">Trade</a> · <a class="link-accent" href="/portfolio?token=${l.token}">Fees</a></td></tr>`);
       if (!rows.length) rows = [`<tr><td colspan="6" class="dim">${launches.length ? "Nothing matches." : "No launches yet. <a href=\"/launch\">Be the first →</a>"}</td></tr>`];
       $("#more").hidden = list.length <= shown;
     }
@@ -50,7 +50,7 @@ function render() {
         <td><span class="badge ${st(a) === "live" ? "green" : st(a) === "upcoming" ? "violet" : "gray"}">${st(a)}</span></td>
         <td class="r mono">${a.priceEth} ETH</td>
         <td class="r mono">${a.amount ? Number((a.sold * 1000n) / a.amount) / 10 : 0}%</td>
-        <td class="r"><a class="link-pink" href="/auctions#auction-${a.id}">Open</a></td></tr>`);
+        <td class="r"><a class="link-accent" href="/auctions#auction-${a.id}">Open</a></td></tr>`);
     if (!rows.length) rows = [`<tr><td colspan="5" class="dim">${q ? "Nothing matches." : "No auctions yet. <a href=\"/auctions#create\">Create one →</a>"}</td></tr>`];
   } else if (tab === "tokens") {
     const all = [
@@ -64,7 +64,7 @@ function render() {
         <td><span class="chip">${t.market}</span></td>
         <td>${web3.addrLink(t.creator)}</td>
         <td class="r">${web3.addrLink(t.token)}</td>
-        <td class="r"><a class="link-pink" ${t.link.startsWith("#") ? `href="${t.link}" data-tab-link="pools"` : `href="${t.link}" target="_blank" rel="noopener"`}>${t.label}</a></td></tr>`);
+        <td class="r"><a class="link-accent" ${t.link.startsWith("#") ? `href="${t.link}" data-tab-link="pools"` : `href="${t.link}" target="_blank" rel="noopener"`}>${t.label}</a></td></tr>`);
     if (!rows.length) rows = [`<tr><td colspan="5" class="dim">${q ? "Nothing matches." : "No tokens yet. <a href=\"/launch\">Launch one →</a>"}</td></tr>`];
     $("#more").hidden = all.length <= shown;
   } else if (tab === "pools") {
@@ -76,14 +76,14 @@ function render() {
         <td>${web3.addrLink(p.creator)}</td>
         <td><div class="chips">${BLOCKS.filter((b) => p.blocks & b.bit).map((b) => `<span class="chip">${b.name}</span>`).join("") || '<span class="dim">base fee only</span>'}</div></td>
         <td class="r mono">${(p.baseFee / 10000).toFixed(2)}%</td>
-        <td class="r nowrap"><a class="link-pink" href="/coin?token=${p.token}">Trade</a> · <button class="btn btn-dark btn-xs" data-collect="${p.token}">Send LP fees to creator</button></td></tr>`);
+        <td class="r nowrap"><a class="link-accent" href="/coin?token=${p.token}">Trade</a> · <button class="btn btn-dark btn-xs" data-collect="${p.token}">Send LP fees to creator</button></td></tr>`);
       if (!rows.length) rows = [`<tr><td colspan="5" class="dim">${pools.length ? "Nothing matches." : "No pools yet. <a href=\"/builder\">Create one →</a>"}</td></tr>`];
     }
   } else {
     rows = BLOCKS.filter((b) => !q || b.name.toLowerCase().includes(q)).map((b) => `<tr>
       <td><div class="tok">${blockIcon(b)}<span>${b.name}</span></div></td><td class="dim">${b.short}</td>
       <td class="r mono">~${b.gas}K</td><td class="r"><span class="badge gray">Unaudited</span></td>
-      <td class="r"><a class="link-pink" href="/hook?id=${b.id}">Inspect</a></td></tr>`);
+      <td class="r"><a class="link-accent" href="/hook?id=${b.id}">Inspect</a></td></tr>`);
   }
   if (tab !== "launches" && tab !== "tokens") $("#more").hidden = true;
   $("#tbody").innerHTML = rows.join("");

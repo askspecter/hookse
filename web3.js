@@ -218,11 +218,11 @@ function appKit() {
     const projectId = CONFIG.reownProjectId;
     const kit = createAppKit({
       adapters: [new WagmiAdapter({ projectId, networks: [NETWORK] })], networks: [NETWORK], defaultNetwork: NETWORK, projectId,
-      metadata: { name: "Rigs", description: "Open Rigs pools on Uniswap v4 and Pons V2", url: location.origin, icons: [] },
+      metadata: { name: "Rigs", description: "Open Rigs pools on Uniswap v4 and Pons V2", url: location.origin, icons: [new URL("/assets/icon-512.png", location.href).href] },
       features: { analytics: false, email: false, socials: false, swaps: false, onramp: false, send: false },
       allowUnsupportedChain: true,
       themeMode: "dark",
-      themeVariables: { "--w3m-accent": "#fc72ff", "--w3m-font-family": "Geist, system-ui, sans-serif" },
+      themeVariables: { "--w3m-accent": "#1591ff", "--w3m-font-family": "\"Geist Mono\", ui-monospace, monospace" },
     });
     kit.subscribeAccount((s) => {
       if (s.isConnected && s.address) {

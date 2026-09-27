@@ -7,12 +7,15 @@
   <meta name="description" content="Auctions on Rigs" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23fc72ff'/><path d='M11 7v11a5 5 0 0 0 10 0v-3' stroke='%230b0d12' stroke-width='3.2' fill='none' stroke-linecap='round'/></svg>" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png" />
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+  <meta name="theme-color" content="#05070c" />
   <script>try{var t=localStorage.getItem("rigs-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
 </head>
-<body data-nav="app">
+<body data-nav="auctions">
   <div class="app">
     <aside id="sidebar"></aside>
     <main class="app-main">
@@ -20,7 +23,7 @@
       <div class="app-head">
         <div><p class="kicker">Dutch auctions · Robinhood Chain</p><h1>Auctions</h1>
         <p class="lede muted">Sell a token allocation for ETH. The price starts high and falls steadily to a floor; buyers pay the price at the moment they buy. No fees are taken.</p></div>
-        <a class="btn btn-pink btn-sm" href="#create">Create an auction</a>
+        <a class="btn btn-primary btn-sm" href="#create">Create an auction</a>
       </div>
       <div class="notice" id="notLive" hidden>Auctions are off until RigsAuctions is deployed and set in <span class="mono">config.js</span>.</div>
       <div class="disc-bar">
@@ -39,7 +42,7 @@
           <label>Floor price (ETH per token)<input name="floorPrice" type="number" min="0" step="any" placeholder="0.000001" /></label>
         </div>
         <p class="muted small" id="asummary">The price falls in a straight line from start to floor over the duration. Unsold tokens come back to you when it ends; you can end it early.</p>
-        <button class="btn btn-pink btn-lg" id="acreate">Approve &amp; create</button>
+        <button class="btn btn-primary btn-lg" id="acreate">Approve &amp; create</button>
       </form>
 
     </main>

@@ -7,9 +7,12 @@
   <meta name="description" content="Deploy on Rigs" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23fc72ff'/><path d='M11 7v11a5 5 0 0 0 10 0v-3' stroke='%230b0d12' stroke-width='3.2' fill='none' stroke-linecap='round'/></svg>" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png" />
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+  <meta name="theme-color" content="#05070c" />
   <script>try{var t=localStorage.getItem("rigs-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
 </head>
 <body data-nav="deploy">
@@ -20,7 +23,7 @@
       <div class="app-head">
         <div><p class="kicker">Admin · one-time setup</p><h1>Deploy the contracts</h1>
         <p class="lede muted">Connect the wallet that should own Rigs and sign each step. Nothing leaves your browser except the transactions you sign. When you are done, copy the generated config into <span class="mono">config.js</span>.</p></div>
-        <button class="btn btn-pink btn-sm" data-connect>Connect wallet</button>
+        <button class="btn btn-primary btn-sm" data-connect>Connect wallet</button>
       </div>
       <div class="card kv-grid">
         <div><small>Wallet</small><b id="wAddr">—</b><small id="wBal">not connected</small></div>
@@ -54,7 +57,7 @@
       <section class="card pad">
         <p class="muted small">Replace <span class="mono">config.js</span> with this, commit and redeploy the site. Visitors see launching, claiming and pool creation switch on.</p>
         <pre class="mono cfg-out" id="cfgOut"></pre>
-        <div class="btn-row"><button class="btn btn-pink btn-sm" id="copyCfg">Copy config.js</button><button class="btn btn-dark btn-sm" id="dlCfg">Download config.js</button><button class="btn btn-dark btn-sm" id="resetDep">Forget saved progress</button></div>
+        <div class="btn-row"><button class="btn btn-primary btn-sm" id="copyCfg">Copy config.js</button><button class="btn btn-dark btn-sm" id="dlCfg">Download config.js</button><button class="btn btn-dark btn-sm" id="resetDep">Forget saved progress</button></div>
       </section>
 
       <h2 class="h-sm sec-h">5 · Admin</h2>

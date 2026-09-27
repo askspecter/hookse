@@ -57,8 +57,8 @@ async function resolve() {
 }
 
 function fail(msg) {
-  $("#coinHead").innerHTML = `<div class="empty"><b>${msg}</b><p><a class="link-pink" href="/app#tokens">Browse coins →</a></p></div>`;
-  ["#stats", "#trade", "#ctabs", "#pricePanel"].forEach((s) => ($(s).hidden = true));
+  $("#coinHead").innerHTML = `<div class="empty"><b>${msg}</b><p><a class="link-accent" href="/app#tokens">Browse coins →</a></p></div>`;
+  [".coin-actions", "#stats", "#trade", "#ctabs", "#pricePanel"].forEach((s) => ($(s).hidden = true));
 }
 
 // ---------------------------------------------------------------- price
@@ -187,12 +187,12 @@ async function renderCreator() {
       <div class="kv"><span>Claimable now</span><b>${eth(l.claimable, 6)} ETH</b></div>
       <div class="kv"><span>Claimed to date</span><b>${eth(l.totalToCreator, 6)} ETH</b></div>
       <p class="dim small">Fees still on the bonding curve are swept when you claim. 80% is yours, 20% goes to the Rigs treasury.</p>
-      <div class="btn-row"><button class="btn btn-pink btn-sm" data-act="claim">Claim creator fees</button><button class="btn btn-dark btn-sm" data-act="harvest">Harvest only</button>
+      <div class="btn-row"><button class="btn btn-primary btn-sm" data-act="claim">Claim creator fees</button><button class="btn btn-dark btn-sm" data-act="harvest">Harvest only</button>
         <button class="btn btn-dark btn-sm" data-act="handover">Hand over to another wallet</button></div>${detailsEditor()}`;
   } else {
     box.innerHTML = `<div class="row-between"><p class="form-h">Creator · only you see this</p><span class="badge green">You opened this pool</span></div>
       <p class="muted small">Your founding position is locked forever; its LP fees (both ETH and $${esc(c.info.symbol)}) are yours. Collecting sends everything accrued to your wallet.</p>
-      <div class="btn-row"><button class="btn btn-pink btn-sm" data-act="collect">Claim LP fees</button></div>${detailsEditor()}`;
+      <div class="btn-row"><button class="btn btn-primary btn-sm" data-act="collect">Claim LP fees</button></div>${detailsEditor()}`;
   }
 }
 
@@ -201,7 +201,7 @@ function detailsEditor() {
     <label class="small muted">Logo URL<input class="filter mono wide" id="mLogo" value="${esc(c.meta?.logo || "")}" placeholder="https://…" /></label>
     <label class="btn btn-dark btn-xs upload-btn">Upload an image<input type="file" id="mFile" accept="image/png,image/jpeg,image/webp,image/gif" hidden /></label>
     <label class="small muted">One-liner<input class="filter wide" id="mDesc" maxlength="160" value="${esc(c.meta?.description || "")}" /></label>
-    <button class="btn btn-pink btn-sm" data-act="meta">Sign &amp; save</button>
+    <button class="btn btn-primary btn-sm" data-act="meta">Sign &amp; save</button>
     <p class="dim small">Signing proves you are the creator. It costs no gas.</p></details>`;
 }
 
@@ -215,14 +215,14 @@ async function renderWinnings() {
   box.hidden = false;
   box.innerHTML = `<p class="form-h">Your winnings &amp; royalties</p>
     <div class="kv"><span>ETH</span><b>${eth(e, 6)}</b></div><div class="kv"><span>$${esc(c.info.symbol)}</span><b>${Number(formatUnits(tk, c.info.decimals)).toLocaleString("en-US")}</b></div>
-    <div class="btn-row">${e > 0n ? '<button class="btn btn-pink btn-sm" data-act="win-eth">Claim ETH</button>' : ""}${tk > 0n ? '<button class="btn btn-pink btn-sm" data-act="win-token">Claim tokens</button>' : ""}</div>`;
+    <div class="btn-row">${e > 0n ? '<button class="btn btn-primary btn-sm" data-act="win-eth">Claim ETH</button>' : ""}${tk > 0n ? '<button class="btn btn-primary btn-sm" data-act="win-token">Claim tokens</button>' : ""}</div>`;
 }
 
 function renderRules() {
   if (c.kind === "pons") {
     $("#rulesPanel").innerHTML = `<p class="form-h">Pons V2 curve</p><p class="muted small">This coin trades on a Pons V2 bonding curve and graduates into a locked Uniswap v4 pool when the curve sells out. Pons applies its own launch snipe tax and creator tax.</p>
       <div class="kv"><span>Fee splitter</span><b>${addrLink(c.launch.splitter)}</b></div><div class="kv"><span>Curve</span><b>${addrLink(c.launch.curve)}</b></div>
-      <p class="small"><a class="link-pink" href="${CONFIG.ponsCoinUrl}${token}" target="_blank" rel="noopener">Open on Pons ↗</a></p>`;
+      <p class="small"><a class="link-accent" href="${CONFIG.ponsCoinUrl}${token}" target="_blank" rel="noopener">Open on Pons ↗</a></p>`;
     return;
   }
   const on = BLOCKS.filter((b) => (Number(c.cfg.blocks) & b.bit) !== 0);
@@ -243,7 +243,7 @@ function renderTrade() {
   const buy = t.side === "buy";
   const sym = esc(c.info.symbol);
   if (c.kind === "pons" && c.graduated) {
-    $("#trade").innerHTML = `<p class="form-h">Trade</p><p class="muted small">This coin has left the bonding curve. Trade it in its graduated pool on Pons.</p><a class="btn btn-pink" href="${CONFIG.ponsCoinUrl}${token}" target="_blank" rel="noopener">Trade on Pons ↗</a>`;
+    $("#trade").innerHTML = `<p class="form-h">Trade</p><p class="muted small">This coin has left the bonding curve. Trade it in its graduated pool on Pons.</p><a class="btn btn-primary" href="${CONFIG.ponsCoinUrl}${token}" target="_blank" rel="noopener">Trade on Pons ↗</a>`;
     return;
   }
   if (c.kind === "v4" && !routerLive) {
@@ -274,7 +274,7 @@ function renderTrade() {
     <details class="subcard"><summary class="form-h">How this trade works</summary><p class="muted small">${c.kind === "pons"
       ? "Your wallet trades directly with the Pons V2 curve. The quote is a simulation of the same call; the minimum protects you if the price moves before it lands."
       : "Your wallet calls RigsRouter, which swaps in the Uniswap v4 pool. The pool's hook applies its rules during the swap. You are passed as the buyer, so pot winnings are credited to you."}</p></details>
-    <button class="btn btn-pink btn-lg" id="tGo" ${me && (!t.amount || t.quoting) ? "disabled" : ""}>${label}</button>`;
+    <button class="btn btn-primary btn-lg" id="tGo" ${me && (!t.amount || t.quoting) ? "disabled" : ""}>${label}</button>`;
   $("#tAmt").addEventListener("input", (e) => { t.amount = e.target.value; t.quoteError = null; clearTimeout(t.timer); t.timer = setTimeout(quote, 350); });
 }
 
@@ -386,10 +386,10 @@ function renderPrice() {
   const times = [0, 0.5, 1].map((f) => t0 + span * f);
   $("#pricePanel").innerHTML = head + `
     <div class="chart-wrap"><svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" id="chartSvg">
-      <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--pink)" stop-opacity=".35"/><stop offset="1" stop-color="var(--pink)" stop-opacity="0"/></linearGradient></defs>
+      <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".35"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
       ${ticks.map((v) => `<line x1="0" x2="${W - PADR}" y1="${Y(v)}" y2="${Y(v)}" class="grid"/>`).join("")}
-      <path d="${area}" fill="url(#cg)"/><path d="${d}" fill="none" stroke="var(--pink)" stroke-width="2" vector-effect="non-scaling-stroke"/>
-      <line id="cross" y1="0" y2="${H - PADB}" class="cross" hidden/><circle id="dot" r="4" fill="var(--pink)" hidden/>
+      <path d="${area}" fill="url(#cg)"/><path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke"/>
+      <line id="cross" y1="0" y2="${H - PADB}" class="cross" hidden/><circle id="dot" r="4" fill="var(--accent)" hidden/>
     </svg>
     <div class="y-labels">${ticks.map((v) => `<span style="top:${(Y(v) / H) * 100}%">${fmtPrice(v, sig)} ETH</span>`).join("")}</div>
     <div class="x-labels">${times.map((t, i) => `<span style="left:${(X(t) / W) * 100}%;transform:translateX(${i === 0 ? 0 : i === 2 ? -100 : -50}%)">${hhmm(t, span)}</span>`).join("")}</div>
@@ -418,7 +418,7 @@ function renderActivity() {
   const sym = esc(c.info.symbol);
   const rows = trades.slice(-50).reverse().map((s) => `<tr><td><span class="${s.buy ? "up" : "down"}">${s.buy ? "Buy" : "Sell"}</span></td>
     <td class="r mono">${s.eth == null ? "—" : fmtPrice(Number(formatEther(s.eth)), 4) + " ETH"}</td><td class="r mono">${Number(formatUnits(s.tok, c.info.decimals)).toLocaleString("en-US", { maximumFractionDigits: 0 })}</td>
-    <td class="r dim">${hhmm(s.t, 1e9)} ${new Date(s.t * 1000).toISOString().slice(11, 16)}</td><td class="r"><a class="link-pink" href="${CONFIG.explorer}/tx/${s.hash}" target="_blank" rel="noopener">tx ↗</a></td></tr>`);
+    <td class="r dim">${hhmm(s.t, 1e9)} ${new Date(s.t * 1000).toISOString().slice(11, 16)}</td><td class="r"><a class="link-accent" href="${CONFIG.explorer}/tx/${s.hash}" target="_blank" rel="noopener">tx ↗</a></td></tr>`);
   $("#activityPanel").innerHTML = `<table class="table"><thead><tr><th>Side</th><th class="r">ETH</th><th class="r">${sym}</th><th class="r">Time (UTC)</th><th class="r"></th></tr></thead><tbody>${rows.join("") || `<tr><td colspan="5" class="dim">${historyState === "loading" ? "Reading…" : historyState === "error" ? "Could not read trade history." : "No trades yet."}</td></tr>`}</tbody></table>`;
 }
 

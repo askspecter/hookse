@@ -47,7 +47,7 @@ function card(a) {
     <div class="kv"><span>Left</span><b>${fmtT(a, remaining)} / ${fmtT(a, a.amount)}</b></div>
     <div class="bar"><span style="width:${pctSold}%"></span></div>
     <p class="dim small">${timeNote} · seller ${addrLink(a.seller)} · token ${addrLink(a.token)}</p>
-    ${st === "live" ? `<div class="buy-row"><input class="filter mono" type="number" min="0" step="any" placeholder="Tokens" data-amt="${a.id}" /><button class="btn btn-pink btn-sm" data-buy="${a.id}">Buy</button></div><p class="dim small" data-cost="${a.id}"></p>` : ""}
+    ${st === "live" ? `<div class="buy-row"><input class="filter mono" type="number" min="0" step="any" placeholder="Tokens" data-amt="${a.id}" /><button class="btn btn-primary btn-sm" data-buy="${a.id}">Buy</button></div><p class="dim small" data-cost="${a.id}"></p>` : ""}
     ${me ? `<div class="btn-row">${a.proceeds > 0n || (st === "ended" && !a.unsoldWithdrawn) ? `<button class="btn btn-dark btn-xs" data-withdraw="${a.id}">Withdraw ${a.proceeds > 0n ? Number(formatEther(a.proceeds)).toPrecision(4) + " ETH" : ""}${st === "ended" && !a.unsoldWithdrawn && remaining > 0n ? " + unsold" : ""}</button>` : ""}${st !== "ended" ? `<button class="btn btn-dark btn-xs" data-end="${a.id}">End now</button>` : ""}</div>` : ""}
   </div>`;
 }
@@ -57,7 +57,7 @@ function render() {
   const shown = list.filter((a) => (filter === "mine" ? me && getAddress(a.seller) === me : state(a) === filter));
   $("#acount").textContent = `${shown.length} auction${shown.length === 1 ? "" : "s"}`;
   $("#alist").innerHTML = shown.length ? shown.map(card).join("")
-    : `<div class="empty"><b>${filter === "mine" ? (me ? "You have no auctions" : "Connect your wallet") : `No ${filter} auctions`}</b><p><a class="link-pink" href="#create">Create one →</a></p></div>`;
+    : `<div class="empty"><b>${filter === "mine" ? (me ? "You have no auctions" : "Connect your wallet") : `No ${filter} auctions`}</b><p><a class="link-accent" href="#create">Create one →</a></p></div>`;
   const hash = location.hash.match(/^#auction-(\d+)$/);
   if (hash) document.getElementById(`auction-${hash[1]}`)?.scrollIntoView({ block: "center" });
 }

@@ -7,9 +7,12 @@
   <meta name="description" content="Coin on Rigs" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23fc72ff'/><path d='M11 7v11a5 5 0 0 0 10 0v-3' stroke='%230b0d12' stroke-width='3.2' fill='none' stroke-linecap='round'/></svg>" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png" />
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+  <meta name="theme-color" content="#05070c" />
   <script>try{var t=localStorage.getItem("rigs-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
 </head>
 <body data-nav="app">
@@ -20,7 +23,7 @@
       <p class="crumb"><a href="/app">Discover</a> / <a href="/app#tokens">Coins</a> / <span>Coin</span> <span class="push-r mono dim" id="asOf"></span></p>
       <div id="coinHead" class="coin-head"><div class="empty"><b>Reading…</b></div></div>
       <div class="coin-actions">
-        <a class="btn btn-pink" href="#trade">Trade</a>
+        <a class="btn btn-primary" href="#trade">Trade</a>
         <a class="btn btn-dark" href="#" id="extLink" target="_blank" rel="noopener">Explorer ↗</a>
         <button class="btn btn-dark" data-ctab="activity">Activity</button>
         <a class="btn btn-dark" href="/launch">New coin</a>

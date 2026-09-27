@@ -7,9 +7,12 @@
   <meta name="description" content="Portfolio on Rigs" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23fc72ff'/><path d='M11 7v11a5 5 0 0 0 10 0v-3' stroke='%230b0d12' stroke-width='3.2' fill='none' stroke-linecap='round'/></svg>" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png" />
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+  <meta name="theme-color" content="#05070c" />
   <script>try{var t=localStorage.getItem("rigs-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
 </head>
 <body data-nav="portfolio">
@@ -29,7 +32,7 @@
           <div><span class="k">Claimable now</span><b id="sumClaim">—</b></div>
           <div><span class="k">Claimed to date</span><b id="sumPaid">—</b></div>
           <div><span class="k">Your coins</span><b id="sumCoins">—</b></div>
-          <div class="claim-cta"><button class="btn btn-pink btn-sm" id="claimAll" disabled>Claim all</button></div>
+          <div class="claim-cta"><button class="btn btn-primary btn-sm" id="claimAll" disabled>Claim all</button></div>
         </section>
         <div class="disc-bar">
           <h2 class="h-sm">Your coins</h2>
@@ -47,7 +50,7 @@
         <div class="empty">
           <b>Liquidity positions</b>
           <p>Pons locks each graduated pool's liquidity, so there is nothing to manage there. Positions you open in Rigs v4 pools will show here.</p>
-          <div class="btn-row"><button class="btn btn-pink btn-sm" data-connect>Connect wallet</button><a href="/app" class="btn btn-dark btn-sm">Explore pools</a></div>
+          <div class="btn-row"><button class="btn btn-primary btn-sm" data-connect>Connect wallet</button><a href="/app" class="btn btn-dark btn-sm">Explore pools</a></div>
         </div>
       </section>
 
