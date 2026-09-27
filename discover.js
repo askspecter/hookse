@@ -32,11 +32,11 @@ function render() {
       const list = launches.filter((l) => !q || `${l.name} ${l.symbol} ${l.token}`.toLowerCase().includes(q));
       rows = list.slice(0, shown).map((l) => `<tr>
         <td class="dim mono">${l.id}</td>
-        <td><div class="tok"><div class="av">${esc((l.symbol || "?").slice(0, 2))}</div><span>${esc(l.name || "Unknown")} <span class="dim">$${esc(l.symbol || "")}</span></span></div></td>
+        <td><a href="coin.html?token=${l.token}"><div class="tok"><div class="av">${esc((l.symbol || "?").slice(0, 2))}</div><span>${esc(l.name || "Unknown")} <span class="dim">$${esc(l.symbol || "")}</span></span></div></a></td>
         <td>${web3.addrLink(l.creator || l.creatorAtLaunch)}</td>
         <td class="r mono">${web3.eth(l.totalToCreator, 5)} ETH</td>
         <td class="r dim">${ago(l.launchedAt)}</td>
-        <td class="r nowrap"><a class="link-pink" href="${web3.CONFIG.ponsCoinUrl}${l.token}" target="_blank" rel="noopener">Trade ↗</a> · <a class="link-pink" href="portfolio.html?token=${l.token}">Fees</a></td></tr>`);
+        <td class="r nowrap"><a class="link-pink" href="coin.html?token=${l.token}">Trade</a> · <a class="link-pink" href="portfolio.html?token=${l.token}">Fees</a></td></tr>`);
       if (!rows.length) rows = [`<tr><td colspan="6" class="dim">${launches.length ? "Nothing matches." : "No launches yet. <a href=\"launch.html\">Be the first →</a>"}</td></tr>`];
       $("#more").hidden = list.length <= shown;
     }
@@ -54,13 +54,13 @@ function render() {
     if (!rows.length) rows = [`<tr><td colspan="5" class="dim">${q ? "Nothing matches." : "No auctions yet. <a href=\"auctions.html#create\">Create one →</a>"}</td></tr>`];
   } else if (tab === "tokens") {
     const all = [
-      ...launches.map((l) => ({ name: l.name, symbol: l.symbol, token: l.token, creator: l.creator || l.creatorAtLaunch, market: "Pons V2 curve", link: `${web3.CONFIG.ponsCoinUrl}${l.token}`, label: "Trade ↗" })),
-      ...pools.map((p) => ({ name: p.name, symbol: p.symbol, token: p.token, creator: p.creator, market: "Instant · v4 hook", link: "#pools", label: "Pool" })),
+      ...launches.map((l) => ({ name: l.name, symbol: l.symbol, token: l.token, creator: l.creator || l.creatorAtLaunch, market: "Pons V2 curve", link: `coin.html?token=${l.token}`, label: "Trade" })),
+      ...pools.map((p) => ({ name: p.name, symbol: p.symbol, token: p.token, creator: p.creator, market: "Instant · v4 hook", link: `coin.html?token=${p.token}`, label: "Trade" })),
     ].filter((t) => !q || `${t.name} ${t.symbol} ${t.token}`.toLowerCase().includes(q));
     rows = !web3 || (!web3.live && !web3.v4live)
       ? [`<tr><td colspan="5" class="dim">Tokens appear here once the Rigs launchers are deployed.</td></tr>`]
       : all.slice(0, shown).map((t) => `<tr>
-        <td><div class="tok"><div class="av">${esc((t.symbol || "?").slice(0, 2))}</div><span>${esc(t.name || "Unknown")} <span class="dim">$${esc(t.symbol || "")}</span></span></div></td>
+        <td><a href="coin.html?token=${t.token}"><div class="tok"><div class="av">${esc((t.symbol || "?").slice(0, 2))}</div><span>${esc(t.name || "Unknown")} <span class="dim">$${esc(t.symbol || "")}</span></span></div></a></td>
         <td><span class="chip">${t.market}</span></td>
         <td>${web3.addrLink(t.creator)}</td>
         <td class="r">${web3.addrLink(t.token)}</td>
@@ -72,11 +72,11 @@ function render() {
       rows = [`<tr><td colspan="5" class="dim">Rigs v4 pools (created in the <a href="builder.html">Builder</a>) appear once the v4 launcher is deployed. Pons graduations trade on Pons' own locked v4 pools.</td></tr>`];
     } else {
       rows = pools.filter((p) => !q || `${p.name} ${p.symbol} ${p.token}`.toLowerCase().includes(q)).map((p) => `<tr>
-        <td><div class="tok"><div class="av">${esc((p.symbol || "?").slice(0, 2))}</div><span>ETH / ${esc(p.symbol || "?")} <span class="dim">${esc(p.name || "")}</span></span></div></td>
+        <td><a href="coin.html?token=${p.token}"><div class="tok"><div class="av">${esc((p.symbol || "?").slice(0, 2))}</div><span>ETH / ${esc(p.symbol || "?")} <span class="dim">${esc(p.name || "")}</span></span></div></a></td>
         <td>${web3.addrLink(p.creator)}</td>
         <td><div class="chips">${BLOCKS.filter((b) => p.blocks & b.bit).map((b) => `<span class="chip">${b.name}</span>`).join("") || '<span class="dim">base fee only</span>'}</div></td>
         <td class="r mono">${(p.baseFee / 10000).toFixed(2)}%</td>
-        <td class="r nowrap"><a class="link-pink" href="${web3.CONFIG.explorer}/token/${p.token}" target="_blank" rel="noopener">Token ↗</a> · <button class="btn btn-dark btn-xs" data-collect="${p.token}">Send LP fees to creator</button></td></tr>`);
+        <td class="r nowrap"><a class="link-pink" href="coin.html?token=${p.token}">Trade</a> · <button class="btn btn-dark btn-xs" data-collect="${p.token}">Send LP fees to creator</button></td></tr>`);
       if (!rows.length) rows = [`<tr><td colspan="5" class="dim">${pools.length ? "Nothing matches." : "No pools yet. <a href=\"builder.html\">Create one →</a>"}</td></tr>`];
     }
   } else {

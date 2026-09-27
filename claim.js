@@ -14,7 +14,7 @@ function renderRows() {
     $("#rows").innerHTML = coins.map((c, i) => {
       const mine = me && c.creator && getAddress(c.creator) === me;
       return `<tr>
-        <td><div class="tok"><div class="av">${esc((c.symbol || "?").slice(0, 2))}</div><span>${esc(c.name || "Unknown")} <span class="dim">$${esc(c.symbol || "")}</span></span></div></td>
+        <td><a href="coin.html?token=${c.token}"><div class="tok"><div class="av">${esc((c.symbol || "?").slice(0, 2))}</div><span>${esc(c.name || "Unknown")} <span class="dim">$${esc(c.symbol || "")}</span></span></div></a></td>
         <td>${addrLink(c.splitter)}</td>
         <td class="r mono">${eth(c.claimable, 6)} ETH</td>
         <td class="r mono">${eth(c.totalToCreator, 6)} ETH</td>

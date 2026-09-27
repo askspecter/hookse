@@ -52,6 +52,18 @@ contract MockPonsCurve {
         token.transfer(recipient, out);
     }
 
+    /// @dev Sells back at the same fixed price, minus the 1% fee.
+    function sell(uint256 tokensIn, uint256 minQuoteOut, address recipient) external returns (uint256 out) {
+        token.transferFrom(msg.sender, address(this), tokensIn);
+        uint256 gross = tokensIn / 1e6;
+        uint256 fee = gross / 100;
+        accrued += fee;
+        out = gross - fee;
+        require(out >= minQuoteOut, "slippage");
+        (bool ok,) = recipient.call{value: out}("");
+        require(ok);
+    }
+
     function sweepFees(uint256) external {
         require(msg.sender == feeRecipient, "only recipient");
         uint256 a = accrued;

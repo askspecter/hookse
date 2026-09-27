@@ -609,3 +609,50 @@ details.subcard summary { cursor: pointer; }
 .buy-row { display: flex; gap: 8px; }
 .buy-row .filter { flex: 1; width: auto; }
 @media (max-width: 640px) { .disc-bar .tabs { max-width: 100%; overflow-x: auto; } .disc-bar .tabs button { white-space: nowrap; } }
+/* coin page */
+.push-r { float: right; }
+.coin-head { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.coin-head h1 { font-size: 40px; font-weight: 700; letter-spacing: -.02em; }
+.pair-logos { display: flex; }
+.pair-logos span { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; overflow: hidden; border: 3px solid var(--bg); }
+.eth-logo { background: #627eea; color: #fff; font-size: 24px; }
+.coin-logo { margin-left: -14px; background: linear-gradient(135deg, var(--pink), var(--violet)); color: #2a0628; }
+.coin-logo img { width: 100%; height: 100%; object-fit: cover; }
+.coin-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.copy { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 16px; }
+.coin-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+.coin-actions .btn { padding: 13px; }
+.coin-stats { display: grid; grid-template-columns: repeat(4, 1fr); }
+.coin-stats > div { padding: 18px 20px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; }
+.coin-stats > div:last-child { border-right: 0; }
+.coin-stats small { color: var(--muted); font-size: 13px; }
+.coin-stats b { font-family: var(--mono); font-size: 20px; }
+.creator-box, .winnings-box { padding: 18px 20px; margin-top: 14px; display: flex; flex-direction: column; gap: 10px; border-color: color-mix(in srgb, var(--pink) 45%, var(--line)); }
+.big-num { font-family: var(--mono); font-size: 26px; margin: 6px 0; }
+.chart { width: 100%; height: 180px; margin: 12px 0 6px; }
+.trade { padding: 20px; margin-top: 16px; display: flex; flex-direction: column; gap: 14px; max-width: 640px; }
+.trade-h { font-size: 20px; font-weight: 700; }
+.subtabs .buy-t { color: var(--green); border-bottom-color: var(--green); }
+.subtabs .sell-t { color: var(--red); border-bottom-color: var(--red); }
+.big-inp { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 16px; padding: 6px 18px; }
+.big-inp input { flex: 1; background: transparent; border: 0; outline: none; color: var(--text); font-size: 28px; padding: 10px 0; min-width: 0; }
+.big-inp em { font-style: normal; color: var(--muted); font-weight: 600; }
+.presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.presets button { padding: 12px 6px; border: 1px solid var(--line); border-radius: 10px; background: transparent; color: var(--text); font-weight: 600; cursor: pointer; }
+.presets button.on { border-color: var(--pink); background: color-mix(in srgb, var(--pink) 15%, transparent); }
+.presets.slip { width: auto; grid-template-columns: repeat(4, auto); }
+.presets.slip button { padding: 8px 12px; }
+.quote-box { border: 1px solid var(--line); border-radius: 14px; padding: 6px 16px; }
+.quote-box .kv { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.quote-box .kv:last-child { border-bottom: 0; }
+@media (max-width: 760px) {
+  .coin-actions { grid-template-columns: 1fr 1fr; }
+  .coin-stats { grid-template-columns: 1fr 1fr; }
+  .coin-stats > div:nth-child(2n) { border-right: 0; }
+  .coin-stats > div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+  .coin-head h1 { font-size: 32px; }
+  .push-r { float: none; display: block; margin-top: 4px; }
+}
+.kv { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14px; }
+.kv > span { color: var(--muted); }
+.kv > b { font-family: var(--mono); font-weight: 500; text-align: right; }

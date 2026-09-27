@@ -413,7 +413,7 @@ document.addEventListener("click", async (e) => {
     }
     toast(`Launched $${symbol}!`);
     $("#result").innerHTML = `<div class="card done"><b>$${esc(symbol)} is live${d.mode === "pons" ? " on Pons" : ""}.</b>
-      <p>${d.mode === "pons" ? `<a href="${CONFIG.ponsCoinUrl}${token}" target="_blank" rel="noopener">Trade it on Pons ↗</a> · ` : `<a href="app.html#pools">See the pool in Discover</a> · `}
+      <p><a href="coin.html?token=${token}">Open the coin page →</a> · ${d.mode === "pons" ? `<a href="${CONFIG.ponsCoinUrl}${token}" target="_blank" rel="noopener">Pons ↗</a> · ` : ""}
       <a href="${CONFIG.explorer}/tx/${hash}" target="_blank" rel="noopener">View transaction ↗</a> · <a href="portfolio.html">Your creator fees →</a></p></div>`;
     d = { ...fresh(), mode: d.mode };
     render();

@@ -17,7 +17,7 @@ const LAUNCHER_ADMIN = parseAbi(["function setTreasury(address)", "function trea
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
 let st = { ...load() };
 // Addresses already in config.js count as done.
-for (const k of ["ponsLauncher", "poolManager", "rigsHook", "rigsLauncher", "rigsAuctions"]) if (isAddress(CONFIG[k] || "")) st[k] ??= CONFIG[k];
+for (const k of ["ponsLauncher", "poolManager", "rigsHook", "rigsLauncher", "rigsAuctions", "rigsRouter"]) if (isAddress(CONFIG[k] || "")) st[k] ??= CONFIG[k];
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch { /* storage blocked */ } render(); };
 
 const artifacts = {};
@@ -129,6 +129,13 @@ const STEPS = {
   ],
   auctions: [
     {
+      id: "rigsRouter", title: "Deploy swap router", note: "RigsRouter: buy and sell on Rigs pools from coin pages. Sent through the CREATE2 deployer.", needs: ["create2", "pm"],
+      run: async () => {
+        const pm = st.poolManager || getAddress($("#poolManager").value.trim());
+        st.rigsRouter = (await deployViaFactory("RigsRouter", [pm])).address;
+      },
+    },
+    {
       id: "rigsAuctions", title: "Deploy auctions", note: "RigsAuctions (Dutch auctions). Sent through the CREATE2 deployer.", needs: ["create2"],
       run: async () => { st.rigsAuctions = (await deployViaFactory("RigsAuctions", [])).address; },
     },
@@ -169,6 +176,7 @@ export const CONFIG = {
   rigsHook: ${JSON.stringify(v("rigsHook"))},
   rigsLauncher: ${JSON.stringify(st.rigsLauncherSet || CONFIG.rigsLauncher ? v("rigsLauncher") : "")},
   rigsAuctions: ${JSON.stringify(v("rigsAuctions"))},
+  rigsRouter: ${JSON.stringify(v("rigsRouter"))},
   contactEmail: ${JSON.stringify(CONFIG.contactEmail || "")},
   reownProjectId: ${JSON.stringify(CONFIG.reownProjectId)},
 };
@@ -274,7 +282,7 @@ render();
 // Drop saved addresses whose contracts no longer exist on this chain (e.g. after switching RPC).
 (async () => {
   let changed = false;
-  for (const k of ["splitterImpl", "ponsLauncher", "create2", "rigsHook", "rigsLauncher", "rigsAuctions"]) {
+  for (const k of ["splitterImpl", "ponsLauncher", "create2", "rigsHook", "rigsLauncher", "rigsAuctions", "rigsRouter"]) {
     if (st[k] && !(await hasCode(st[k]))) { delete st[k]; changed = true; }
   }
   if (!st.rigsHook) delete st.rigsLauncherSet;

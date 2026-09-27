@@ -113,7 +113,7 @@ const data = { launches: [], pools: [], auctions: [] };
 let w = null;
 const esc = (x) => String(x ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const ago = (ts) => { const s = Math.max(0, Date.now() / 1000 - ts); return s < 3600 ? `${Math.floor(s / 60)}m ago` : s < 86400 ? `${Math.floor(s / 3600)}h ago` : `${Math.floor(s / 86400)}d ago`; };
-const tok = (sym, name) => `<div class="tok"><div class="av">${esc((sym || "?").slice(0, 2))}</div><span>${esc(name || "Unknown")} <span class="dim">$${esc(sym || "")}</span></span></div>`;
+const tok = (sym, name, addr) => `${addr ? `<a href="coin.html?token=${addr}">` : ""}<div class="tok"><div class="av">${esc((sym || "?").slice(0, 2))}</div><span>${esc(name || "Unknown")} <span class="dim">$${esc(sym || "")}</span></span></div>${addr ? "</a>" : ""}`;
 const NAMES = { 1: "Anti-Snipe", 2: "Surge Fee", 4: "Auto Burn", 8: "LP Rewards", 16: "Nth-Buy Pot" };
 
 function renderTable() {
@@ -121,8 +121,8 @@ function renderTable() {
   $("#thead").innerHTML = "<tr>" + HEADS[tab].map((h, i) => `<th class="${i >= 2 ? "r" : ""}">${h}</th>`).join("") + "</tr>";
   const match = (x) => !q || `${x.name} ${x.symbol} ${x.token}`.toLowerCase().includes(q);
   let rows = [];
-  if (tab === "launches") rows = data.launches.filter(match).slice(0, 10).map((l) => `<tr><td>${tok(l.symbol, l.name)}</td><td>${w.addrLink(l.creator || l.creatorAtLaunch)}</td><td class="r mono">${w.eth(l.totalToCreator, 5)} ETH</td><td class="r dim">${ago(l.launchedAt)}</td><td class="r"><a class="link-pink" href="${w.CONFIG.ponsCoinUrl}${l.token}" target="_blank" rel="noopener">Trade ↗</a></td></tr>`);
-  if (tab === "pools") rows = data.pools.filter(match).slice(0, 10).map((p) => `<tr><td>${tok(p.symbol, p.name)}</td><td>${w.addrLink(p.creator)}</td><td><div class="chips">${Object.entries(NAMES).filter(([b]) => p.blocks & b).map(([, n]) => `<span class="chip">${n}</span>`).join("") || '<span class="dim">base fee only</span>'}</div></td><td class="r mono">${(p.baseFee / 10000).toFixed(2)}%</td><td class="r"><a class="link-pink" href="app.html#pools">Open</a></td></tr>`);
+  if (tab === "launches") rows = data.launches.filter(match).slice(0, 10).map((l) => `<tr><td>${tok(l.symbol, l.name, l.token)}</td><td>${w.addrLink(l.creator || l.creatorAtLaunch)}</td><td class="r mono">${w.eth(l.totalToCreator, 5)} ETH</td><td class="r dim">${ago(l.launchedAt)}</td><td class="r"><a class="link-pink" href="coin.html?token=${l.token}">Trade</a></td></tr>`);
+  if (tab === "pools") rows = data.pools.filter(match).slice(0, 10).map((p) => `<tr><td>${tok(p.symbol, p.name, p.token)}</td><td>${w.addrLink(p.creator)}</td><td><div class="chips">${Object.entries(NAMES).filter(([b]) => p.blocks & b).map(([, n]) => `<span class="chip">${n}</span>`).join("") || '<span class="dim">base fee only</span>'}</div></td><td class="r mono">${(p.baseFee / 10000).toFixed(2)}%</td><td class="r"><a class="link-pink" href="coin.html?token=${p.token}">Trade</a></td></tr>`);
   if (tab === "auctions") rows = data.auctions.filter(match).slice(0, 10).map((a) => `<tr><td>${tok(a.symbol, a.name)}</td><td><span class="badge gray">${a.status}</span></td><td class="r mono">${a.priceEth} ETH</td><td class="r mono">${a.pctSold}%</td><td class="r"><a class="link-pink" href="auctions.html#auction-${a.id}">Open</a></td></tr>`);
   $("#tbody").innerHTML = rows.join("") || `<tr><td colspan="5" class="dim">${!w ? "Reading the chain…" : `Nothing here yet. <a href="${tab === "auctions" ? "auctions.html#create" : "launch.html"}">Be the first →</a>`}</td></tr>`;
   $("#discStatus").textContent = w ? `${rows.length} shown · live` : "Reading…";

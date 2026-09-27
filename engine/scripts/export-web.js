@@ -11,6 +11,7 @@ const LIST = [
   ["RigsHook.sol", "RigsHook"],
   ["RigsLauncher.sol", "RigsLauncher"],
   ["RigsAuctions.sol", "RigsAuctions"],
+  ["RigsRouter.sol", "RigsRouter"],
 ];
 
 fs.mkdirSync(OUT, { recursive: true });

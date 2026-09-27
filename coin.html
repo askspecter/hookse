@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Coin · Rigs</title>
+  <meta name="description" content="Coin on Rigs" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23fc72ff'/><path d='M11 7v11a5 5 0 0 0 10 0v-3' stroke='%230b0d12' stroke-width='3.2' fill='none' stroke-linecap='round'/></svg>" />
+  <script>try{var t=localStorage.getItem("rigs-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
+</head>
+<body data-nav="app">
+  <div class="app">
+    <aside id="sidebar"></aside>
+    <main class="app-main">
+
+      <p class="crumb"><a href="app.html">Discover</a> / <a href="app.html#tokens">Coins</a> / <span>Coin</span> <span class="push-r mono dim" id="asOf"></span></p>
+      <div id="coinHead" class="coin-head"><div class="empty"><b>Reading…</b></div></div>
+      <div class="coin-actions">
+        <a class="btn btn-pink" href="#trade">Trade</a>
+        <a class="btn btn-dark" href="#" id="extLink" target="_blank" rel="noopener">Explorer ↗</a>
+        <button class="btn btn-dark" data-ctab="activity">Activity</button>
+        <a class="btn btn-dark" href="launch.html">New coin</a>
+      </div>
+      <section class="card coin-stats" id="stats"></section>
+      <section class="card creator-box" id="creatorBox" hidden></section>
+      <section class="card winnings-box" id="winBox" hidden></section>
+      <div class="subtabs sec-gap" id="ctabs"><button class="on" data-ctab="price">Price</button><button data-ctab="rules">Rules</button><button data-ctab="activity">Activity</button><button data-ctab="details">Details</button></div>
+      <section data-cpanel="price" class="card pad" id="pricePanel"></section>
+      <section data-cpanel="rules" class="card pad" id="rulesPanel" hidden></section>
+      <section data-cpanel="activity" class="card table-card" id="activityPanel" hidden></section>
+      <section data-cpanel="details" class="card pad" id="detailsPanel" hidden></section>
+      <section class="card trade" id="trade"></section>
+
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script type="module" src="shell.js"></script>
+  <script type="module" src="coin.js"></script>
+</body>
+</html>

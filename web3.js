@@ -18,6 +18,7 @@ export const client = createPublicClient({ chain, transport: http() });
 export const live = isAddress(CONFIG.ponsLauncher || "");
 export const v4live = isAddress(CONFIG.rigsLauncher || "") && isAddress(CONFIG.rigsHook || "");
 export const auctionsLive = isAddress(CONFIG.rigsAuctions || "");
+export const routerLive = isAddress(CONFIG.rigsRouter || "");
 
 export const ABI = {
   pons: parseAbi([
@@ -59,6 +60,19 @@ export const ABI = {
     "function collectCreatorFees(address token) returns (uint256 amount0, uint256 amount1)",
     "event Launched(address indexed token, address indexed creator, bytes32 indexed id, string name, string symbol, uint256 supply, int24 startTick)",
   ]),
+  rigsRouter: parseAbi([
+    "struct PoolKey { address currency0; address currency1; uint24 fee; int24 tickSpacing; address hooks; }",
+    "function buy(PoolKey key, uint256 minOut, address recipient) payable returns (uint256 out)",
+    "function sell(PoolKey key, uint256 amountIn, uint256 minOut, address recipient) returns (uint256 out)",
+  ]),
+  ponsCurve: parseAbi([
+    "function buy(uint256 quoteIn, uint256 minTokensOut, address recipient) payable returns (uint256 tokensOut)",
+    "function sell(uint256 tokensIn, uint256 minQuoteOut, address recipient) returns (uint256 quoteOut)",
+  ]),
+  poolManager: parseAbi([
+    "function extsload(bytes32 slot) view returns (bytes32)",
+    "event Swap(bytes32 indexed id, address indexed sender, int128 amount0, int128 amount1, uint160 sqrtPriceX96, uint128 liquidity, int24 tick, uint24 fee)",
+  ]),
   rigsAuctions: parseAbi([
     "struct Auction { address seller; address token; uint128 amount; uint128 sold; uint128 startPrice; uint128 floorPrice; uint64 start; uint64 end; uint128 proceeds; bool unsoldWithdrawn; }",
     "function create(address token, uint256 amount, uint256 startPrice, uint256 floorPrice, uint64 start, uint64 duration) returns (uint256)",
@@ -73,6 +87,7 @@ export const ABI = {
   erc20Full: parseAbi([
     "function name() view returns (string)", "function symbol() view returns (string)", "function decimals() view returns (uint8)",
     "function balanceOf(address) view returns (uint256)", "function allowance(address owner, address spender) view returns (uint256)",
+    "function totalSupply() view returns (uint256)",
     "function approve(address spender, uint256 amount) returns (bool)",
   ]),
   rigsHook: parseAbi([
@@ -83,6 +98,9 @@ export const ABI = {
     "function setLauncher(address)",
     "function setAuthor(uint8 blockIndex, address account, uint16 royaltyBps)",
     "function authors(uint8) view returns (address account, uint16 royaltyBps)",
+    "function claimable(address account, address currency) view returns (uint256)",
+    "function claim(address currency) returns (uint256)",
+    "function pot(bytes32 id, address currency) view returns (uint256)",
   ]),
 };
 

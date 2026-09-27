@@ -13,6 +13,7 @@ Static pages, no build step. Serve the folder (`python3 -m http.server`) or depl
 | `app.html` | Discover: live launches from the launcher, hooks, pools |
 | `launch.html` | Launch a coin on Pons V2 (wallet signs) |
 | `portfolio.html` | Creator fees: claim your 80%, harvest, look up a coin (`claim.html` redirects here) |
+| `coin.html?token=…` | Coin page: price, chart, rules, activity, buy/sell, creator-only claim, pot winnings |
 | `auctions.html` | Dutch auctions: create, buy, end and withdraw |
 | `builder.html` | Compose rule blocks, check conflicts, get the `RigsHook` config |
 | `hooks.html`, `hook.html?id=…` | Rule-block catalog and detail pages |
@@ -28,7 +29,7 @@ Shared code: `shell.js` (sidebar, search ⌘K, theme), `web3.js` (viem client, w
 ## Going live (from the browser, no private keys)
 
 1. Deploy the site, open `deploy.html` and connect the wallet that should own Rigs (it needs a little ETH on Robinhood Chain for gas).
-2. Sign the seven steps: fee splitter template, Pons launcher, CREATE2 deployer, hook (address mined in the browser), v4 launcher, hook → launcher link, auctions. Large contracts go through the CREATE2 deployer so wallets that cap creations at 1.2M gas still work. Progress is saved in that browser.
+2. Sign the seven steps: fee splitter template, Pons launcher, CREATE2 deployer, hook (address mined in the browser), v4 launcher, hook → launcher link, swap router, auctions. Large contracts go through the CREATE2 deployer so wallets that cap creations at 1.2M gas still work. Progress is saved in that browser.
 3. Copy or download the generated `config.js`, replace the one in the repo, and redeploy the site. Also put the launcher address in `rigs.manifest.json`.
 
 Before step 2 of the v4 part, verify the Uniswap v4 PoolManager address for Robinhood Chain on the explorer; the page checks that it answers like a PoolManager but cannot prove it is the official one.
