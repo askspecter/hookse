@@ -1,7 +1,7 @@
 import { FLAGS } from "./hooks-data.js";
 
 const $ = (s) => document.querySelector(s);
-const HOOKSE_FLAGS = (1 << 13) | (1 << 7) | (1 << 6) | (1 << 2);
+const RIGS_FLAGS = (1 << 13) | (1 << 7) | (1 << 6) | (1 << 2);
 
 function decode(addr) {
   const bits = Number(BigInt(addr) & 0x3fffn);
@@ -12,7 +12,7 @@ function decode(addr) {
   if (on("afterSwapReturnDelta") && !on("afterSwap")) warn.push("afterSwapReturnDelta without afterSwap: pools with this hook cannot initialize.");
   if (on("beforeSwapReturnDelta") || on("afterSwapReturnDelta")) warn.push("Can change swap amounts (returns deltas). Read the source before trading through it.");
   if (on("beforeRemoveLiquidity")) warn.push("Runs code when liquidity is removed; it could block withdrawals.");
-  return { bits, rows, warn, hookse: bits === HOOKSE_FLAGS };
+  return { bits, rows, warn, rigs: bits === RIGS_FLAGS };
 }
 
 async function scan(addr) {
@@ -26,7 +26,7 @@ async function scan(addr) {
     <div class="card kv-grid sec-gap">
       <div><small>Permission bits</small><b>0x${d.bits.toString(16).padStart(4, "0")}</b><small>last 14 bits of the address</small></div>
       <div><small>Callbacks on</small><b>${d.rows.filter((r) => r.on).length} / 14</b><small>decoded below</small></div>
-      <div><small>Shape</small><b>${d.hookse ? "Hookse" : "Custom"}</b><small>${d.hookse ? "matches HookseHook permissions" : "not the HookseHook permission set"}</small></div>
+      <div><small>Shape</small><b>${d.rigs ? "Rigs" : "Custom"}</b><small>${d.rigs ? "matches RigsHook permissions" : "not the RigsHook permission set"}</small></div>
     </div>
     ${d.warn.map((w) => `<div class="notice sec-gap-s">${w}</div>`).join("")}
     <div class="card table-card sec-gap"><table class="table"><thead><tr><th>Callback</th><th class="r">Bit</th><th class="r">Enabled</th></tr></thead>

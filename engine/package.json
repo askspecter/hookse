@@ -1,7 +1,7 @@
 {
-  "name": "hookse-engine",
+  "name": "rigs-engine",
   "version": "1.0.0",
-  "description": "Hookse Uniswap v4 hook engine",
+  "description": "Rigs contracts: Pons launcher, Uniswap v4 hook and launcher, auctions",
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",

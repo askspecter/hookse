@@ -1,4 +1,4 @@
-// Deploys HookseHook (at a permission-flagged CREATE2 address) and HookseLauncher.
+// Deploys RigsHook (at a permission-flagged CREATE2 address) and RigsLauncher.
 // POOL_MANAGER=<address> uses an existing Uniswap v4 PoolManager; otherwise one is deployed (local testing).
 const { ethers } = require("hardhat");
 const { deployEngine } = require("./lib");
@@ -12,8 +12,8 @@ async function main() {
     console.log("PoolManager (new):", pm);
   }
   const { hook, launcher } = await deployEngine({ poolManager: pm, owner: deployer.address });
-  console.log("HookseHook:       ", await hook.getAddress());
-  console.log("HookseLauncher:   ", await launcher.getAddress());
+  console.log("RigsHook:       ", await hook.getAddress());
+  console.log("RigsLauncher:   ", await launcher.getAddress());
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

@@ -601,3 +601,11 @@ details.subcard summary { cursor: pointer; }
 @media (max-width: 1000px) { .wiz-grid { grid-template-columns: 1fr; } .wiz-side { position: static; } }
 @media (max-width: 900px) { .stepbar { top: 64px; } .wiz-steps { display: none; } }
 @media (max-width: 640px) { .opts { grid-template-columns: 1fr; } .wiz-body { padding: 16px; } .inline-tune { margin-left: 0; } .wiz-h { font-size: 22px; } }
+.upload-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.upload-btn { cursor: pointer; }
+.auction .kv { font-size: 13px; }
+.bar { height: 6px; border-radius: 99px; background: var(--panel-2); overflow: hidden; }
+.bar span { display: block; height: 100%; background: var(--pink); }
+.buy-row { display: flex; gap: 8px; }
+.buy-row .filter { flex: 1; width: auto; }
+@media (max-width: 640px) { .disc-bar .tabs { max-width: 100%; overflow-x: auto; } .disc-bar .tabs button { white-space: nowrap; } }

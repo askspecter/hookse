@@ -16,7 +16,8 @@ export const chain = defineChain({
 });
 export const client = createPublicClient({ chain, transport: http() });
 export const live = isAddress(CONFIG.ponsLauncher || "");
-export const v4live = isAddress(CONFIG.hookseLauncher || "") && isAddress(CONFIG.hookseHook || "");
+export const v4live = isAddress(CONFIG.rigsLauncher || "") && isAddress(CONFIG.rigsHook || "");
+export const auctionsLive = isAddress(CONFIG.rigsAuctions || "");
 
 export const ABI = {
   pons: parseAbi([
@@ -46,18 +47,35 @@ export const ABI = {
     "function setCreator(address next)",
   ]),
   erc20: parseAbi(["function name() view returns (string)", "function symbol() view returns (string)"]),
-  hookseLauncher: parseAbi([
+  rigsLauncher: parseAbi([
     "struct Config { uint8 blocks; uint24 baseFee; uint32 snipeBlocks; uint24 snipeFee; uint128 snipeMaxBuy; uint24 surgeMaxFee; uint128 surgeRefSize; uint16 burnBps; uint16 lpBps; uint16 potBps; uint32 potEvery; uint128 potMinBuy; }",
     "struct PoolKey { address currency0; address currency1; uint24 fee; int24 tickSpacing; address hooks; }",
     "function launch(string name, string symbol, uint256 supply, int24 startTick, Config cfg) returns (address token, bytes32 id)",
     "function tokenCount() view returns (uint256)",
     "function tokens(uint256) view returns (address)",
     "function keyOf(address token) view returns (PoolKey)",
-    "function launches(bytes32 id) view returns (address token, address creator, int24 tickLower, int24 tickUpper, uint128 liquidity)",
+    "function launches(bytes32 id) view returns (address token, address creator, int24 tickLower, int24 tickUpper, uint128 liquidity, bool existing)",
+    "function openExisting(address token, uint256 amount, int24 startTick, Config cfg) returns (bytes32 id)",
     "function collectCreatorFees(address token) returns (uint256 amount0, uint256 amount1)",
     "event Launched(address indexed token, address indexed creator, bytes32 indexed id, string name, string symbol, uint256 supply, int24 startTick)",
   ]),
-  hookseHook: parseAbi([
+  rigsAuctions: parseAbi([
+    "struct Auction { address seller; address token; uint128 amount; uint128 sold; uint128 startPrice; uint128 floorPrice; uint64 start; uint64 end; uint128 proceeds; bool unsoldWithdrawn; }",
+    "function create(address token, uint256 amount, uint256 startPrice, uint256 floorPrice, uint64 start, uint64 duration) returns (uint256)",
+    "function buy(uint256 id, uint256 tokens) payable returns (uint256 bought, uint256 cost)",
+    "function end(uint256 id)",
+    "function withdraw(uint256 id) returns (uint256 eth, uint256 tokens)",
+    "function priceOf(uint256 id) view returns (uint256)",
+    "function quote(uint256 id, uint256 tokens) view returns (uint256)",
+    "function auctions(uint256 id) view returns (Auction)",
+    "function auctionCount() view returns (uint256)",
+  ]),
+  erc20Full: parseAbi([
+    "function name() view returns (string)", "function symbol() view returns (string)", "function decimals() view returns (uint8)",
+    "function balanceOf(address) view returns (uint256)", "function allowance(address owner, address spender) view returns (uint256)",
+    "function approve(address spender, uint256 amount) returns (bool)",
+  ]),
+  rigsHook: parseAbi([
     "struct Config { uint8 blocks; uint24 baseFee; uint32 snipeBlocks; uint24 snipeFee; uint128 snipeMaxBuy; uint24 surgeMaxFee; uint128 surgeRefSize; uint16 burnBps; uint16 lpBps; uint16 potBps; uint32 potEvery; uint128 potMinBuy; }",
     "function getPool(bytes32 id) view returns (Config cfg, uint64 launchBlock, uint64 buyCount)",
     "function owner() view returns (address)",
@@ -110,8 +128,8 @@ function setAccount(addr) {
   document.querySelectorAll("[data-connect]").forEach((b) => ((b.querySelector("span") || b).textContent = account ? short(account) : "Connect wallet"));
   listeners.forEach((fn) => fn(account));
 }
-const remember = (v) => { try { v ? localStorage.setItem("hookse-wallet", v) : localStorage.removeItem("hookse-wallet"); } catch { /* blocked */ } };
-const remembered = () => { try { return localStorage.getItem("hookse-wallet"); } catch { return null; } };
+const remember = (v) => { try { v ? localStorage.setItem("rigs-wallet", v) : localStorage.removeItem("rigs-wallet"); } catch { /* blocked */ } };
+const remembered = () => { try { return localStorage.getItem("rigs-wallet"); } catch { return null; } };
 
 const NETWORK = {
   id: CONFIG.chainId, name: CONFIG.chainName, chainNamespace: "eip155", caipNetworkId: `eip155:${CONFIG.chainId}`,
@@ -125,7 +143,7 @@ function appKit() {
     const projectId = CONFIG.reownProjectId;
     const kit = createAppKit({
       adapters: [new WagmiAdapter({ projectId, networks: [NETWORK] })], networks: [NETWORK], defaultNetwork: NETWORK, projectId,
-      metadata: { name: "Hookse", description: "Launch on Pons V2 and Uniswap v4 hooks", url: location.origin, icons: [] },
+      metadata: { name: "Rigs", description: "Launch on Pons V2 and Uniswap v4 hooks", url: location.origin, icons: [] },
       features: { analytics: false, email: false, socials: false, swaps: false, onramp: false, send: false },
       allowUnsupportedChain: true,
       themeMode: "dark",
@@ -235,6 +253,20 @@ if (remembered() === "injected" && window.ethereum) {
 window.ethereum?.on?.("accountsChanged", (a) => setAccount(a?.[0] || null));
 
 // ---------------------------------------------------------------- launches
+
+/** Reads name/symbol/decimals of any ERC-20 (null fields if it does not answer). */
+export async function tokenInfo(address) {
+  const r = (functionName) => client.readContract({ address, abi: ABI.erc20Full, functionName }).catch(() => null);
+  const [name, symbol, decimals] = await Promise.all([r("name"), r("symbol"), r("decimals")]);
+  return { address, name, symbol, decimals: decimals ?? 18 };
+}
+
+/** Approves `spender` for `amount` if the current allowance is lower. */
+export async function ensureAllowance(token, spender, amount) {
+  const allowed = await client.readContract({ address: token, abi: ABI.erc20Full, functionName: "allowance", args: [getAccount(), spender] });
+  if (allowed >= amount) return;
+  await write({ address: token, abi: ABI.erc20Full, functionName: "approve", args: [spender, amount] });
+}
 
 export async function loadLaunch(id) {
   const [token, curve, splitter, creatorAtLaunch, launchedAt] = await client.readContract({

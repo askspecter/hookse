@@ -25,7 +25,7 @@ async function setup(cfgOverrides) {
   const rc = await tx.wait();
   const ev = rc.logs.map(l => { try { return launcher.interface.parseLog(l); } catch { return null; } }).find(e => e && e.name === "Launched");
   const tokenAddr = ev.args.token;
-  const token = await ethers.getContractAt("HookseToken", tokenAddr);
+  const token = await ethers.getContractAt("RigsToken", tokenAddr);
   const key = await launcher.keyOf(tokenAddr);
   const poolKey = { currency0: key[0], currency1: key[1], fee: key[2], tickSpacing: key[3], hooks: key[4] };
 
@@ -38,7 +38,7 @@ async function setup(cfgOverrides) {
   return { owner, creator, buyer, author, other, pm, router, hook, launcher, token, poolKey, id: ev.args.id, buy, sell };
 }
 
-describe("Hookse engine", function () {
+describe("Rigs engine", function () {
   it("launches a token and seeds the entire supply into a locked v4 pool", async () => {
     const { pm, launcher, token, creator } = await setup();
     const pmBal = await token.balanceOf(await pm.getAddress());

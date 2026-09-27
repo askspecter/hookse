@@ -1,14 +1,15 @@
-# Hookse engine
+# Rigs engine
 
-Smart contracts for Hookse: pool-first token launches on Uniswap v4 with composable rule blocks.
+Smart contracts for Rigs: pool-first token launches on Uniswap v4 with composable rule blocks.
 
 ## Contracts
 
 | Contract | Role |
 | --- | --- |
-| `HookseHook` | Single v4 hook that runs each pool's selected rule blocks and pays block-author royalties |
-| `HookseLauncher` | Mints a fixed-supply token, opens the ETH/token pool on the hook, seeds the whole supply as locked single-sided liquidity, and lets the creator collect LP fees |
-| `HookseToken` | Plain fixed-supply ERC-20 |
+| `RigsHook` | Single v4 hook that runs each pool's selected rule blocks and pays block-author royalties |
+| `RigsLauncher` | Mints a fixed-supply token, opens the ETH/token pool on the hook, seeds the whole supply as locked single-sided liquidity, and lets the creator collect LP fees |
+| `RigsAuctions` | Dutch auctions of any ERC-20 for ETH |
+| `RigsToken` | Plain fixed-supply ERC-20 |
 | `Create2Deployer` | Deploys the hook at an address whose low bits carry its v4 permissions |
 
 ### Rule blocks

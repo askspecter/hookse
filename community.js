@@ -3,7 +3,7 @@ const esc = (s) => String(s).replace(/[<>&"]/g, "");
 (async () => {
   try {
     const w = await import("./web3.js");
-    if (!w.live) { board.innerHTML = `<tr><td colspan="5" class="dim">The leaderboard fills in once the Hookse launcher is deployed.</td></tr>`; return; }
+    if (!w.live) { board.innerHTML = `<tr><td colspan="5" class="dim">The leaderboard fills in once the Rigs launcher is deployed.</td></tr>`; return; }
     const n = Number(await w.client.readContract({ address: w.CONFIG.ponsLauncher, abi: w.ABI.launcher, functionName: "launchCount" }));
     const all = await Promise.all(Array.from({ length: Math.min(n, 300) }, (_, i) => w.loadLaunch(n - 1 - i)));
     const by = new Map();

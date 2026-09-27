@@ -1,4 +1,4 @@
-// Generated on deploy.html (Robinhood Chain mainnet deployment).
+// Robinhood Chain mainnet deployment. Regenerate on deploy.html after deploying new contracts.
 export const CONFIG = {
   chainId: 4663,
   chainName: "Robinhood Chain",
@@ -10,7 +10,11 @@ export const CONFIG = {
   startBlock: 73912247,
   creatorShareBps: 8000,
   poolManager: "0x8366a39CC670B4001A1121B8F6A443A643e40951",
-  hookseHook: "0x9f383082b9B1C69EC54730b4e6B644a6a81fe0c4",
-  hookseLauncher: "0x69460B1fE8de1548571e9d7e42677C1B58d2b05b",
+  // v4 hook + launcher: redeploy on deploy.html (the earlier pair predates existing-asset pools).
+  rigsHook: "",
+  rigsLauncher: "",
+  rigsAuctions: "",
+  // Where hook ideas and integration requests are emailed. Empty hides those forms.
+  contactEmail: "",
   reownProjectId: "5c559ec7c86f657976f14d599d5e66b5",
 };

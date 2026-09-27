@@ -8,8 +8,9 @@ const LIST = [
   ["pons/CreatorFeeSplitter.sol", "CreatorFeeSplitter"],
   ["pons/PonsLauncher.sol", "PonsLauncher"],
   ["Create2Deployer.sol", "Create2Deployer"],
-  ["HookseHook.sol", "HookseHook"],
-  ["HookseLauncher.sol", "HookseLauncher"],
+  ["RigsHook.sol", "RigsHook"],
+  ["RigsLauncher.sol", "RigsLauncher"],
+  ["RigsAuctions.sol", "RigsAuctions"],
 ];
 
 fs.mkdirSync(OUT, { recursive: true });

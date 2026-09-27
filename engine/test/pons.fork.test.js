@@ -17,7 +17,7 @@ const PONS = "0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e";
       name: "Fork Test", symbol: "FORK", logo: "", description: "",
       socials: { twitter: "", telegram: "", discord: "", website: "", farcaster: "" },
       creatorTaxBps: 100, launchConfigId: 0n, expectedEconomics: await pons.previewLaunchEconomics(0n, ethers.ZeroAddress),
-      salt: ethers.id("hookse-fork-test"), minTokensOut: 0n,
+      salt: ethers.id("rigs-fork-test"), minTokensOut: 0n,
     }, { value: fee });
     const l = await launcher.launches(0n);
     const splitter = await ethers.getContractAt("CreatorFeeSplitter", l.splitter);

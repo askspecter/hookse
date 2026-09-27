@@ -141,11 +141,11 @@ $("#create").addEventListener("click", async (e) => {
   btn.textContent = "Confirm in wallet…";
   try {
     const rc = await w.write({
-      address: w.CONFIG.hookseLauncher, abi: w.ABI.hookseLauncher, functionName: "launch",
+      address: w.CONFIG.rigsLauncher, abi: w.ABI.rigsLauncher, functionName: "launch",
       args: [name, symbol, BigInt(Math.floor(supply)) * 10n ** 18n, tick, cfg],
     });
-    const n = await w.client.readContract({ address: w.CONFIG.hookseLauncher, abi: w.ABI.hookseLauncher, functionName: "tokenCount" });
-    const token = await w.client.readContract({ address: w.CONFIG.hookseLauncher, abi: w.ABI.hookseLauncher, functionName: "tokens", args: [n - 1n] });
+    const n = await w.client.readContract({ address: w.CONFIG.rigsLauncher, abi: w.ABI.rigsLauncher, functionName: "tokenCount" });
+    const token = await w.client.readContract({ address: w.CONFIG.rigsLauncher, abi: w.ABI.rigsLauncher, functionName: "tokens", args: [n - 1n] });
     $("#createNote").innerHTML = `Pool opened for <b>$${esc(symbol)}</b>: token ${w.addrLink(token)} · <a class="link-pink" href="${w.CONFIG.explorer}/tx/${rc.transactionHash}" target="_blank" rel="noopener">transaction ↗</a> · <a class="link-pink" href="app.html#pools">see it in Discover</a>`;
     w.toast(`$${symbol} pool created`);
   } catch (err) {

@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Discover · Hookse</title>
-  <meta name="description" content="Discover on Hookse" />
+  <title>Discover · Rigs</title>
+  <meta name="description" content="Discover on Rigs" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23fc72ff'/><path d='M11 7v11a5 5 0 0 0 10 0v-3' stroke='%230b0d12' stroke-width='3.2' fill='none' stroke-linecap='round'/></svg>" />
-  <script>try{var t=localStorage.getItem("hookse-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
+  <script>try{var t=localStorage.getItem("rigs-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
 </head>
 <body data-nav="app">
   <div class="app">
@@ -19,7 +19,7 @@
 
       <div class="app-head">
         <div><p class="kicker">Robinhood Chain · live markets</p><h1>Discover</h1>
-        <p class="lede muted">Coins launched through Hookse on Pons V2, and the hooked pools they graduate into.</p></div>
+        <p class="lede muted">Coins launched through Rigs on Pons V2, and the hooked pools they graduate into.</p></div>
         <div class="btn-row"><span class="status mono" id="updated">Reading…</span><button class="btn btn-dark btn-sm" id="refresh">Refresh</button></div>
       </div>
       <div class="disc-bar">
@@ -27,6 +27,7 @@
           <button data-tab="pools">Pools</button>
           <button class="active" data-tab="launches">Launches</button>
           <button data-tab="tokens">Tokens</button>
+          <button data-tab="auctions">Auctions</button>
           <button data-tab="hooks">Hooks</button>
         </div>
         <input id="filter" class="filter" placeholder="Search name, ticker or address…" />
@@ -39,7 +40,7 @@
         </table>
       </div>
       <div class="more-row"><button class="btn btn-dark btn-sm" id="more" hidden>Show 20 more</button></div>
-      <details class="coverage"><summary>Data coverage</summary><p>Launches are read straight from the Hookse Pons launcher contract. Pool and hook rows describe the Hookse v4 hook; live pool metrics appear once an indexer is connected.</p></details>
+      <details class="coverage"><summary>Data coverage</summary><p>Launches are read straight from the Rigs Pons launcher contract. Pool and hook rows describe the Rigs v4 hook; live pool metrics appear once an indexer is connected.</p></details>
 
     </main>
   </div>

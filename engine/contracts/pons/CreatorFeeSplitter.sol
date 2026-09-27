@@ -9,8 +9,8 @@ interface ITreasurySource {
 
 /// @notice Registered with Pons as a coin's creator-fee recipient, so on Pons the "creator"
 /// shows as this contract. `harvest` (callable by anyone) sweeps the curve fees into the Pons
-/// escrow, claims them, pays TREASURY_BPS to the Hookse treasury and credits the rest to the
-/// coin's creator, who withdraws it from the Hookse site.
+/// escrow, claims them, pays TREASURY_BPS to the Rigs treasury and credits the rest to the
+/// coin's creator, who withdraws it from the Rigs site.
 /// There is no function to change the Pons fee recipient, so the pairing is permanent.
 /// Deployed once as an implementation; each coin gets a minimal-proxy clone.
 contract CreatorFeeSplitter {

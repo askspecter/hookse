@@ -94,11 +94,11 @@ $("#lookup").addEventListener("change", async (e) => {
   try {
     const id = await client.readContract({ address: CONFIG.ponsLauncher, abi: ABI.launcher, functionName: "idOf", args: [getAddress(v)] });
     const c = await loadLaunch(id);
-    if (getAddress(c.token) !== getAddress(v)) return toast("That token was not launched through Hookse");
+    if (getAddress(c.token) !== getAddress(v)) return toast("That token was not launched through Rigs");
     coins = [c];
     renderRows();
   } catch {
-    toast("That token was not launched through Hookse");
+    toast("That token was not launched through Rigs");
   }
 });
 

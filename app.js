@@ -1,4 +1,4 @@
-// Hookse demo front-end. Every number, pool and partner below is mock data.
+// Rigs landing page. Stats and tables are read from the Rigs contracts on-chain.
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -36,14 +36,13 @@ const RULES = [
   { id: "burn", name: "Auto Burn", ic: "flame", c: "#ff4d4d", desc: "Sends a slice of each buy's output straight to the dead address.", gas: 140 },
   { id: "lp", name: "LP Rewards", ic: "drop", c: "#40b66b", desc: "Shares fees with in-range liquidity providers over time.", gas: 150 },
   { id: "pot", name: "Nth-Buy Pot", ic: "pot", c: "#ffc700", desc: "An on-chain counter pays the pot to every Nth qualifying buy.", gas: 180 },
-  { id: "arb", name: "Arb Recapture", ic: "cycle", c: "#4c82fb", desc: "Keeps cross-venue arbitrage profit inside the pool rather than leaking it to outside bots.", partner: true },
 ];
 
 const INTEGRATIONS = [
-  { name: "Pons V2", av: "P", st: "live", href: "docs.html#pons", desc: "Every Hookse coin launches on a Pons V2 bonding curve and graduates into a locked Uniswap v4 pool." },
-  { name: "Uniswap v4", av: "U", st: "live", href: "docs.html#blocks", desc: "Hooks, the PoolManager and routing. The Hookse rule blocks are a standard v4 hook." },
+  { name: "Pons V2", av: "P", st: "live", href: "docs.html#pons", desc: "Every Rigs coin launches on a Pons V2 bonding curve and graduates into a locked Uniswap v4 pool." },
+  { name: "Uniswap v4", av: "U", st: "live", href: "docs.html#blocks", desc: "Hooks, the PoolManager and routing. The Rigs rule blocks are a standard v4 hook." },
   { name: "Robinhood Chain", av: "R", st: "live", href: "docs.html#addresses", desc: "Chain 4663, where the launcher, fee splitters and pools live." },
-  { name: "Arb Recapture", av: "A", st: "soon", href: "hooks.html", desc: "An add-on that keeps arbitrage value inside the pool for its LPs. In development." },
+  { name: "WalletConnect", av: "W", st: "live", href: "docs.html#wallets", desc: "Mobile and desktop wallets connect through Reown AppKit." },
 ];
 
 const AUDIENCE_LINKS = { "Traders": "app.html", "Liquidity providers": "portfolio.html", "Launchers": "launch.html", "Hook builders": "builder.html", "Analysts": "scan.html", "Integrators": "integrations.html", "Agents": "agents.html" };
@@ -70,29 +69,15 @@ const ACTIONS = [
 ];
 
 const FAQ = [
-  ["What is Hookse?", "A launchpad on Pons V2 plus a catalog of Uniswap v4 hook blocks. Launch a coin, keep 80% of its creator fees, and compose pool rules in the builder."],
-  ["How do creator fees work?", "Each coin's Pons creator fees go to its own fee splitter contract. 80% is yours to claim in Portfolio; 20% goes to the Hookse treasury."],
-  ["Which rules can a pool use right now?", "Anti-Snipe, Surge Fee, Auto Burn, LP Rewards, Nth-Buy Pot and Arb Recapture. Parameters are fixed when the pool opens."],
+  ["What is Rigs?", "A launchpad on Pons V2 plus a catalog of Uniswap v4 hook blocks. Launch a coin, keep 80% of its creator fees, and compose pool rules in the builder."],
+  ["How do creator fees work?", "Each coin's Pons creator fees go to its own fee splitter contract. 80% is yours to claim in Portfolio; 20% goes to the Rigs treasury."],
+  ["Which rules can a pool use right now?", "Anti-Snipe, Surge Fee, Auto Burn, LP Rewards and Nth-Buy Pot. Parameters are fixed when the pool opens."],
   ["How does the Nth-Buy Pot pick winners?", "It is not random: a public counter increments on every qualifying buy and pays the pot when it hits N."],
-  ["Where are Hookse tokens traded?", "In their hooked v4 pool, and through any aggregator or venue that routes to Uniswap v4."],
-  ["Can I add hooks to a token that already exists?", "Yes. Open a new hooked pair for it; the original pools are left untouched."],
-  ["Is the data on this page live?", "The stats, pools table and ticker on this landing page are sample data. Launch, Portfolio, Discover and Community read the chain once the launcher is deployed."],
+  ["Where are Rigs tokens traded?", "In their hooked v4 pool, and through any aggregator or venue that routes to Uniswap v4."],
+  ["Can I add hooks to a token that already exists?", "Yes. In Launch, pick Existing asset: you put tokens in, choose the opening price and rules, and a new hooked ETH pair opens. Its LP fees go to you."],
+  ["What are auctions?", "Dutch auctions: a seller deposits tokens and the price falls from a start price to a floor over time. Buyers pay the current price; unsold tokens go back to the seller."],
+  ["Is the data on this page live?", "Yes. Every number and table is read from the Rigs contracts on Robinhood Chain."],
 ];
-
-const COLORS = ["#fc72ff", "#c8f135", "#4c82fb", "#ffc700", "#8b5cf6", "#40b66b", "#ff8a00"];
-let seed = 11;
-const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-const POOLS = [["HFROG", "WETH"], ["MOONP", "WETH"], ["BCRAB", "USDG"], ["GIGA", "WETH"], ["TWHL", "HOOK"], ["SCAT", "WETH"], ["BURNY", "USDG"], ["POTL", "WETH"], ["LAZY", "HOOK"], ["DDUCK", "WETH"]]
-  .map(([a, b], i) => ({
-    a, b, color: COLORS[i % COLORS.length],
-    rules: RULES.slice(0, 5).filter(() => rand() > 0.55).slice(0, 3),
-    tvl: 8000 + rand() * 900000, change: (rand() - 0.4) * 90, vol: 2000 + rand() * 400000, apr: rand() * 180,
-    price: rand() * 0.003, mcap: 30000 + rand() * 3e6,
-  }));
-POOLS.forEach((p, i) => { if (!p.rules.length) p.rules.push(RULES[i % 5]); });
-
-const usd = n => n >= 1e6 ? "$" + (n / 1e6).toFixed(2) + "M" : n >= 1e3 ? "$" + (n / 1e3).toFixed(1) + "K" : "$" + n.toFixed(2);
-const pct = n => `<span class="${n >= 0 ? "up" : "down"}">${n >= 0 ? "+" : ""}${n.toFixed(1)}%</span>`;
 
 /* ---------- render sections ---------- */
 $("#integrations").innerHTML = INTEGRATIONS.map(x => `
@@ -102,13 +87,11 @@ $("#integrations").innerHTML = INTEGRATIONS.map(x => `
   </a>`).join("");
 
 $("#rulesGrid").innerHTML = RULES.map(r => `
-  <a href="${r.partner ? "hooks.html" : "hook.html?id=" + ({ antisnipe: "anti-snipe", surge: "surge-fee", burn: "auto-burn", lp: "lp-rewards", pot: "nth-buy-pot" })[r.id]}" class="card rule">
+  <a href="hook.html?id=${({ antisnipe: "anti-snipe", surge: "surge-fee", burn: "auto-burn", lp: "lp-rewards", pot: "nth-buy-pot" })[r.id]}" class="card rule">
     ${icon(r.ic, r.c)}
     <h4>${r.name}</h4>
     <p>${r.desc}</p>
-    ${r.partner
-      ? `<div class="pow"><b>Partner add-on</b><span class="ext">In development</span></div>`
-      : `<div class="gas">~${r.gas}K gas per swap · locked at pool open</div>`}
+    ${`<div class="gas">~${r.gas}K gas per swap · locked at pool open</div>`}
   </a>`).join("");
 
 $("#audiences").innerHTML = AUDIENCES.map(([k, h, p]) => `
@@ -119,62 +102,83 @@ $("#actions").innerHTML = ACTIONS.map(([h, p, href, isNew]) => `
 
 $("#faqList").innerHTML = FAQ.map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join("");
 
-/* ---------- discover table ---------- */
+/* ---------- live data ---------- */
 const HEADS = {
-  pools: ["Pool", "Hook · rules", "TVL", "24h", "Volume APR"],
-  hooks: ["Hook", "What it does", "Pools", "Gas", "Status"],
-  tokens: ["Token", "Rules", "Price", "24h", "Market cap"],
+  launches: ["Coin", "Creator", "Paid to creator", "Launched", ""],
+  pools: ["Pool", "Creator", "Rules", "Base fee", ""],
+  auctions: ["Token", "Status", "Price now", "Sold", ""],
 };
-let tab = "pools";
-const tokCell = (p, pair) => `<div class="tok"><div class="av" style="background:${p.color}">${p.a.slice(0, 2)}</div><span>${p.a}${pair ? " / " + p.b : ""}</span></div>`;
-const ruleChips = p => `<div class="chips">${p.rules.map(r => `<span class="chip">${r.name}</span>`).join("")}</div>`;
+let tab = "launches";
+const data = { launches: [], pools: [], auctions: [] };
+let w = null;
+const esc = (x) => String(x ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const ago = (ts) => { const s = Math.max(0, Date.now() / 1000 - ts); return s < 3600 ? `${Math.floor(s / 60)}m ago` : s < 86400 ? `${Math.floor(s / 3600)}h ago` : `${Math.floor(s / 86400)}d ago`; };
+const tok = (sym, name) => `<div class="tok"><div class="av">${esc((sym || "?").slice(0, 2))}</div><span>${esc(name || "Unknown")} <span class="dim">$${esc(sym || "")}</span></span></div>`;
+const NAMES = { 1: "Anti-Snipe", 2: "Surge Fee", 4: "Auto Burn", 8: "LP Rewards", 16: "Nth-Buy Pot" };
 
 function renderTable() {
   const q = $("#filter").value.trim().toLowerCase();
   $("#thead").innerHTML = "<tr>" + HEADS[tab].map((h, i) => `<th class="${i >= 2 ? "r" : ""}">${h}</th>`).join("") + "</tr>";
-  let rows;
-  if (tab === "hooks") {
-    rows = RULES.filter(r => !q || r.name.toLowerCase().includes(q)).map(r => `<tr>
-      <td><div class="tok">${icon(r.ic, r.c)}<span>${r.name}</span></div></td><td class="dim">${r.desc}</td>
-      <td class="r mono">${POOLS.filter(p => p.rules.includes(r)).length}</td><td class="r mono">${r.gas ? "~" + r.gas + "K" : "—"}</td>
-      <td class="r"><span class="tag tag-live">Sealed</span></td></tr>`);
-  } else {
-    rows = POOLS.filter(p => !q || (p.a + p.b).toLowerCase().includes(q) || p.rules.some(r => r.name.toLowerCase().includes(q))).map(p => tab === "pools"
-      ? `<tr><td>${tokCell(p, true)}</td><td>${ruleChips(p)}</td><td class="r mono">${usd(p.tvl)}</td><td class="r mono">${pct(p.change)}</td><td class="r mono">${p.apr.toFixed(1)}%</td></tr>`
-      : `<tr><td>${tokCell(p)}</td><td>${ruleChips(p)}</td><td class="r mono">$${p.price.toFixed(6)}</td><td class="r mono">${pct(p.change)}</td><td class="r mono">${usd(p.mcap)}</td></tr>`);
-  }
-  $("#tbody").innerHTML = rows.join("") || `<tr><td colspan="5" class="dim">Nothing matches “${q}”.</td></tr>`;
-  $("#discStatus").textContent = `${rows.length} ${tab} · mock data`;
+  const match = (x) => !q || `${x.name} ${x.symbol} ${x.token}`.toLowerCase().includes(q);
+  let rows = [];
+  if (tab === "launches") rows = data.launches.filter(match).slice(0, 10).map((l) => `<tr><td>${tok(l.symbol, l.name)}</td><td>${w.addrLink(l.creator || l.creatorAtLaunch)}</td><td class="r mono">${w.eth(l.totalToCreator, 5)} ETH</td><td class="r dim">${ago(l.launchedAt)}</td><td class="r"><a class="link-pink" href="${w.CONFIG.ponsCoinUrl}${l.token}" target="_blank" rel="noopener">Trade ↗</a></td></tr>`);
+  if (tab === "pools") rows = data.pools.filter(match).slice(0, 10).map((p) => `<tr><td>${tok(p.symbol, p.name)}</td><td>${w.addrLink(p.creator)}</td><td><div class="chips">${Object.entries(NAMES).filter(([b]) => p.blocks & b).map(([, n]) => `<span class="chip">${n}</span>`).join("") || '<span class="dim">base fee only</span>'}</div></td><td class="r mono">${(p.baseFee / 10000).toFixed(2)}%</td><td class="r"><a class="link-pink" href="app.html#pools">Open</a></td></tr>`);
+  if (tab === "auctions") rows = data.auctions.filter(match).slice(0, 10).map((a) => `<tr><td>${tok(a.symbol, a.name)}</td><td><span class="badge gray">${a.status}</span></td><td class="r mono">${a.priceEth} ETH</td><td class="r mono">${a.pctSold}%</td><td class="r"><a class="link-pink" href="auctions.html#auction-${a.id}">Open</a></td></tr>`);
+  $("#tbody").innerHTML = rows.join("") || `<tr><td colspan="5" class="dim">${!w ? "Reading the chain…" : `Nothing here yet. <a href="${tab === "auctions" ? "auctions.html#create" : "launch.html"}">Be the first →</a>`}</td></tr>`;
+  $("#discStatus").textContent = w ? `${rows.length} shown · live` : "Reading…";
 }
-$("#tabs").addEventListener("click", e => {
+
+$("#tabs").addEventListener("click", (e) => {
   const b = e.target.closest("button");
   if (!b) return;
   tab = b.dataset.tab;
-  $$("#tabs button").forEach(x => x.classList.toggle("active", x === b));
+  $$("#tabs button").forEach((x) => x.classList.toggle("active", x === b));
   renderTable();
 });
 $("#filter").addEventListener("input", renderTable);
-$("#tbody").addEventListener("click", e => { if (e.target.closest("tr .tok")) toast("Detail pages aren't part of this demo"); });
-// Simulate the indexer loading, like a live page would.
-setTimeout(renderTable, 900);
+renderTable();
 
-/* ---------- stats ---------- */
-function countUp(el) {
-  const target = +el.dataset.count, pre = el.dataset.prefix || "";
-  const t0 = performance.now();
-  const step = t => {
-    const p = Math.min((t - t0) / 1200, 1);
-    el.textContent = pre + Math.round(target * (1 - Math.pow(1 - p, 3))).toLocaleString("en-US");
-    if (p < 1) requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
-}
-setTimeout(() => $$("[data-count]").forEach(countUp), 700);
-
-/* ---------- placeholder links ---------- */
-document.addEventListener("click", e => {
-  const a = e.target.closest('a[href="#"], [data-demo]');
-  if (!a || a.closest(".more-menu")) return;
-  if (a.getAttribute("href") === "#") e.preventDefault();
-  if (a.dataset.demo) toast(`${a.dataset.demo}: not wired up in this demo`);
-});
+(async () => {
+  try {
+    w = await import("./web3.js");
+    const { client, CONFIG, ABI } = w;
+    const count = (address, abi, functionName) => (address ? client.readContract({ address, abi, functionName }).then(Number).catch(() => 0) : Promise.resolve(0));
+    const [nL, nP, nA] = await Promise.all([
+      w.live ? count(CONFIG.ponsLauncher, ABI.launcher, "launchCount") : 0,
+      w.v4live ? count(CONFIG.rigsLauncher, ABI.rigsLauncher, "tokenCount") : 0,
+      w.auctionsLive ? count(CONFIG.rigsAuctions, ABI.rigsAuctions, "auctionCount") : 0,
+    ]);
+    $("#stLaunches").textContent = nL.toLocaleString("en-US");
+    $("#stPools").textContent = nP.toLocaleString("en-US");
+    $("#stAuctions").textContent = nA.toLocaleString("en-US");
+    data.launches = await Promise.all(Array.from({ length: Math.min(nL, 100) }, (_, i) => w.loadLaunch(nL - 1 - i)));
+    $("#stPaid").textContent = w.eth(data.launches.reduce((s2, l) => s2 + l.totalToCreator, 0n), 4);
+    const { encodeAbiParameters, keccak256, formatEther } = await import("https://cdn.jsdelivr.net/npm/viem@2.21.0/+esm");
+    data.pools = await Promise.all(Array.from({ length: Math.min(nP, 20) }, async (_, i) => {
+      const token = await client.readContract({ address: CONFIG.rigsLauncher, abi: ABI.rigsLauncher, functionName: "tokens", args: [BigInt(nP - 1 - i)] });
+      const k = await client.readContract({ address: CONFIG.rigsLauncher, abi: ABI.rigsLauncher, functionName: "keyOf", args: [token] });
+      const id = keccak256(encodeAbiParameters([{ type: "address" }, { type: "address" }, { type: "uint24" }, { type: "int24" }, { type: "address" }], [k.currency0, k.currency1, k.fee, k.tickSpacing, k.hooks]));
+      const [[, creator], [cfg], info] = await Promise.all([
+        client.readContract({ address: CONFIG.rigsLauncher, abi: ABI.rigsLauncher, functionName: "launches", args: [id] }),
+        client.readContract({ address: CONFIG.rigsHook, abi: ABI.rigsHook, functionName: "getPool", args: [id] }),
+        w.tokenInfo(token),
+      ]);
+      return { token, creator, name: info.name, symbol: info.symbol, blocks: Number(cfg.blocks), baseFee: Number(cfg.baseFee) };
+    }));
+    const nowS = Date.now() / 1000;
+    data.auctions = await Promise.all(Array.from({ length: Math.min(nA, 20) }, async (_, i) => {
+      const id = nA - 1 - i;
+      const [a, p] = await Promise.all([
+        client.readContract({ address: CONFIG.rigsAuctions, abi: ABI.rigsAuctions, functionName: "auctions", args: [BigInt(id)] }),
+        client.readContract({ address: CONFIG.rigsAuctions, abi: ABI.rigsAuctions, functionName: "priceOf", args: [BigInt(id)] }),
+      ]);
+      const info = await w.tokenInfo(a.token);
+      const status = nowS < Number(a.start) ? "upcoming" : nowS >= Number(a.end) || a.sold >= a.amount ? "ended" : "live";
+      return { id, token: a.token, name: info.name, symbol: info.symbol, status, priceEth: Number(formatEther(p)).toPrecision(4), pctSold: a.amount ? Number((a.sold * 1000n) / a.amount) / 10 : 0 };
+    }));
+  } catch (err) {
+    console.error(err);
+    ["#stLaunches", "#stPools", "#stAuctions", "#stPaid"].forEach((k) => { if ($(k).textContent === "Loading…") $(k).textContent = "—"; });
+  }
+  renderTable();
+})();

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Auctions · Rigs</title>
+  <meta name="description" content="Auctions on Rigs" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23fc72ff'/><path d='M11 7v11a5 5 0 0 0 10 0v-3' stroke='%230b0d12' stroke-width='3.2' fill='none' stroke-linecap='round'/></svg>" />
+  <script>try{var t=localStorage.getItem("rigs-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
+</head>
+<body data-nav="app">
+  <div class="app">
+    <aside id="sidebar"></aside>
+    <main class="app-main">
+
+      <div class="app-head">
+        <div><p class="kicker">Dutch auctions · Robinhood Chain</p><h1>Auctions</h1>
+        <p class="lede muted">Sell a token allocation for ETH. The price starts high and falls steadily to a floor; buyers pay the price at the moment they buy. No fees are taken.</p></div>
+        <a class="btn btn-pink btn-sm" href="#create">Create an auction</a>
+      </div>
+      <div class="notice" id="notLive" hidden>Auctions are off until RigsAuctions is deployed and set in <span class="mono">config.js</span>.</div>
+      <div class="disc-bar">
+        <div class="tabs" id="atabs"><button class="active" data-f="live">Live</button><button data-f="upcoming">Upcoming</button><button data-f="ended">Ended</button><button data-f="mine">Mine</button></div>
+        <span class="status mono push" id="acount"></span>
+      </div>
+      <div class="grid3" id="alist"><div class="empty"><b>Reading…</b></div></div>
+
+      <h2 class="h-sm sec-h" id="create">Create an auction</h2>
+      <form class="card form" id="aform" autocomplete="off">
+        <label>Token contract<span class="dep-inline"><input name="token" class="mono" placeholder="0x…" /><button type="button" class="btn btn-dark btn-xs" id="aload">Load</button></span><small class="dim" id="ainfo">Paste the ERC-20 you want to sell.</small></label>
+        <div class="row2">
+          <label>Amount to sell<input name="amount" type="number" min="0" step="any" placeholder="1000000" /></label>
+          <label>Duration<select name="duration" class="filter sel wide"><option value="3600">1 hour</option><option value="21600">6 hours</option><option value="86400" selected>24 hours</option><option value="259200">3 days</option><option value="604800">7 days</option></select></label>
+          <label>Start price (ETH per token)<input name="startPrice" type="number" min="0" step="any" placeholder="0.00001" /></label>
+          <label>Floor price (ETH per token)<input name="floorPrice" type="number" min="0" step="any" placeholder="0.000001" /></label>
+        </div>
+        <p class="muted small" id="asummary">The price falls in a straight line from start to floor over the duration. Unsold tokens come back to you when it ends; you can end it early.</p>
+        <button class="btn btn-pink btn-lg" id="acreate">Approve &amp; create</button>
+      </form>
+
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script type="module" src="shell.js"></script>
+  <script type="module" src="auctions.js"></script>
+</body>
+</html>

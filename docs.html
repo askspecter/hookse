@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Docs · Hookse</title>
-  <meta name="description" content="Docs on Hookse" />
+  <title>Docs · Rigs</title>
+  <meta name="description" content="Docs on Rigs" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23fc72ff'/><path d='M11 7v11a5 5 0 0 0 10 0v-3' stroke='%230b0d12' stroke-width='3.2' fill='none' stroke-linecap='round'/></svg>" />
-  <script>try{var t=localStorage.getItem("hookse-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
+  <script>try{var t=localStorage.getItem("rigs-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
 </head>
 <body data-nav="docs">
   <div class="app">
@@ -19,25 +19,25 @@
 
       <div class="docs-layout">
         <nav class="docs-nav">
-          <p>Overview</p><a href="#overview">What Hookse is</a><a href="#architecture">Architecture</a>
+          <p>Overview</p><a href="#overview">What Rigs is</a><a href="#architecture">Architecture</a>
           <p>Pons V2 launches</p><a href="#pons">How a launch works</a><a href="#launching">PonsLauncher</a><a href="#splitter">CreatorFeeSplitter</a><a href="#fee-model">Fee model</a>
-          <p>v4 hook</p><a href="#blocks">Rule blocks</a><a href="#hook-permissions">Hook permissions</a><a href="#v4-launcher">Direct v4 launcher</a>
+          <p>v4 hook</p><a href="#blocks">Rule blocks</a><a href="#hook-permissions">Hook permissions</a><a href="#v4-launcher">Direct v4 launcher</a><a href="#existing">Existing assets</a><a href="#auctions">Auctions</a>
           <p>Reference</p><a href="#addresses">Contracts &amp; addresses</a><a href="#events">Events</a><a href="#wallets">Wallets &amp; config</a>
           <p>Security</p><a href="#limitations">Known limitations</a><a href="#trust">Trust assumptions</a>
         </nav>
         <article class="prose">
           <p class="kicker">Developer docs</p>
-          <h1 class="doc-h1">Hookse developer docs</h1>
+          <h1 class="doc-h1">Rigs developer docs</h1>
           <pre>git clone &lt;repo&gt; &amp;&amp; cd engine &amp;&amp; npm install &amp;&amp; npm test</pre>
 
-          <h2 id="overview">What Hookse is</h2>
-          <p>Hookse launches coins on Pons V2 from its own launcher so that each coin's creator fees are split automatically: 80% to the creator, 20% to the Hookse treasury. It also ships a Uniswap v4 hook with five switchable rule blocks for pools opened directly on v4.</p>
+          <h2 id="overview">What Rigs is</h2>
+          <p>Rigs launches coins on Pons V2 from its own launcher so that each coin's creator fees are split automatically: 80% to the creator, 20% to the Rigs treasury. It also ships a Uniswap v4 hook with five switchable rule blocks for pools opened directly on v4.</p>
 
           <h2 id="architecture">Architecture</h2>
           <table><tr><th>Layer</th><th>Contracts</th><th>Role</th></tr>
             <tr><td>Pons launches</td><td><code>PonsLauncher</code>, <code>CreatorFeeSplitter</code></td><td>Launch on Pons V2; route creator fees 80/20.</td></tr>
-            <tr><td>v4 hook</td><td><code>HookseHook</code></td><td>Rule blocks for Uniswap v4 pools.</td></tr>
-            <tr><td>Direct v4 launches</td><td><code>HookseLauncher</code>, <code>HookseToken</code></td><td>Mint a token and seed a locked v4 pool on the hook.</td></tr>
+            <tr><td>v4 hook</td><td><code>RigsHook</code></td><td>Rule blocks for Uniswap v4 pools.</td></tr>
+            <tr><td>Direct v4 launches</td><td><code>RigsLauncher</code>, <code>RigsToken</code></td><td>Mint a token and seed a locked v4 pool on the hook.</td></tr>
             <tr><td>Site</td><td><code>web3.js</code>, <code>config.js</code></td><td>Static pages that read and write the contracts with viem.</td></tr>
           </table>
 
@@ -70,9 +70,9 @@ function totalToTreasury() view returns (uint256)</pre>
           <h2 id="fee-model">Fee model</h2>
           <table><tr><th>Stream</th><th>Who pays</th><th>Where it goes</th></tr>
             <tr><td>Pons launch fee</td><td>Creator, once</td><td>Pons</td></tr>
-            <tr><td>Creator tax (0 to Pons max)</td><td>Traders on the curve and pool</td><td>Splitter → 80% creator, 20% Hookse treasury</td></tr>
+            <tr><td>Creator tax (0 to Pons max)</td><td>Traders on the curve and pool</td><td>Splitter → 80% creator, 20% Rigs treasury</td></tr>
             <tr><td>Pons protocol fees</td><td>Traders</td><td>Pons, per its own terms</td></tr>
-            <tr><td>v4 hook takes and royalties</td><td>Traders in Hookse v4 pools</td><td>Burn, LPs, pot or block authors (see below)</td></tr>
+            <tr><td>v4 hook takes and royalties</td><td>Traders in Rigs v4 pools</td><td>Burn, LPs, pot or block authors (see below)</td></tr>
           </table>
 
           <h2 id="blocks">Rule blocks</h2>
@@ -86,17 +86,26 @@ function totalToTreasury() view returns (uint256)</pre>
           <p>Fees are in pips (3000 = 0.30%) and takes in basis points. LP fee is capped at 10%; takes plus up to 0.25% royalty per block are capped at 10% of the swap's unspecified amount.</p>
 
           <h2 id="hook-permissions">Hook permissions</h2>
-          <p>Uniswap v4 reads a hook's permissions from the last 14 bits of its address. HookseHook needs <code>beforeInitialize</code> (bit 13), <code>beforeSwap</code> (7), <code>afterSwap</code> (6) and <code>afterSwapReturnDelta</code> (2), so it is deployed with CREATE2 at a mined salt. Decode any address on <a href="scan.html">Scan</a>.</p>
+          <p>Uniswap v4 reads a hook's permissions from the last 14 bits of its address. RigsHook needs <code>beforeInitialize</code> (bit 13), <code>beforeSwap</code> (7), <code>afterSwap</code> (6) and <code>afterSwapReturnDelta</code> (2), so it is deployed with CREATE2 at a mined salt. Decode any address on <a href="scan.html">Scan</a>.</p>
 
           <h2 id="v4-launcher">Direct v4 launcher</h2>
-          <p><code>HookseLauncher.launch(name, symbol, supply, startTick, config)</code> mints a fixed supply, opens an ETH/token pool on HookseHook and seeds the whole supply as single-sided liquidity locked in the launcher. <code>collectCreatorFees(token)</code> sends the position's LP fees to the creator.</p>
+          <p><code>RigsLauncher.launch(name, symbol, supply, startTick, config)</code> mints a fixed supply, opens an ETH/token pool on RigsHook and seeds the whole supply as single-sided liquidity locked in the launcher. <code>collectCreatorFees(token)</code> sends the position's LP fees to the creator.</p>
+
+          <h2 id="existing">Existing assets</h2>
+          <p><code>RigsLauncher.openExisting(token, amount, startTick, config)</code> pulls <code>amount</code> of an existing ERC-20 from the caller (approve first), opens an ETH/token pool on RigsHook and locks those tokens as single-sided liquidity. Fee-on-transfer tokens are measured by balance; rounding dust is returned. One Rigs pool per token.</p>
+
+          <h2 id="auctions">Auctions</h2>
+          <p><code>RigsAuctions</code> runs Dutch auctions. The seller deposits tokens with a start price and a floor (ETH per whole token) and a duration up to 30 days; the price falls linearly and then holds at the floor. <code>buy(id, tokens)</code> pays the current price and refunds any excess. The seller calls <code>withdraw(id)</code> for ETH at any time and for unsold tokens once it ends, and can <code>end(id)</code> early. No fees.</p>
 
           <h2 id="addresses">Contracts &amp; addresses</h2>
           <table><tr><th>Contract</th><th>Robinhood Chain (4663)</th></tr>
             <tr><td>Pons V2 factory</td><td><code>0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e</code></td></tr>
             <tr><td>PonsLauncher</td><td id="addrLauncher"><code>not deployed yet</code></td></tr>
+            <tr><td>RigsHook</td><td id="addrHook"><code>not deployed yet</code></td></tr>
+            <tr><td>RigsLauncher</td><td id="addrV4"><code>not deployed yet</code></td></tr>
+            <tr><td>RigsAuctions</td><td id="addrAuctions"><code>not deployed yet</code></td></tr>
           </table>
-          <p>Deploy with <code>TREASURY=0x… npx hardhat run scripts/deploy-pons.js --network robinhood</code>, then set <code>ponsLauncher</code> and <code>startBlock</code> in <code>config.js</code>.</p>
+          <p>Deploy everything from the browser on <a href="deploy.html">deploy.html</a>, then paste the generated <code>config.js</code>.</p>
 
           <h2 id="events">Events</h2>
           <pre>PonsLauncher:       Launched(uint256 indexed id, address indexed creator, address indexed token, address curve, address splitter, uint256 devBuy)
@@ -118,9 +127,9 @@ CreatorFeeSplitter: Harvested(uint256 toCreator, uint256 toTreasury)
 
           <h2 id="trust">Trust assumptions</h2>
           <ul>
-            <li>The Hookse owner can change the treasury address for future harvests. It cannot touch creators' 80%.</li>
+            <li>The Rigs owner can change the treasury address for future harvests. It cannot touch creators' 80%.</li>
             <li>Pons controls its own factory, curve and escrow and can change its terms.</li>
-            <li>The HookseHook owner sets block-author royalties (max 0.25% each) and the one-time launcher address.</li>
+            <li>The RigsHook owner sets block-author royalties (max 0.25% each) and the one-time launcher address.</li>
           </ul>
         </article>
         <aside class="toc"><b>On this page</b><a href="#overview">Overview</a><a href="#pons">Launch flow</a><a href="#fee-model">Fee model</a><a href="#blocks">Rule blocks</a><a href="#addresses">Addresses</a><a href="#limitations">Limitations</a></aside>

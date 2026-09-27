@@ -1,4 +1,4 @@
-// Rule blocks of HookseHook (engine/contracts/HookseHook.sol). Parameters mirror HookseHook.Config.
+// Rule blocks of RigsHook (engine/contracts/RigsHook.sol). Parameters mirror RigsHook.Config.
 export const BLOCKS = [
   {
     id: "anti-snipe", bit: 1, index: 0, name: "Anti-Snipe", color: "#8b5cf6", icon: "shield", gas: 160,
@@ -53,11 +53,6 @@ export const BLOCKS = [
   },
 ];
 
-export const PARTNER = {
-  id: "arb-recapture", name: "Arb Recapture", color: "#4c82fb", icon: "cycle", status: "In development",
-  short: "Keeps arbitrage value inside the pool",
-  desc: "An add-on that measures the price gap before and after a swap and returns captured arbitrage to the pool's LPs instead of outside bots.",
-};
 
 export const BASE_FEES = [
   { fee: 0.05, label: "Stable or tightly pegged pairs" },
@@ -87,7 +82,7 @@ export const blockIcon = (b, size = 16) =>
 
 export const defaultValues = () => Object.fromEntries(BLOCKS.map((b) => [b.id, Object.fromEntries(b.params.map((p) => [p.key, p.value]))]));
 
-/** HookseHook.Config for the chosen base fee (%), enabled block ids and parameter values. Amounts in wei as strings. */
+/** RigsHook.Config for the chosen base fee (%), enabled block ids and parameter values. Amounts in wei as strings. */
 export function configFor(baseFee, on, v) {
   const pips = (pct) => Math.round(pct * 10000);
   const bps = (pct) => Math.round(pct * 100);

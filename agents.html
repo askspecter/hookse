@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Agents · Hookse</title>
-  <meta name="description" content="Agents on Hookse" />
+  <title>Agents · Rigs</title>
+  <meta name="description" content="Agents on Rigs" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23fc72ff'/><path d='M11 7v11a5 5 0 0 0 10 0v-3' stroke='%230b0d12' stroke-width='3.2' fill='none' stroke-linecap='round'/></svg>" />
-  <script>try{var t=localStorage.getItem("hookse-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
+  <script>try{var t=localStorage.getItem("rigs-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
 </head>
 <body data-nav="agents">
   <div class="app">
@@ -20,10 +20,10 @@
       <div class="app-head">
         <div><p class="kicker">For bots and AI agents</p><h1>Agents</h1>
         <p class="lede muted">Everything an agent needs to read launches, launch a coin and claim creator fees, as plain contract calls. No API key, no private endpoints.</p></div>
-        <a class="btn btn-dark btn-sm" href="hookse.manifest.json" download>Download manifest</a>
+        <a class="btn btn-dark btn-sm" href="rigs.manifest.json" download>Download manifest</a>
       </div>
       <div class="grid3">
-        <div class="card pad"><b>1 · Discover</b><p class="muted small">Load <span class="mono">hookse.manifest.json</span>: chain, contract addresses and ABIs in one file.</p></div>
+        <div class="card pad"><b>1 · Discover</b><p class="muted small">Load <span class="mono">rigs.manifest.json</span>: chain, contract addresses and ABIs in one file.</p></div>
         <div class="card pad"><b>2 · Read</b><p class="muted small">Call <span class="mono">launchCount()</span>, <span class="mono">launches(i)</span> and <span class="mono">launchesOf(creator)</span> on PonsLauncher.</p></div>
         <div class="card pad"><b>3 · Act</b><p class="muted small">Launch with <span class="mono">launch(params)</span>; claim with <span class="mono">claim()</span> on the coin's splitter. The agent's wallet signs.</p></div>
       </div>

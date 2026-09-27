@@ -12,22 +12,26 @@ import {ModifyLiquidityParams} from "@uniswap/v4-core/src/types/PoolOperation.so
 import {LPFeeLibrary} from "@uniswap/v4-core/src/libraries/LPFeeLibrary.sol";
 import {TickMath} from "@uniswap/v4-core/src/libraries/TickMath.sol";
 import {LiquidityAmounts} from "@uniswap/v4-periphery/src/libraries/LiquidityAmounts.sol";
-import {HookseHook} from "./HookseHook.sol";
-import {HookseToken} from "./HookseToken.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {RigsHook} from "./RigsHook.sol";
+import {RigsToken} from "./RigsToken.sol";
 
-/// @title HookseLauncher
-/// @notice Permissionless, pool-first token launches. Each launch mints a fixed-supply token,
-/// opens an ETH/token v4 pool on HookseHook with the chosen rule blocks, and seeds the whole
-/// supply as single-sided liquidity. The position is owned by this contract and can never be
-/// removed; its trading fees are claimable by the token's creator.
-contract HookseLauncher is IUnlockCallback {
+/// @title RigsLauncher
+/// @notice Opens ETH/token Uniswap v4 pools on RigsHook with the chosen rule blocks.
+///  - `launch` mints a new fixed-supply token and seeds the whole supply.
+///  - `openExisting` takes tokens of an existing ERC-20 from the caller and seeds those.
+/// In both cases the tokens become single-sided liquidity above the opening price, owned by this
+/// contract and never removable. The position's LP fees are claimable for the opener.
+contract RigsLauncher is IUnlockCallback {
     using PoolIdLibrary for PoolKey;
+    using SafeERC20 for IERC20;
 
     int24 public constant TICK_SPACING = 60;
     address public constant DEAD = 0x000000000000000000000000000000000000dEaD;
 
     IPoolManager public immutable poolManager;
-    HookseHook public immutable hook;
+    RigsHook public immutable hook;
 
     struct Launch {
         address token;
@@ -35,6 +39,7 @@ contract HookseLauncher is IUnlockCallback {
         int24 tickLower;
         int24 tickUpper;
         uint128 liquidity;
+        bool existing;
     }
 
     mapping(PoolId => Launch) public launches;
@@ -44,10 +49,12 @@ contract HookseLauncher is IUnlockCallback {
     event Launched(
         address indexed token, address indexed creator, PoolId indexed id, string name, string symbol, uint256 supply, int24 startTick
     );
+    event Opened(address indexed token, address indexed creator, PoolId indexed id, uint256 amount, int24 startTick);
     event CreatorFeesCollected(PoolId indexed id, address creator, uint256 amount0, uint256 amount1);
 
     error NotPoolManager();
     error BadTick();
+    error BadToken();
     error UnknownLaunch();
 
     enum Action {
@@ -55,7 +62,7 @@ contract HookseLauncher is IUnlockCallback {
         Collect
     }
 
-    constructor(IPoolManager manager, HookseHook hook_) {
+    constructor(IPoolManager manager, RigsHook hook_) {
         poolManager = manager;
         hook = hook_;
     }
@@ -66,14 +73,42 @@ contract HookseLauncher is IUnlockCallback {
         string calldata symbol,
         uint256 supply,
         int24 startTick,
-        HookseHook.Config calldata cfg
+        RigsHook.Config calldata cfg
     ) external returns (address token, PoolId id) {
+        token = address(new RigsToken(name, symbol, supply, address(this), msg.sender));
+        id = _open(token, supply, startTick, cfg, false);
+        // Rounding dust that did not fit into the position is burned.
+        uint256 dust = IERC20(token).balanceOf(address(this));
+        if (dust != 0) IERC20(token).safeTransfer(DEAD, dust);
+        emit Launched(token, msg.sender, id, name, symbol, supply, startTick);
+    }
+
+    /// @notice Opens a hooked pool for a token that already exists. The caller must approve
+    /// `amount` first; those tokens are locked in the pool for good. Reverts if this token
+    /// already has a Rigs pool.
+    function openExisting(address token, uint256 amount, int24 startTick, RigsHook.Config calldata cfg)
+        external
+        returns (PoolId id)
+    {
+        if (token == address(0) || token.code.length == 0 || amount == 0) revert BadToken();
+        uint256 before = IERC20(token).balanceOf(address(this));
+        IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
+        uint256 received = IERC20(token).balanceOf(address(this)) - before; // fee-on-transfer safe
+        id = _open(token, received, startTick, cfg, true);
+        // Rounding dust goes back to the opener.
+        uint256 dust = IERC20(token).balanceOf(address(this)) - before;
+        if (dust != 0) IERC20(token).safeTransfer(msg.sender, dust);
+        emit Opened(token, msg.sender, id, received, startTick);
+    }
+
+    function _open(address token, uint256 amount, int24 startTick, RigsHook.Config calldata cfg, bool existing)
+        internal
+        returns (PoolId id)
+    {
         int24 tickLower = TickMath.minUsableTick(TICK_SPACING);
         if (startTick % TICK_SPACING != 0 || startTick <= tickLower || startTick > TickMath.maxUsableTick(TICK_SPACING)) {
             revert BadTick();
         }
-
-        token = address(new HookseToken(name, symbol, supply, address(this), msg.sender));
         PoolKey memory key = PoolKey({
             currency0: Currency.wrap(address(0)),
             currency1: Currency.wrap(token),
@@ -89,21 +124,15 @@ contract HookseLauncher is IUnlockCallback {
 
         // Token-only liquidity sits below the opening price; buys push the price down into it.
         uint128 liquidity =
-            LiquidityAmounts.getLiquidityForAmount1(TickMath.getSqrtPriceAtTick(tickLower), sqrtStart, supply);
-        launches[id] = Launch(token, msg.sender, tickLower, startTick, liquidity);
+            LiquidityAmounts.getLiquidityForAmount1(TickMath.getSqrtPriceAtTick(tickLower), sqrtStart, amount);
+        launches[id] = Launch(token, msg.sender, tickLower, startTick, liquidity, existing);
         _keyOf[token] = key;
         tokens.push(token);
 
         poolManager.unlock(abi.encode(Action.Seed, key));
-
-        // Rounding dust that did not fit into the position is burned.
-        uint256 dust = HookseToken(token).balanceOf(address(this));
-        if (dust != 0) HookseToken(token).transfer(DEAD, dust);
-
-        emit Launched(token, msg.sender, id, name, symbol, supply, startTick);
     }
 
-    /// @notice Sends accrued LP fees of a launch's locked position to its creator. Callable by anyone.
+    /// @notice Sends accrued LP fees of a pool's locked position to its creator. Callable by anyone.
     function collectCreatorFees(address token) external returns (uint256 amount0, uint256 amount1) {
         PoolKey memory key = _keyOf[token];
         if (!(key.currency1 == Currency.wrap(token))) revert UnknownLaunch();
@@ -131,7 +160,7 @@ contract HookseLauncher is IUnlockCallback {
             );
             uint256 owed = uint256(uint128(-delta.amount1()));
             poolManager.sync(key.currency1);
-            HookseToken(l.token).transfer(address(poolManager), owed);
+            IERC20(l.token).safeTransfer(address(poolManager), owed);
             poolManager.settle();
             return "";
         }

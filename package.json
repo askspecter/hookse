@@ -1,0 +1,6 @@
+{
+  "name": "rigs-site",
+  "private": true,
+  "description": "Static site; Vercel functions in api/ store uploaded logos in Vercel KV. No build step.",
+  "engines": { "node": ">=20" }
+}

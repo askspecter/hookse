@@ -9,7 +9,7 @@ import { BLOCKS } from "./hooks-data.js";
 // From public listings, not verified here. Verify on the explorer before use.
 const SUGGESTED_POOL_MANAGER = "0x8366a39cc670b4001a1121b8f6a443a643e40951";
 const HOOK_FLAGS = (1n << 13n) | (1n << 7n) | (1n << 6n) | (1n << 2n);
-const KEY = `hookse-deploy-${CONFIG.chainId}`;
+const KEY = `hookse-deploy-${CONFIG.chainId}`; // kept from the old name so saved progress survives
 const PONS_ABI = parseAbi(["function feeEscrow() view returns (address)"]);
 const PM_ABI = parseAbi(["function protocolFeeController() view returns (address)", "function owner() view returns (address)"]);
 const LAUNCHER_ADMIN = parseAbi(["function setTreasury(address)", "function treasury() view returns (address)", "function owner() view returns (address)"]);
@@ -17,7 +17,7 @@ const LAUNCHER_ADMIN = parseAbi(["function setTreasury(address)", "function trea
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
 let st = { ...load() };
 // Addresses already in config.js count as done.
-for (const k of ["ponsLauncher", "poolManager", "hookseHook", "hookseLauncher"]) if (isAddress(CONFIG[k] || "")) st[k] ??= CONFIG[k];
+for (const k of ["ponsLauncher", "poolManager", "rigsHook", "rigsLauncher", "rigsAuctions"]) if (isAddress(CONFIG[k] || "")) st[k] ??= CONFIG[k];
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch { /* storage blocked */ } render(); };
 
 const artifacts = {};
@@ -102,33 +102,39 @@ const STEPS = {
       run: async () => { st.create2 = (await deploy("Create2Deployer", [])).address; },
     },
     {
-      id: "hookseHook", title: "Mine address + deploy hook", note: "HookseHook. Mining runs in your browser (a few seconds), then one transaction.", needs: ["create2", "pm"],
+      id: "rigsHook", title: "Mine address + deploy hook", note: "RigsHook. Mining runs in your browser (a few seconds), then one transaction.", needs: ["create2", "pm"],
       run: async (btn) => {
         const pm = getAddress($("#poolManager").value.trim());
-        const a = await artifact("HookseHook");
+        const a = await artifact("RigsHook");
         const initCode = encodeDeployData({ abi: a.abi, bytecode: a.bytecode, args: [pm, getAccount()] });
         const { salt, address } = await mineSalt(st.create2, initCode, (n) => (btn.textContent = `Mining… ${n.toLocaleString()} tried`));
         btn.textContent = "Confirm in wallet…";
         await write({ address: st.create2, abi: (await artifact("Create2Deployer")).abi, functionName: "deploy", args: [salt, initCode] });
         if (!(await hasCode(address))) throw new Error("Hook not found at the mined address");
-        st.hookseHook = address;
+        st.rigsHook = address;
         st.poolManager = pm;
       },
     },
     {
-      id: "hookseLauncher", title: "Deploy v4 launcher", note: "HookseLauncher, bound to the hook and PoolManager. Sent through the CREATE2 deployer.", needs: ["hookseHook", "create2"],
-      run: async () => { st.hookseLauncher = (await deployViaFactory("HookseLauncher", [st.poolManager, st.hookseHook])).address; },
+      id: "rigsLauncher", title: "Deploy v4 launcher", note: "RigsLauncher, bound to the hook and PoolManager. Sent through the CREATE2 deployer.", needs: ["rigsHook", "create2"],
+      run: async () => { st.rigsLauncher = (await deployViaFactory("RigsLauncher", [st.poolManager, st.rigsHook])).address; },
     },
     {
-      id: "launcherSet", title: "Connect hook to launcher", note: "hook.setLauncher(launcher). Can only be done once.", needs: ["hookseLauncher"],
+      id: "rigsLauncherSet", title: "Connect hook to launcher", note: "hook.setLauncher(launcher). Can only be done once.", needs: ["rigsLauncher"],
       run: async () => {
-        await write({ address: st.hookseHook, abi: ABI.hookseHook, functionName: "setLauncher", args: [st.hookseLauncher] });
-        st.launcherSet = true;
+        await write({ address: st.rigsHook, abi: ABI.rigsHook, functionName: "setLauncher", args: [st.rigsLauncher] });
+        st.rigsLauncherSet = true;
       },
     },
   ],
+  auctions: [
+    {
+      id: "rigsAuctions", title: "Deploy auctions", note: "RigsAuctions (Dutch auctions). Sent through the CREATE2 deployer.", needs: ["create2"],
+      run: async () => { st.rigsAuctions = (await deployViaFactory("RigsAuctions", [])).address; },
+    },
+  ],
 };
-const ALL = [...STEPS.pons, ...STEPS.v4];
+const ALL = [...STEPS.pons, ...STEPS.v4, ...STEPS.auctions];
 
 function pmReady() {
   return isAddress($("#poolManager").value.trim()) && $("#pmConfirm").checked;
@@ -160,8 +166,10 @@ export const CONFIG = {
   startBlock: ${st.startBlock || CONFIG.startBlock || 0},
   creatorShareBps: 8000,
   poolManager: ${JSON.stringify(v("poolManager"))},
-  hookseHook: ${JSON.stringify(v("hookseHook"))},
-  hookseLauncher: ${JSON.stringify(st.launcherSet || CONFIG.hookseLauncher ? v("hookseLauncher") : "")},
+  rigsHook: ${JSON.stringify(v("rigsHook"))},
+  rigsLauncher: ${JSON.stringify(st.rigsLauncherSet || CONFIG.rigsLauncher ? v("rigsLauncher") : "")},
+  rigsAuctions: ${JSON.stringify(v("rigsAuctions"))},
+  contactEmail: ${JSON.stringify(CONFIG.contactEmail || "")},
   reownProjectId: ${JSON.stringify(CONFIG.reownProjectId)},
 };
 `;
@@ -170,6 +178,7 @@ export const CONFIG = {
 function render() {
   $("#stepsPons").innerHTML = STEPS.pons.map(stepHtml).join("");
   $("#stepsV4").innerHTML = STEPS.v4.map((s, i) => stepHtml(s, i + STEPS.pons.length)).join("");
+  $("#stepsAuctions").innerHTML = STEPS.auctions.map((s, i) => stepHtml(s, i + STEPS.pons.length + STEPS.v4.length)).join("");
   $("#wProg").textContent = `${ALL.filter((s) => st[s.id]).length} / ${ALL.length}`;
   $("#cfgOut").textContent = configText();
 }
@@ -241,9 +250,9 @@ $("#setTreasury").addEventListener("click", async () => {
 });
 $("#setAuthor").addEventListener("click", async () => {
   const a = $("#authAddr").value.trim() || "0x0000000000000000000000000000000000000000";
-  if (!isAddress(st.hookseHook || "") || !isAddress(a)) return toast("Need a deployed hook and a valid address");
+  if (!isAddress(st.rigsHook || "") || !isAddress(a)) return toast("Need a deployed hook and a valid address");
   try {
-    await write({ address: st.hookseHook, abi: ABI.hookseHook, functionName: "setAuthor", args: [Number($("#authBlock").value), getAddress(a), Number($("#authBps").value)] });
+    await write({ address: st.rigsHook, abi: ABI.rigsHook, functionName: "setAuthor", args: [Number($("#authBlock").value), getAddress(a), Number($("#authBps").value)] });
     toast("Author updated");
   } catch (err) { toast(friendlyError(err)); }
 });
@@ -265,9 +274,9 @@ render();
 // Drop saved addresses whose contracts no longer exist on this chain (e.g. after switching RPC).
 (async () => {
   let changed = false;
-  for (const k of ["splitterImpl", "ponsLauncher", "create2", "hookseHook", "hookseLauncher"]) {
+  for (const k of ["splitterImpl", "ponsLauncher", "create2", "rigsHook", "rigsLauncher", "rigsAuctions"]) {
     if (st[k] && !(await hasCode(st[k]))) { delete st[k]; changed = true; }
   }
-  if (!st.hookseHook) delete st.launcherSet;
+  if (!st.rigsHook) delete st.rigsLauncherSet;
   if (changed) save();
 })();

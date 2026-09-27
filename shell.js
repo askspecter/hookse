@@ -13,6 +13,7 @@ const ICON = {
   doc: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
   people: '<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.5A5 5 0 0 1 21 19"/>',
   wallet: '<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12h2M3 9h18"/>',
+  gavel: '<path d="m14 5 5 5M11 8l5 5M9 10l5-5M12 13l5-5M4 20l6-6M3 21h8"/>',
   flame: '<path d="M12 3c1 4 6 6 6 11a6 6 0 0 1-12 0c0-3 2-4 3-6 1 2 2 2 3 2 0-3-1-5 0-7z"/>',
 };
 export const icon = (k, size = 16) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>`;
@@ -22,6 +23,7 @@ const NAV = [
   ["launch", "Launch", "launch"],
   ["portfolio", "Portfolio", "portfolio"],
   ["builder", "Builder", "builder"],
+  ["auctions", "Auctions", "gavel"],
   ["scan", "Scan", "scan"],
   ["integrations", "Integrations", "plug", true],
   ["agents", "Agents", "bot", true],
@@ -36,8 +38,8 @@ const store = {
 };
 
 function applyTheme() {
-  const theme = store.get("hookse-theme") || "dark";
-  const accent = store.get("hookse-accent") || "pink";
+  const theme = store.get("rigs-theme") || "dark";
+  const accent = store.get("rigs-accent") || "pink";
   const resolved = theme === "system" ? (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark") : theme;
   document.documentElement.dataset.theme = resolved;
   document.documentElement.style.setProperty("--pink", ACCENTS[accent] || ACCENTS.pink);
@@ -57,7 +59,7 @@ if (side) {
     <div class="side-top">
       <a href="index.html" class="logo side-logo">
         <svg viewBox="0 0 32 32" width="24" height="24" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--pink)"/><path d="M11 7v11a5 5 0 0 0 10 0v-3" stroke="#0b0d12" stroke-width="3.2" fill="none" stroke-linecap="round"/></svg>
-        <span>HOOKSE</span>
+        <span>RIGS</span>
       </a>
       <button class="side-close" id="sideClose" aria-label="Close menu">×</button>
     </div>
@@ -73,12 +75,12 @@ if (side) {
       <p class="side-h">Appearance</p>
       <div class="seg">${["light", "system", "dark"].map((t) => `<button data-theme-set="${t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join("")}</div>
       <div class="accents">${Object.entries(ACCENTS).map(([k, c]) => `<button data-accent="${k}" style="--c:${c}" aria-label="${k} accent"></button>`).join("")}</div>
-      <div class="side-stat">${icon("flame", 16)}<div><small>Hookse launches</small><b class="mono" id="sideLaunches">—</b></div></div>
+      <div class="side-stat">${icon("flame", 16)}<div><small>Rigs launches</small><b class="mono" id="sideLaunches">—</b></div></div>
       <nav class="side-links"><a href="token.html">Token</a><a href="updates.html">Updates</a><a href="docs.html#fee-model">Methodology</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></nav>
     </div>`;
   const bar = document.createElement("div");
   bar.className = "mobile-bar";
-  bar.innerHTML = `<a href="index.html" class="logo side-logo"><svg viewBox="0 0 32 32" width="26" height="26"><rect width="32" height="32" rx="8" fill="var(--pink)"/><path d="M11 7v11a5 5 0 0 0 10 0v-3" stroke="#0b0d12" stroke-width="3.2" fill="none" stroke-linecap="round"/></svg><span>HOOKSE</span></a>
+  bar.innerHTML = `<a href="index.html" class="logo side-logo"><svg viewBox="0 0 32 32" width="26" height="26"><rect width="32" height="32" rx="8" fill="var(--pink)"/><path d="M11 7v11a5 5 0 0 0 10 0v-3" stroke="#0b0d12" stroke-width="3.2" fill="none" stroke-linecap="round"/></svg><span>RIGS</span></a>
     <button class="btn btn-pink bar-connect" data-connect>${icon("wallet", 16)}<span>Connect wallet</span></button>
     <button class="menu-btn" id="sideToggle" aria-label="Menu"><span></span><span></span><span></span></button>`;
   document.body.prepend(bar);
@@ -93,8 +95,8 @@ if (side) {
   side.addEventListener("click", (e) => {
     const t = e.target.closest("[data-theme-set]");
     const a = e.target.closest("[data-accent]");
-    if (t) store.set("hookse-theme", t.dataset.themeSet);
-    if (a) store.set("hookse-accent", a.dataset.accent);
+    if (t) store.set("rigs-theme", t.dataset.themeSet);
+    if (a) store.set("rigs-accent", a.dataset.accent);
     if (t || a) applyTheme();
   });
 }
@@ -108,7 +110,7 @@ pal.innerHTML = `<div class="palette-box card"><input placeholder="Jump to a pag
 document.body.append(pal);
 const input = pal.querySelector("input");
 const list = pal.querySelector(".palette-list");
-const HOOKS = ["anti-snipe", "surge-fee", "auto-burn", "lp-rewards", "nth-buy-pot", "arb-recapture"];
+const HOOKS = ["anti-snipe", "surge-fee", "auto-burn", "lp-rewards", "nth-buy-pot"];
 function renderPalette() {
   const q = input.value.trim().toLowerCase();
   if (/^0x[0-9a-f]{40}$/i.test(q)) {

@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Hookse — Composable Uniswap v4 hook launchpad</title>
-  <meta name="description" content="Hookse: pick hook blocks, open hooked pools and launch tokens on Uniswap v4." />
+  <title>Rigs — Composable Uniswap v4 hook launchpad</title>
+  <meta name="description" content="Rigs: pick hook blocks, open hooked pools and launch tokens on Uniswap v4." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -16,7 +16,7 @@
     <div class="wrap nav-inner">
       <a href="#" class="logo">
         <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--pink)"/><path d="M11 7v11a5 5 0 0 0 10 0v-3" stroke="var(--bg)" stroke-width="3.2" fill="none" stroke-linecap="round"/></svg>
-        <span>Hookse</span>
+        <span>Rigs</span>
       </a>
       <nav class="links" id="links">
         <a href="hooks.html">Hooks</a>
@@ -64,18 +64,18 @@
 
     <!-- STATS -->
     <section class="stats card">
-      <div><span class="k">TVL</span><b data-count="4812930" data-prefix="$">Loading…</b><small>Liquidity in hooked pools · USD</small></div>
-      <div><span class="k">Pools opened</span><b data-count="1284">Loading…</b><small>Distinct Hookse pools</small></div>
-      <div><span class="k">Total volume</span><b data-count="61240118" data-prefix="$">Loading…</b><small>All-time · USD at trade time</small></div>
-      <div><span class="k">Tokens burned</span><b data-count="18402277">Loading…</b><small>Sent to the dead address</small></div>
+      <div><span class="k">Pons launches</span><b id="stLaunches">Loading…</b><small>Coins launched through Rigs</small></div>
+      <div><span class="k">Rigs pools</span><b id="stPools">Loading…</b><small>Hooked Uniswap v4 markets</small></div>
+      <div><span class="k">Auctions</span><b id="stAuctions">Loading…</b><small>Dutch auctions created</small></div>
+      <div><span class="k">Paid to creators</span><b id="stPaid">Loading…</b><small>80% creator share, ETH</small></div>
     </section>
-    <details class="coverage"><summary>Coverage</summary><p>Figures on this page are mock data for the demo. In production they would be indexed from chain events every block.</p></details>
+    <details class="coverage"><summary>Coverage</summary><p>Every figure here is read directly from the Rigs contracts on Robinhood Chain when the page loads. "Paid to creators" sums the latest 100 launches.</p></details>
 
     <!-- BUILT ON -->
     <section class="block">
       <div class="head">
         <div><p class="eyebrow">Foundation</p><h2>Plain Uniswap v4 pools underneath</h2>
-        <p class="lede">Every Hookse pool is a normal v4 pool that points at one verified router hook. Nothing custom to trust beyond the blocks you can read.</p></div>
+        <p class="lede">Every Rigs pool is a normal v4 pool that points at one verified router hook. Nothing custom to trust beyond the blocks you can read.</p></div>
         <a href="docs.html#architecture" class="more-link">How the pieces connect <span>›</span></a>
       </div>
       <div class="found">
@@ -87,7 +87,7 @@
     <!-- INTEGRATIONS -->
     <section class="block">
       <div class="head">
-        <div><p class="eyebrow">Built with Hookse</p><h2>Integrations</h2></div>
+        <div><p class="eyebrow">Built with Rigs</p><h2>Integrations</h2></div>
         <a href="integrations.html" class="more-link">Every integration <span>›</span></a>
       </div>
       <div class="grid4" id="integrations"></div>
@@ -97,9 +97,9 @@
     <section class="block" id="discover">
       <div class="disc-bar">
         <div class="tabs" id="tabs">
-          <button class="active" data-tab="pools">Pools</button>
-          <button data-tab="hooks">Hooks</button>
-          <button data-tab="tokens">Tokens</button>
+          <button class="active" data-tab="launches">Launches</button>
+          <button data-tab="pools">Pools</button>
+          <button data-tab="auctions">Auctions</button>
         </div>
         <input id="filter" class="filter" placeholder="Filter…" />
         <span class="status mono" id="discStatus">Reading…</span>
@@ -108,7 +108,7 @@
       <div class="card table-card">
         <table class="table">
           <thead id="thead"></thead>
-          <tbody id="tbody"><tr><td colspan="5" class="dim">Reading the indexed pools…</td></tr></tbody>
+          <tbody id="tbody"><tr><td colspan="5" class="dim">Reading the chain…</td></tr></tbody>
         </table>
       </div>
     </section>
@@ -129,7 +129,7 @@
 
     <!-- GET STARTED -->
     <section class="block" id="start">
-      <div class="head"><div><p class="eyebrow">Get started</p><h2>What you can do with Hookse</h2></div></div>
+      <div class="head"><div><p class="eyebrow">Get started</p><h2>What you can do with Rigs</h2></div></div>
       <div class="grid5" id="actions"></div>
     </section>
 
@@ -141,7 +141,7 @@
   </main>
 
   <footer class="footer">
-    <p>Hookse · composable Uniswap v4 hooks · demo, not financial advice</p>
+    <p>Rigs · composable Uniswap v4 hooks · demo, not financial advice</p>
     <nav>
       <a href="docs.html#addresses">contracts</a><a href="docs.html">how it works</a><a href="learn.html">learn</a><a href="updates.html">updates</a>
       <a href="token.html">token</a><a href="scan.html">scan</a><a href="community.html">community</a><a href="app.html">open app</a>
@@ -150,6 +150,6 @@
   </footer>
 
   <div class="toast" id="toast"></div>
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

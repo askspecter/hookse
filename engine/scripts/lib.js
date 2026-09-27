@@ -18,19 +18,19 @@ function mineSalt(deployer, initCode) {
 async function deployEngine({ poolManager, owner }) {
   const Create2 = await ethers.getContractFactory("Create2Deployer");
   const factory = await Create2.deploy();
-  const Hook = await ethers.getContractFactory("HookseHook");
+  const Hook = await ethers.getContractFactory("RigsHook");
   const initCode = (await Hook.getDeployTransaction(poolManager, owner)).data;
   const { salt, addr } = mineSalt(await factory.getAddress(), initCode);
   await (await factory.deploy(salt, initCode)).wait();
   const hook = Hook.attach(addr);
 
-  const Launcher = await ethers.getContractFactory("HookseLauncher");
+  const Launcher = await ethers.getContractFactory("RigsLauncher");
   const launcher = await Launcher.deploy(poolManager, addr);
   await (await hook.setLauncher(await launcher.getAddress())).wait();
   return { hook, launcher };
 }
 
-// Blocks bitmask values, matching HookseHook constants.
+// Blocks bitmask values, matching RigsHook constants.
 const BLOCKS = { ANTI_SNIPE: 1, SURGE_FEE: 2, AUTO_BURN: 4, LP_REWARDS: 8, NTH_BUY_POT: 16 };
 
 function config(overrides = {}) {

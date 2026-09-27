@@ -15,7 +15,7 @@ import {LPFeeLibrary} from "@uniswap/v4-core/src/libraries/LPFeeLibrary.sol";
 import {StateLibrary} from "@uniswap/v4-core/src/libraries/StateLibrary.sol";
 import {FullMath} from "@uniswap/v4-core/src/libraries/FullMath.sol";
 
-/// @title HookseHook
+/// @title RigsHook
 /// @notice One Uniswap v4 hook that runs a per-pool selection of rule blocks:
 ///  - ANTI_SNIPE: caps ETH per buy and adds a decaying extra LP fee for the first blocks
 ///  - SURGE_FEE: LP fee rises with trade size (ETH-equivalent)
@@ -24,7 +24,7 @@ import {FullMath} from "@uniswap/v4-core/src/libraries/FullMath.sol";
 ///  - NTH_BUY_POT: a share of each swap funds a pot paid to every Nth qualifying buy
 /// Each enabled block may also pay a royalty to its registered author.
 /// Pools must pair native ETH (currency0) with a token and use the dynamic-fee flag.
-contract HookseHook is BaseHook {
+contract RigsHook is BaseHook {
     using PoolIdLibrary for PoolKey;
     using StateLibrary for IPoolManager;
 

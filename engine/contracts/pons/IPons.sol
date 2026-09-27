@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-/// @notice Subset of the Pons V2 launchpad used by Hookse (Robinhood Chain, chain id 4663).
+/// @notice Subset of the Pons V2 launchpad used by Rigs (Robinhood Chain, chain id 4663).
 /// Signatures follow docs.ponsfamily.com/docs/v2 and were checked against deployed bytecode.
 interface IPonsFactory {
     struct Socials {

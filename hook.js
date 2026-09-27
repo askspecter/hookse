@@ -3,12 +3,12 @@ import { BLOCKS, blockIcon } from "./hooks-data.js";
 const $ = (s) => document.querySelector(s);
 const id = new URLSearchParams(location.search).get("id");
 const b = BLOCKS.find((x) => x.id === id) || BLOCKS[0];
-document.title = `${b.name} · Hookse`;
+document.title = `${b.name} · Rigs`;
 $("#crumb").textContent = b.name;
 $("#title").innerHTML = `
   <div class="tok">${blockIcon(b, 18)}<h1>${b.name}</h1><span class="badge">Native</span></div>
   <p class="lede muted">${b.desc}</p>
-  <p class="small dim">By Hookse · part of <span class="mono">HookseHook</span> · config bit <span class="mono">${b.bit}</span></p>`;
+  <p class="small dim">By Rigs · part of <span class="mono">RigsHook</span> · config bit <span class="mono">${b.bit}</span></p>`;
 $("#buildWith").href = `builder.html?add=${b.id}`;
 $("#tradeoff").innerHTML = `<p class="form-h">Tradeoff</p><p class="muted small">${b.tradeoff}</p><p class="dim small">Tests are not an independent audit.</p>`;
 $("#stats").innerHTML = `
@@ -20,7 +20,7 @@ $("#behave").textContent = `Defaults: ${summary}. Stacks with the other native b
 $("#mech").innerHTML = b.mechanics.map((m) => `<li>${m}</li>`).join("");
 $("#params").innerHTML = b.params.map((p) => `<tr><td>${p.label}</td><td class="mono dim">${p.key}</td><td class="r mono">${p.value}${p.unit === "%" ? "%" : " " + p.unit}</td><td class="r mono dim">${p.min} – ${p.max}</td></tr>`).join("");
 $("#evidence").innerHTML = `
-  <p>Source: <code>engine/contracts/HookseHook.sol</code>. Tests: <code>engine/test/engine.test.js</code> (run <code>npm test</code> in <code>engine/</code>).</p>
+  <p>Source: <code>engine/contracts/RigsHook.sol</code>. Tests: <code>engine/test/engine.test.js</code> (run <code>npm test</code> in <code>engine/</code>).</p>
   <p>The hook address must carry the permission bits <code>beforeInitialize</code>, <code>beforeSwap</code>, <code>afterSwap</code> and <code>afterSwapReturnDelta</code>. Check any deployment on the <a href="scan.html">Scan</a> page.</p>
   <p>Not audited. Read the <a href="docs.html#limitations">known limitations</a> before relying on it.</p>`;
 $("#others").innerHTML = BLOCKS.filter((x) => x !== b).map((x) => `<a class="card feat" href="hook.html?id=${x.id}">${blockIcon(x, 14)}<div><b>${x.name}</b><small>${x.short}</small></div></a>`).join("");

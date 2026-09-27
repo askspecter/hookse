@@ -8,7 +8,7 @@ import {IPonsFactory, IPonsCurve} from "./IPons.sol";
 import {CreatorFeeSplitter} from "./CreatorFeeSplitter.sol";
 
 /// @notice Launches coins on Pons V2 (bonding curve, then graduation into a locked Uniswap v4
-/// pool) through Hookse. Each coin's Pons creator-fee recipient is its own CreatorFeeSplitter,
+/// pool) through Rigs. Each coin's Pons creator-fee recipient is its own CreatorFeeSplitter,
 /// which sends 80% of creator fees to the person who launched here and 20% to the treasury.
 /// Optionally buys on the curve for the creator in the same transaction.
 contract PonsLauncher is Ownable {
