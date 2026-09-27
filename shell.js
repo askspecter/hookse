@@ -54,27 +54,42 @@ const side = document.getElementById("sidebar");
 if (side) {
   side.className = "sidebar";
   side.innerHTML = `
-    <a href="index.html" class="logo side-logo">
-      <svg viewBox="0 0 32 32" width="24" height="24" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--pink)"/><path d="M11 7v11a5 5 0 0 0 10 0v-3" stroke="#0b0d12" stroke-width="3.2" fill="none" stroke-linecap="round"/></svg>
-      <span>HOOKSE</span>
-    </a>
+    <div class="side-top">
+      <a href="index.html" class="logo side-logo">
+        <svg viewBox="0 0 32 32" width="24" height="24" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--pink)"/><path d="M11 7v11a5 5 0 0 0 10 0v-3" stroke="#0b0d12" stroke-width="3.2" fill="none" stroke-linecap="round"/></svg>
+        <span>HOOKSE</span>
+      </a>
+      <button class="side-close" id="sideClose" aria-label="Close menu">×</button>
+    </div>
     <button class="side-search" id="openSearch">${icon("search", 14)}<span>Search</span><kbd>⌘K</kbd></button>
     <nav class="side-nav">${NAV.map(link).join("")}</nav>
     <p class="side-h">Learn</p>
     <nav class="side-nav">${LEARN.map(link).join("")}</nav>
     <div class="side-foot">
       <button class="btn btn-pink side-connect" data-connect>${icon("wallet", 15)}<span>Connect wallet</span></button>
-      <div class="side-net"><i></i>Network <b>Robinhood Chain</b><span class="mono dim">4663</span></div>
+      <label class="side-net"><i></i>Network
+        <select id="netSel"><option value="all">All networks</option><option value="4663" selected>Robinhood Chain</option></select>
+        <span class="mono dim">4663</span></label>
       <p class="side-h">Appearance</p>
       <div class="seg">${["light", "system", "dark"].map((t) => `<button data-theme-set="${t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join("")}</div>
       <div class="accents">${Object.entries(ACCENTS).map(([k, c]) => `<button data-accent="${k}" style="--c:${c}" aria-label="${k} accent"></button>`).join("")}</div>
       <div class="side-stat">${icon("flame", 16)}<div><small>Hookse launches</small><b class="mono" id="sideLaunches">—</b></div></div>
+      <nav class="side-links"><a href="token.html">Token</a><a href="updates.html">Updates</a><a href="docs.html#fee-model">Methodology</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></nav>
     </div>`;
   const bar = document.createElement("div");
   bar.className = "mobile-bar";
-  bar.innerHTML = `<a href="index.html" class="logo side-logo"><svg viewBox="0 0 32 32" width="22" height="22"><rect width="32" height="32" rx="8" fill="var(--pink)"/><path d="M11 7v11a5 5 0 0 0 10 0v-3" stroke="#0b0d12" stroke-width="3.2" fill="none" stroke-linecap="round"/></svg><span>HOOKSE</span></a><button class="burger" id="sideToggle" aria-label="Menu"><span></span><span></span></button>`;
+  bar.innerHTML = `<a href="index.html" class="logo side-logo"><svg viewBox="0 0 32 32" width="26" height="26"><rect width="32" height="32" rx="8" fill="var(--pink)"/><path d="M11 7v11a5 5 0 0 0 10 0v-3" stroke="#0b0d12" stroke-width="3.2" fill="none" stroke-linecap="round"/></svg><span>HOOKSE</span></a>
+    <button class="btn btn-pink bar-connect" data-connect>${icon("wallet", 16)}<span>Connect wallet</span></button>
+    <button class="menu-btn" id="sideToggle" aria-label="Menu"><span></span><span></span><span></span></button>`;
   document.body.prepend(bar);
-  bar.querySelector("#sideToggle").addEventListener("click", () => document.body.classList.toggle("side-open"));
+  const scrim = document.createElement("div");
+  scrim.className = "scrim";
+  document.body.append(scrim);
+  const setOpen = (open) => document.body.classList.toggle("side-open", open);
+  bar.querySelector("#sideToggle").addEventListener("click", () => setOpen(true));
+  side.querySelector("#sideClose").addEventListener("click", () => setOpen(false));
+  scrim.addEventListener("click", () => setOpen(false));
+  side.addEventListener("click", (e) => { if (e.target.closest("a")) setOpen(false); });
   side.addEventListener("click", (e) => {
     const t = e.target.closest("[data-theme-set]");
     const a = e.target.closest("[data-accent]");

@@ -18,71 +18,23 @@
     <main class="app-main">
 
       <div class="app-head">
-        <div><p class="kicker">Pons V2 launcher · Robinhood Chain</p><h1>Launch a coin</h1>
-        <p class="lede muted">Your coin trades on a Pons V2 bonding curve first, then graduates into a permanently locked Uniswap v4 pool. Creator fees are split automatically and you claim yours in Portfolio.</p></div>
-        <span class="badge gray" id="netBadge">Pons V2</span>
+        <div><p class="kicker">Market launcher · Robinhood Chain</p><h1>Launch a market</h1>
+        <p class="lede muted">Five steps: intent, hook, details, price and fees, then review and sign. Your draft is saved in this browser at every step.</p></div>
+        <span class="badge gray" id="netState">Reading chain…</span>
       </div>
-      <ol class="stepper">
-        <li class="on"><b>1</b> Details</li><li><b>2</b> Fees</li><li><b>3</b> Review &amp; launch</li>
-      </ol>
-      <div class="notice" id="notLive" hidden>Launching is off until the Hookse Pons launcher is deployed and set in <span class="mono">config.js</span>.</div>
+      <div class="stepbar" id="stepbar">
+        <button class="sb-btn" id="sbPrev" aria-label="Previous step">‹</button>
+        <div class="sb-mid"><b id="sbCount">Step 1 of 5</b><span id="sbName">Intent</span></div>
+        <button class="sb-btn" id="sbNext" aria-label="Next step">›</button>
+        <button class="sb-btn" id="sbReset" aria-label="Reset draft" title="Reset draft">↺</button>
+      </div>
+      <ol class="stepper wiz-steps" id="wizSteps"></ol>
       <div id="result"></div>
-      <div class="launch-grid">
-        <form class="card form" id="launchForm" autocomplete="off">
-          <p class="form-h">Coin details</p>
-          <div class="row2">
-            <label>Name<input name="name" maxlength="32" placeholder="Hook Frog" required /></label>
-            <label>Ticker<input name="symbol" maxlength="10" placeholder="HFROG" required /></label>
-          </div>
-          <label>Logo URL<input name="logo" type="url" placeholder="https://…/logo.png" /></label>
-          <label>Description<textarea name="description" rows="3" maxlength="500" placeholder="What is this coin about?"></textarea></label>
-          <details class="socials">
-            <summary>Socials (optional)</summary>
-            <div class="row2">
-              <label>X / Twitter<input name="twitter" placeholder="https://x.com/…" /></label>
-              <label>Telegram<input name="telegram" placeholder="https://t.me/…" /></label>
-              <label>Discord<input name="discord" placeholder="https://discord.gg/…" /></label>
-              <label>Website<input name="website" placeholder="https://…" /></label>
-            </div>
-          </details>
-          <p class="form-h">Fees</p>
-          <label>Creator tax <span class="dim" id="taxOut">1.00%</span>
-            <input name="tax" type="range" min="0" max="500" step="10" value="100" />
-            <small class="dim">Charged by Pons on trades and paid to your coin's fee splitter. <span id="taxMax"></span></small>
-          </label>
-          <label>Buy at launch (ETH, optional)<input name="devBuy" type="number" min="0" step="0.001" placeholder="0" />
-            <small class="dim">Bought on the curve in the same transaction and sent to your wallet.</small>
-          </label>
-          <button class="btn btn-pink btn-lg" id="launchBtn" type="submit">Launch coin</button>
-        </form>
-        <aside class="stack">
-          <div class="card summary">
-            <p class="form-h">Draft</p>
-            <div class="coin-preview">
-              <div class="coin-av" id="pvAv">?</div>
-              <div><b id="pvName">Your coin</b><span class="mono dim" id="pvSym">$TICKER</span></div>
-            </div>
-            <dl>
-              <dt>Launch fee (Pons)</dt><dd id="fee">—</dd>
-              <dt>Buy at launch</dt><dd id="pvBuy">0 ETH</dd>
-              <dt>You pay</dt><dd id="pvTotal">—</dd>
-              <dt>Creator tax</dt><dd id="pvTax">1.00%</dd>
-              <dt>Quote</dt><dd>ETH</dd>
-            </dl>
-            <div class="split">
-              <div class="split-bar"><span style="width:80%"></span></div>
-              <div class="split-legend"><span><i class="c1"></i>80% to you</span><span><i class="c2"></i>20% Hookse treasury</span></div>
-            </div>
-            <p class="fine">On Pons, the coin's creator-fee recipient is its own <b>fee splitter</b> contract, not your wallet. That pairing can never change. The splitter pays 80% of creator fees to you (claim in <a href="portfolio.html">Portfolio</a>) and 20% to the Hookse treasury.</p>
-          </div>
-          <div class="card pad path">
-            <p class="form-h">What happens next</p>
-            <ol>
-              <li><b>Curve.</b> Anyone can buy and sell on the Pons V2 bonding curve.</li>
-              <li><b>Graduation.</b> When the curve sells out, Pons moves liquidity into a locked Uniswap v4 pool.</li>
-              <li><b>Fees.</b> Creator fees collect in your fee splitter. Claim any time.</li>
-            </ol>
-          </div>
+      <div class="wiz-grid">
+        <section class="card wiz-body" id="stepBody"></section>
+        <aside class="stack wiz-side">
+          <div class="card pad"><p class="form-h">Live compatibility</p><ul class="compat" id="compat"></ul></div>
+          <div class="card pad"><p class="form-h">Draft</p><dl class="draft" id="draft"></dl><button class="btn btn-dark btn-xs" id="discard">Discard draft</button></div>
         </aside>
       </div>
 

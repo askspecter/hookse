@@ -106,7 +106,8 @@ export const onAccount = (fn) => { listeners.add(fn); fn(account); };
 
 function setAccount(addr) {
   try { account = addr ? getAddress(String(addr).split(":").pop()) : null; } catch { account = null; }
-  document.querySelectorAll("[data-connect]").forEach((b) => (b.textContent = account ? short(account) : "Connect wallet"));
+  // Buttons with an icon keep it and only swap their <span> label.
+  document.querySelectorAll("[data-connect]").forEach((b) => ((b.querySelector("span") || b).textContent = account ? short(account) : "Connect wallet"));
   listeners.forEach((fn) => fn(account));
 }
 const remember = (v) => { try { v ? localStorage.setItem("hookse-wallet", v) : localStorage.removeItem("hookse-wallet"); } catch { /* blocked */ } };

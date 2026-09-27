@@ -82,3 +82,41 @@ const PATHS = {
 };
 export const blockIcon = (b, size = 16) =>
   `<span class="bicon" style="color:${b.color};background:${b.color}22;border-color:${b.color}44"><svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${PATHS[b.icon]}</svg></span>`;
+
+// ---------------------------------------------------------------- shared rule logic (Builder + Launch wizard)
+
+export const defaultValues = () => Object.fromEntries(BLOCKS.map((b) => [b.id, Object.fromEntries(b.params.map((p) => [p.key, p.value]))]));
+
+/** HookseHook.Config for the chosen base fee (%), enabled block ids and parameter values. Amounts in wei as strings. */
+export function configFor(baseFee, on, v) {
+  const pips = (pct) => Math.round(pct * 10000);
+  const bps = (pct) => Math.round(pct * 100);
+  const wei = (eth) => (BigInt(Math.round(eth * 1e6)) * 10n ** 12n).toString();
+  let blocks = 0;
+  BLOCKS.forEach((b) => { if (on.has(b.id)) blocks |= b.bit; });
+  return {
+    blocks, baseFee: pips(baseFee),
+    snipeBlocks: v["anti-snipe"].snipeBlocks, snipeFee: pips(v["anti-snipe"].snipeFee), snipeMaxBuy: wei(v["anti-snipe"].snipeMaxBuy),
+    surgeMaxFee: pips(v["surge-fee"].surgeMaxFee), surgeRefSize: wei(v["surge-fee"].surgeRefSize),
+    burnBps: bps(v["auto-burn"].burnBps), lpBps: bps(v["lp-rewards"].lpBps), potBps: bps(v["nth-buy-pot"].potBps),
+    potEvery: v["nth-buy-pot"].potEvery, potMinBuy: wei(v["nth-buy-pot"].potMinBuy),
+  };
+}
+
+/** Rule combinations that would misbehave or make the launch revert. */
+export function conflictsFor(baseFee, on, v) {
+  const out = [];
+  if (on.has("anti-snipe") && on.has("nth-buy-pot") && v["anti-snipe"].snipeMaxBuy < v["nth-buy-pot"].potMinBuy) {
+    out.push(`Anti-Snipe caps buys at ${v["anti-snipe"].snipeMaxBuy} ETH, below the pot's ${v["nth-buy-pot"].potMinBuy} ETH minimum: no buy can count for the pot during the snipe window.`);
+  }
+  if (on.has("surge-fee") && v["surge-fee"].surgeMaxFee <= baseFee) out.push("Surge Fee ceiling is not above the base fee, so it never changes anything.");
+  const takes = (on.has("auto-burn") ? v["auto-burn"].burnBps : 0) + (on.has("lp-rewards") ? v["lp-rewards"].lpBps : 0) + (on.has("nth-buy-pot") ? v["nth-buy-pot"].potBps : 0);
+  if (takes + 0.25 * BLOCKS.length > 10) out.push(`Takes add up to ${takes.toFixed(2)}%. With the maximum royalties that passes the 10% cap, so the launch would revert.`);
+  if (baseFee > 10) out.push("Base LP fee is capped at 10%.");
+  return out;
+}
+
+/** Opening tick for `supply` tokens valued at `mcapEth`: price is tokens per ETH, rounded down to spacing 60. */
+export function startTickFor(supply, mcapEth) {
+  return Math.floor(Math.floor(Math.log(supply / mcapEth) / Math.log(1.0001)) / 60) * 60;
+}

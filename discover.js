@@ -6,6 +6,7 @@ const HEADS = {
   launches: ["#", "Coin", "Creator", "Claimed by creator", "Launched", ""],
   pools: ["Pool", "Creator", "Rules", "Base fee", ""],
   hooks: ["Block", "What it does", "Gas / swap", "Status", ""],
+  tokens: ["Token", "Market", "Creator", "Contract", ""],
 };
 let tab = "launches";
 let launches = [];
@@ -37,6 +38,21 @@ function render() {
       if (!rows.length) rows = [`<tr><td colspan="6" class="dim">${launches.length ? "Nothing matches." : "No launches yet. <a href=\"launch.html\">Be the first →</a>"}</td></tr>`];
       $("#more").hidden = list.length <= shown;
     }
+  } else if (tab === "tokens") {
+    const all = [
+      ...launches.map((l) => ({ name: l.name, symbol: l.symbol, token: l.token, creator: l.creator || l.creatorAtLaunch, market: "Pons V2 curve", link: `${web3.CONFIG.ponsCoinUrl}${l.token}`, label: "Trade ↗" })),
+      ...pools.map((p) => ({ name: p.name, symbol: p.symbol, token: p.token, creator: p.creator, market: "Instant · v4 hook", link: "#pools", label: "Pool" })),
+    ].filter((t) => !q || `${t.name} ${t.symbol} ${t.token}`.toLowerCase().includes(q));
+    rows = !web3 || (!web3.live && !web3.v4live)
+      ? [`<tr><td colspan="5" class="dim">Tokens appear here once the Hookse launchers are deployed.</td></tr>`]
+      : all.slice(0, shown).map((t) => `<tr>
+        <td><div class="tok"><div class="av">${esc((t.symbol || "?").slice(0, 2))}</div><span>${esc(t.name || "Unknown")} <span class="dim">$${esc(t.symbol || "")}</span></span></div></td>
+        <td><span class="chip">${t.market}</span></td>
+        <td>${web3.addrLink(t.creator)}</td>
+        <td class="r">${web3.addrLink(t.token)}</td>
+        <td class="r"><a class="link-pink" ${t.link.startsWith("#") ? `href="${t.link}" data-tab-link="pools"` : `href="${t.link}" target="_blank" rel="noopener"`}>${t.label}</a></td></tr>`);
+    if (!rows.length) rows = [`<tr><td colspan="5" class="dim">${q ? "Nothing matches." : "No tokens yet. <a href=\"launch.html\">Launch one →</a>"}</td></tr>`];
+    $("#more").hidden = all.length <= shown;
   } else if (tab === "pools") {
     if (!web3?.v4live) {
       rows = [`<tr><td colspan="5" class="dim">Hookse v4 pools (created in the <a href="builder.html">Builder</a>) appear once the v4 launcher is deployed. Pons graduations trade on Pons' own locked v4 pools.</td></tr>`];
@@ -55,7 +71,7 @@ function render() {
       <td class="r mono">~${b.gas}K</td><td class="r"><span class="badge gray">Unaudited</span></td>
       <td class="r"><a class="link-pink" href="hook.html?id=${b.id}">Inspect</a></td></tr>`);
   }
-  if (tab !== "launches") $("#more").hidden = true;
+  if (tab !== "launches" && tab !== "tokens") $("#more").hidden = true;
   $("#tbody").innerHTML = rows.join("");
 }
 
@@ -117,6 +133,11 @@ $("#tbody").addEventListener("click", async (e) => {
     web3.toast(`LP fees for $${p.symbol} sent to its creator`);
   } catch (err) { web3.toast(web3.friendlyError(err)); } finally { b.disabled = false; }
 });
-if (location.hash === "#pools") document.querySelector('#tabs [data-tab="pools"]').click();
+document.addEventListener("click", (e) => {
+  const a = e.target.closest("[data-tab-link]");
+  if (a) { e.preventDefault(); document.querySelector(`#tabs [data-tab="${a.dataset.tabLink}"]`).click(); }
+});
+const initial = location.hash.slice(1);
+if (["pools", "tokens", "hooks"].includes(initial)) document.querySelector(`#tabs [data-tab="${initial}"]`).click();
 render();
 load();

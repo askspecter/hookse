@@ -1,4 +1,4 @@
-import { BLOCKS, BASE_FEES, blockIcon } from "./hooks-data.js";
+import { BLOCKS, BASE_FEES, blockIcon, configFor, conflictsFor, startTickFor, defaultValues } from "./hooks-data.js";
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -6,7 +6,7 @@ const state = {
   baseFee: 0.3,
   on: new Set(),
   focus: null,
-  values: Object.fromEntries(BLOCKS.map((b) => [b.id, Object.fromEntries(b.params.map((p) => [p.key, p.value]))])),
+  values: defaultValues(),
 };
 const add = new URLSearchParams(location.search).get("add");
 if (BLOCKS.some((b) => b.id === add)) { state.on.add(add); state.focus = add; }
@@ -38,18 +38,7 @@ function renderTune() {
     <div class="tune-grid">${b.params.map((p) => `<label>${p.label}<span class="inp"><input type="number" data-param="${p.key}" min="${p.min}" max="${p.max}" step="${p.step}" value="${v[p.key]}" /><em>${p.unit}</em></span></label>`).join("")}</div>`;
 }
 
-function conflicts() {
-  const out = [];
-  const on = (id) => state.on.has(id);
-  const v = state.values;
-  if (on("anti-snipe") && on("nth-buy-pot") && v["anti-snipe"].snipeMaxBuy < v["nth-buy-pot"].potMinBuy) {
-    out.push(`Anti-Snipe caps buys at ${v["anti-snipe"].snipeMaxBuy} ETH, below the pot's ${v["nth-buy-pot"].potMinBuy} ETH minimum: no buy can count for the pot during the snipe window.`);
-  }
-  if (on("surge-fee") && v["surge-fee"].surgeMaxFee <= state.baseFee) out.push("Surge Fee ceiling is not above the base fee, so it never changes anything.");
-  const takes = ["auto-burn", "lp-rewards", "nth-buy-pot"].filter(on).reduce((s, id) => s + Number(Object.values(v[id]).find((_, i) => i === 0)), 0);
-  if (takes + 0.25 * 5 > 10) out.push(`Takes add up to ${takes.toFixed(2)}%. Together with the maximum royalties that exceeds the 10% cap, so the launch would revert.`);
-  return out;
-}
+const conflicts = () => conflictsFor(state.baseFee, state.on, state.values);
 
 function renderDiagram() {
   const slot = (id, cls) => {
@@ -79,21 +68,7 @@ function renderDiagram() {
   $("#flow").innerHTML = steps.map((s) => `<li>${s}</li>`).join("");
 }
 
-function configJson() {
-  const v = state.values;
-  const pips = (pct) => Math.round(pct * 10000);
-  const bps = (pct) => Math.round(pct * 100);
-  const wei = (eth) => BigInt(Math.round(eth * 1e6)) * 10n ** 12n;
-  let blocks = 0;
-  BLOCKS.forEach((b) => { if (state.on.has(b.id)) blocks |= b.bit; });
-  return {
-    blocks, baseFee: pips(state.baseFee),
-    snipeBlocks: v["anti-snipe"].snipeBlocks, snipeFee: pips(v["anti-snipe"].snipeFee), snipeMaxBuy: wei(v["anti-snipe"].snipeMaxBuy).toString(),
-    surgeMaxFee: pips(v["surge-fee"].surgeMaxFee), surgeRefSize: wei(v["surge-fee"].surgeRefSize).toString(),
-    burnBps: bps(v["auto-burn"].burnBps), lpBps: bps(v["lp-rewards"].lpBps), potBps: bps(v["nth-buy-pot"].potBps),
-    potEvery: v["nth-buy-pot"].potEvery, potMinBuy: wei(v["nth-buy-pot"].potMinBuy).toString(),
-  };
-}
+const configJson = () => configFor(state.baseFee, state.on, state.values);
 
 function render() {
   renderTiers(); renderRules(); renderTune(); renderDiagram();
@@ -140,11 +115,7 @@ $("#vtabs").addEventListener("click", (e) => {
   $("#diagram").hidden = v !== "blocks";
   $("#flow").hidden = v !== "flow";
 });
-/** Opening tick for `supply` tokens valued at `mcapEth`: price is tokens per ETH, rounded down to spacing 60. */
-function startTick(supply, mcapEth) {
-  const t = Math.floor(Math.log(supply / mcapEth) / Math.log(1.0001));
-  return Math.floor(t / 60) * 60;
-}
+const startTick = startTickFor;
 
 $("#create").addEventListener("click", async (e) => {
   const btn = e.currentTarget; // read before any await: currentTarget is reset after dispatch
