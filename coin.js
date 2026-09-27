@@ -20,7 +20,7 @@ const t = { side: "buy", amount: "", slippage: 2, quote: null, quoting: false, a
 // ---------------------------------------------------------------- resolve the coin
 
 async function resolve() {
-  if (!token) return fail("No coin selected. Open one from Discover.");
+  if (!token) return fail("No coin selected. Open one from Coins.");
   c.info = await tokenInfo(token);
   if (!c.info.symbol) return fail("That address is not a token on this chain.");
   c.supply = await client.readContract({ address: token, abi: ABI.erc20Full, functionName: "totalSupply" }).catch(() => 0n);
@@ -57,8 +57,8 @@ async function resolve() {
 }
 
 function fail(msg) {
-  $("#coinHead").innerHTML = `<div class="empty"><b>${msg}</b><p><a class="link-accent" href="/app#tokens">Browse coins →</a></p></div>`;
-  [".coin-actions", "#stats", "#trade", "#ctabs", "#pricePanel"].forEach((s) => ($(s).hidden = true));
+  $("#coinHead").innerHTML = `<div class="empty"><b>${msg}</b><p><a class="link-accent" href="/app">Browse coins →</a></p></div>`;
+  [".coin-layout", ".m-trade"].forEach((s) => ($(s).hidden = true));
 }
 
 // ---------------------------------------------------------------- price
@@ -148,12 +148,15 @@ function renderHead() {
   const sym = esc(c.info.symbol);
   const logo = /^https:\/\//.test(c.meta?.logo || "") ? `<img src="${esc(c.meta.logo)}" alt="" onerror="this.replaceWith('${sym.slice(0, 2)}')" />` : sym.slice(0, 2);
   $("#coinHead").innerHTML = `
-    <div class="pair-logos"><span class="eth-logo"><img src="${CHAIN_LOGO}" alt="Robinhood Chain" /></span><span class="coin-logo">${logo}</span></div>
-    <h1>ETH <span class="dim">/</span> ${sym}</h1>
-    <div class="coin-meta"><span class="pill pill-live"><img class="chain-ic" src="${CHAIN_LOGO}" alt="" />${esc(CONFIG.chainName)}</span>
-      <span class="mono dim">${token.slice(0, 10)}…${token.slice(-6)}</span><button class="copy" data-copy="${token}" title="Copy address">⧉</button></div>
-    <p class="muted small">${esc(c.info.name)} · ${c.kind === "pons" ? (c.graduated ? "Pons V2 · graduated" : "Pons V2 bonding curve") : c.existing ? "Rigs v4 pool · existing token" : "Rigs v4 pool"}
-      · creator ${addrLink(c.creator)}</p>
+    <div class="ch-row">
+      <span class="ch-logo"><span class="ch-av">${logo}</span><img class="ch-chain" src="${CHAIN_LOGO}" alt="${esc(CONFIG.chainName)}" /></span>
+      <div class="ch-id">
+        <h1>${esc(c.info.name)} <span class="ch-sym">$${sym}</span></h1>
+        <div class="coin-meta"><span class="cc-kind">${c.kind === "pons" ? (c.graduated ? "Graduated" : "Curve") : c.existing ? "v4 pool · existing" : "v4 pool"}</span>
+          <span class="mono dim">${token.slice(0, 8)}…${token.slice(-6)}</span><button class="copy" data-copy="${token}" title="Copy address">⧉</button>
+          <span class="dim">by ${addrLink(c.creator)}</span></div>
+      </div>
+    </div>
     ${c.meta?.description ? `<p class="coin-desc">${esc(c.meta.description)}</p>` : ""}`;
   $("#extLink").href = `${CONFIG.explorer}/token/${token}`;
 }

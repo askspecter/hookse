@@ -20,42 +20,36 @@
     <aside id="sidebar"></aside>
     <main class="app-main">
 
-      <div class="agents-head">
-        <p class="eyebrow">Agents</p>
-        <h1>Rigs for your agent</h1>
-        <p class="lede muted">Any agent that can read a file and send a transaction can use Rigs: read a pool's rules, quote and trade, open a market, run an auction and collect what it is owed. No account and no API key.</p>
+      <div class="app-head">
+        <div><p class="kicker">Agents</p><h1>Built for bots too</h1>
+        <p class="lede muted">If your agent can read a file and send a transaction, it can use Rigs. No account, no API key.</p></div>
       </div>
 
-      <section class="card agent-card">
-        <div class="path"><span class="eyebrow">Path one</span><h2>The skill file</h2></div>
-        <p class="muted">One short markdown file: every live address, how a pool key and pool id are formed, how to quote and trade, how to launch, and the calls that pay out what a pool owes you.</p>
-        <pre class="curl mono" id="curl">curl <span id="skillUrl">/agents/SKILL.md</span></pre>
-        <div class="btn-row"><a class="btn btn-primary" href="agents/SKILL.md" target="_blank" rel="noopener">Open the skill file</a><a class="btn btn-dark" href="rigs.manifest.json" target="_blank" rel="noopener">Manifest (JSON)</a></div>
-      </section>
+      <div class="agent-grid">
+        <section class="agent-term">
+          <div class="term-bar"><i></i><i></i><i></i><span>skill file</span></div>
+          <pre class="mono" id="curl"><span class="dim">$</span> curl <span id="skillUrl">/agents/SKILL.md</span></pre>
+          <p>One markdown file with every live address, how pool keys and ids are formed, how to quote, trade and launch, and which calls pay out.</p>
+          <div class="btn-row"><a class="btn btn-primary btn-sm" href="agents/SKILL.md" target="_blank" rel="noopener">Open SKILL.md</a><a class="btn btn-ghost btn-sm" href="rigs.manifest.json" target="_blank" rel="noopener">rigs.manifest.json</a></div>
+          <div class="term-rules"><b>House rules for agents</b>
+            <ol>
+              <li>Simulate every swap first and send a real minimum out.</li>
+              <li>Read the pool's rules, including any Launch Guard window, before trading a new coin.</li>
+              <li>Never sign a call whose simulation reverted.</li>
+              <li>Every figure is a read at one block. Read again right before acting.</li>
+            </ol>
+          </div>
+        </section>
 
-      <section class="card agent-card">
-        <h2>What an agent can do</h2>
-        <div class="cap"><p class="eyebrow">Read</p><p>Read a pool's frozen rules and fee from RigsHook, and its price straight from the PoolManager.</p><a class="link-accent" href="/docs#blocks">Rule blocks and config</a></div>
-        <div class="cap"><p class="eyebrow">Trade</p><p>Simulate a buy or sell for an exact quote, then send it through RigsRouter, or the Pons curve for bonding-curve coins.</p><a class="link-accent" href="/coin">How coin pages trade</a></div>
-        <div class="cap"><p class="eyebrow">Launch</p><p>Open a Pons V2 coin with the 80/20 creator split, a new-token Rigs pool, or a pool for a token that already exists, each in one transaction.</p><a class="link-accent" href="/docs#pons">Launching</a></div>
-        <div class="cap"><p class="eyebrow">Auction</p><p>Create a Dutch auction for any token, buy at the current price, or end and withdraw as the seller.</p><a class="link-accent" href="/docs#auctions">Auctions</a></div>
-        <div class="cap"><p class="eyebrow">Claim</p><p>Collect the creator's 80% of Pons fees, a pool's founding LP fees, and pot winnings or royalties to your own address.</p><a class="link-accent" href="/docs#splitter">Claiming</a></div>
-      </section>
-
-      <section class="card agent-card">
-        <h2>Safety rules in the file</h2>
-        <ol class="rules-list">
-          <li><span>01</span>Simulate every swap first and send a real minimum out.</li>
-          <li><span>02</span>Read the pool's rules, including any Anti-Snipe window, before trading a new token.</li>
-          <li><span>03</span>Never sign a call whose simulation reverted.</li>
-          <li><span>04</span>Every figure is a chain read at one block. Read again right before acting.</li>
-        </ol>
-      </section>
-
-      <section class="card agent-card">
-        <div class="path"><span class="eyebrow">Path two</span><h2>An MCP server</h2></div>
-        <p class="muted">A Model Context Protocol server with the same abilities is planned. This page will link it when it is available.</p>
-      </section>
+        <section class="agent-caps">
+          <a href="/docs#blocks"><b>Read</b><span>A pool's frozen rules and fee from RigsHook, its price from the PoolManager.</span></a>
+          <a href="/docs#architecture"><b>Trade</b><span>Simulate for an exact quote, then send it through RigsRouter or the Pons curve.</span></a>
+          <a href="/docs#pons"><b>Launch</b><span>A Pons V2 coin with the 80/20 split, a new-token Rigs pool, or a pool for an existing token.</span></a>
+          <a href="/docs#auctions"><b>Auction</b><span>Create a Dutch auction, buy at the current price, or end and withdraw.</span></a>
+          <a href="/docs#splitter"><b>Claim</b><span>Creator fees, a pool's LP fees, pot winnings and royalties, to your own address.</span></a>
+          <div class="cap-soon"><b>MCP server</b><span>Same abilities over the Model Context Protocol. Planned; linked here when it ships.</span></div>
+        </section>
+      </div>
 
     </main>
   </div>

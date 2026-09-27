@@ -41,20 +41,22 @@ function renderTune() {
 const conflicts = () => conflictsFor(state.baseFee, state.on, state.values);
 
 function renderDiagram() {
-  const slot = (id, cls) => {
+  const slot = (id) => {
     const b = BLOCKS.find((x) => x.id === id);
     const on = state.on.has(id);
-    return `<button class="slot ${cls}${on ? " on" : ""}" data-toggle="${id}" style="--c:${b.color}">${blockIcon(b, 14)}<b>${on ? "" : "+ "}${b.name}</b><small>${b.short.toLowerCase()}</small></button>`;
+    return `<button class="slot${on ? " on" : ""}" data-toggle="${id}">${blockIcon(b, 14)}<span><b>${b.name}</b><small>${b.short}</small></span><em>${on ? "on" : "+ add"}</em></button>`;
   };
   $("#diagram").innerHTML = `
-    <div class="dia-head"><span>Your programmable market</span><span>Every block has its own slot</span></div>
+    <div class="dia-head"><span>Swap pipeline</span><span>${state.on.size} of 5 on · runs top to bottom</span></div>
     <div class="dia">
-      ${slot("anti-snipe", "s-top")}
-      ${slot("surge-fee", "s-left")}
-      <div class="dia-pool"><span class="dia-buy">BUY ↓</span><div class="dia-pair"><i></i>TOKEN / ETH <span class="dim">UNISWAP V4</span></div></div>
-      ${slot("nth-buy-pot", "s-right")}
-      ${slot("lp-rewards", "s-bl")}
-      ${slot("auto-burn", "s-br")}
+      <div class="dia-io">swap in · ETH → TOKEN</div>
+      ${slot("anti-snipe")}
+      ${slot("surge-fee")}
+      <div class="dia-pool"><div class="dia-pair"><i></i>TOKEN / ETH <span class="dim">Uniswap v4 pool</span></div></div>
+      ${slot("auto-burn")}
+      ${slot("lp-rewards")}
+      ${slot("nth-buy-pot")}
+      <div class="dia-io">swap out · tokens to the buyer</div>
     </div>`;
   const steps = ["Swap enters the PoolManager"];
   if (state.on.has("anti-snipe")) steps.push("beforeSwap: add the decaying anti-snipe fee");
@@ -146,7 +148,7 @@ $("#create").addEventListener("click", async (e) => {
     });
     const n = await w.client.readContract({ address: w.CONFIG.rigsLauncher, abi: w.ABI.rigsLauncher, functionName: "tokenCount" });
     const token = await w.client.readContract({ address: w.CONFIG.rigsLauncher, abi: w.ABI.rigsLauncher, functionName: "tokens", args: [n - 1n] });
-    $("#createNote").innerHTML = `Pool opened for <b>$${esc(symbol)}</b>: token ${w.addrLink(token)} · <a class="link-accent" href="${w.CONFIG.explorer}/tx/${rc.transactionHash}" target="_blank" rel="noopener">transaction ↗</a> · <a class="link-accent" href="/app#pools">see it in Discover</a>`;
+    $("#createNote").innerHTML = `Pool opened for <b>$${esc(symbol)}</b>: token ${w.addrLink(token)} · <a class="link-accent" href="${w.CONFIG.explorer}/tx/${rc.transactionHash}" target="_blank" rel="noopener">transaction ↗</a> · <a class="link-accent" href="/app#pools">see it in Coins</a>`;
     w.toast(`$${symbol} pool created`);
   } catch (err) {
     console.error(err);

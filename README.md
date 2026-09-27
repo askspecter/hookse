@@ -10,13 +10,13 @@ Static pages, no build step. Serve the folder (`python3 -m http.server`) or depl
 | --- | --- |
 | `/` | Landing page |
 | `/deploy` | Admin: deploy every contract from your wallet, generate `config.js`, change treasury and royalties |
-| `/app` | Discover: live launches from the launcher, hooks, pools |
+| `/app` | Coins: every Rigs coin as a card (curve, v4 pools, auctions) |
 | `/launch` | Launch a coin on Pons V2 (wallet signs) |
-| `/portfolio` | Creator fees: claim your 80%, harvest, look up a coin (`/claim` redirects here) |
-| `/coin?token=…` | Coin page: price, chart, rules, activity, buy/sell, creator-only claim, pot winnings |
+| `/portfolio` | Earn: claim your 80% of creator fees, harvest, look up a coin (`/claim` redirects here) |
+| `/coin?token=…` | Coin page: chart, rules, activity and details on the left, buy/sell panel on the right, creator-only claim, pot winnings |
 | `/auctions` | Dutch auctions: create, buy, end and withdraw |
-| `/builder` | Compose rule blocks, check conflicts, get the `RigsHook` config |
-| `/hooks`, `/hook?id=…` | Rule-block catalog and detail pages |
+| `/builder` | Build: switch rule blocks on in a swap pipeline, check conflicts, open a pool |
+| `/hooks`, `/hook?id=…` | Rules: the five blocks (Launch Guard, Impact Fee, Buy Burn, LP Boost, Counter Pot) and a page for each |
 | `/scan` | Decode any v4 hook's permission bits from its address |
 | `/integrations`, `/agents`, `rigs.manifest.json` | For integrators and bots |
 | `/learn`, `/docs` | Guides and developer docs |
@@ -24,7 +24,7 @@ Static pages, no build step. Serve the folder (`python3 -m http.server`) or depl
 
 Logo uploads go through `api/upload.js` into Vercel KV (connect a KV / Upstash Redis store to the Vercel project) and are served by `api/img.js`. `api/meta.js` serves coin logos and one-liners: Pons coins are read from their launch transaction; any coin's creator can change them by signing a message (checked against the chain). URLs are clean (`/launch`, `/coin?token=…`) via `cleanUrls` in `vercel.json`.
 
-Shared code: `shell.js` (sidebar, search ⌘K, theme), `web3.js` (viem client, wallet, ABIs), `config.js` (addresses), `hooks-data.js` (rule blocks).
+Shared code: `shell.js` (top bar, mobile tab bar and More sheet, search ⌘K, theme), `web3.js` (viem client, wallet, ABIs), `config.js` (addresses), `hooks-data.js` (rule blocks).
 
 ## Going live (from the browser, no private keys)
 

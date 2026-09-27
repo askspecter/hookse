@@ -21,8 +21,8 @@
     <main class="app-main">
 
       <div class="app-head">
-        <div><p class="kicker">Market launcher · Robinhood Chain</p><h1>Launch a market</h1>
-        <p class="lede muted">Five steps: intent, hook, details, price and fees, then review and sign. Your draft is saved in this browser at every step.</p></div>
+        <div><p class="kicker">Launch · Robinhood Chain</p><h1>Launch a coin</h1>
+        <p class="lede muted">Five short steps, one signature. Your draft is saved in this browser as you go.</p></div>
         <span class="badge gray" id="netState">Reading chain…</span>
       </div>
       <div class="stepbar" id="stepbar">
@@ -31,9 +31,9 @@
         <button class="sb-btn" id="sbNext" aria-label="Next step">›</button>
         <button class="sb-btn" id="sbReset" aria-label="Reset draft" title="Reset draft">↺</button>
       </div>
-      <ol class="stepper wiz-steps" id="wizSteps"></ol>
       <div id="result"></div>
       <div class="wiz-grid">
+        <ol class="wiz-rail" id="wizSteps"></ol>
         <section class="card wiz-body" id="stepBody"></section>
         <aside class="stack wiz-side">
           <div class="card pad"><p class="form-h">Live compatibility</p><ul class="compat" id="compat"></ul></div>

@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Rigs — Composable Uniswap v4 hook launchpad</title>
-  <meta name="description" content="Rigs: pick hook blocks, open hooked pools and launch tokens on Uniswap v4." />
+  <title>Rigs · Composable markets, built with hooks</title>
+  <meta name="description" content="Launch a coin on Pons V2, stack rule blocks on its Uniswap v4 pool and keep 80% of the creator fees. Live on Robinhood Chain." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -13,145 +13,84 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png" />
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
   <meta name="theme-color" content="#05070c" />
+  <script>try{var t=localStorage.getItem("rigs-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
 </head>
-<body>
-  <header class="nav">
-    <div class="wrap nav-inner">
-      <a href="#" class="logo">
-        <img class="logo-img" src="/assets/logo-64.png" width="28" height="28" alt="Rigs" />
-        <span>Rigs</span>
-      </a>
-      <nav class="links" id="links">
-        <a href="/hooks">Hooks</a>
-        <a href="/builder">Builder</a>
-        <a href="/launch">Launch</a>
-        <a href="#faq">FAQ</a>
-      </nav>
-      <a href="/app" class="btn btn-primary btn-sm nav-app">Open app</a>
-    </div>
-  </header>
-
-  <main class="wrap">
-    <!-- HERO -->
-    <section class="hero">
-      <div class="hero-left">
-        <div class="pills">
-          <span class="pill pill-live"><i></i>Live on Robinhood Chain</span>
-          <span class="pill pill-outline"><img class="pill-logo" src="/assets/uniswap.jpg" alt="" width="16" height="16" />Runs on <b>Uniswap v4</b></span>
-        </div>
-        <h1>Hook Launchpad</h1>
-        <p class="sub">Stack audited hook blocks into one pool, launch a token on top, and see every rule before anyone trades.</p>
+<body data-nav="index">
+  <main class="home">
+    <section class="h-hero">
+      <span class="h-live"><i></i>Live on Robinhood Chain · launches so far: <b data-launch-count>—</b></span>
+      <h1>Composable markets,<br /><span class="grad">built with hooks.</span></h1>
+      <p class="h-sub">Launch a coin on Pons V2, stack rule blocks on its Uniswap v4 pool, and keep <b>80%</b> of every creator fee it earns.</p>
+      <div class="h-cta">
+        <a href="/launch" class="btn btn-primary btn-xl">Launch a coin <span aria-hidden="true">→</span></a>
+        <a href="/app" class="btn btn-ghost btn-xl">Explore coins</a>
       </div>
-      <div class="hero-right">
-        <a href="/launch" class="btn btn-primary btn-lg">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v10a4 4 0 0 1-8 0"/><circle cx="12" cy="3" r="1"/><path d="M12 13a4 4 0 0 0 8 0v-2"/></svg>
-          Open Rigs pool
-        </a>
-        <a href="/app" class="btn btn-dark btn-lg">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          Browse pools
-        </a>
-        <div class="more-wrap">
-          <button class="more" id="moreBtn">Other entry points <span>›</span></button>
-          <div class="more-menu" id="moreMenu">
-            <a href="/portfolio"><b>Add liquidity</b><small>Join an existing hooked pool</small></a>
-            <a href="/launch"><b>Launch a token</b><small>Pons V2 curve, graduates to Uniswap v4</small></a>
-            <a href="/portfolio"><b>Claim creator fees</b><small>80% of your coin's creator fees</small></a>
-            <a href="/builder"><b>Compose a hook</b><small>Mix blocks and tune parameters</small></a>
-            <a href="/scan"><b>List a hook</b><small>Submit any v4 hook for review</small></a>
-          </div>
-        </div>
+      <div class="h-powered">
+        <span>Runs on</span>
+        <a href="/integrations"><img src="/assets/pons.jpg" alt="" width="18" height="18" />Pons V2</a>
+        <a href="/integrations"><img src="/assets/uniswap.jpg" alt="" width="18" height="18" />Uniswap v4</a>
+        <a href="/integrations"><img src="/assets/robinhood.png" alt="" width="18" height="18" />Robinhood Chain</a>
       </div>
     </section>
 
-    <!-- STATS -->
-    <section class="stats card">
-      <div><span class="k">Pons launches</span><b id="stLaunches">Loading…</b><small>Coins launched through Rigs</small></div>
-      <div><span class="k">Rigs pools</span><b id="stPools">Loading…</b><small>Hooked Uniswap v4 markets</small></div>
-      <div><span class="k">Auctions</span><b id="stAuctions">Loading…</b><small>Dutch auctions created</small></div>
-      <div><span class="k">Paid to creators</span><b id="stPaid">Loading…</b><small>80% creator share, ETH</small></div>
+    <section class="h-stats">
+      <div><b id="stLaunches">—</b><span>coins on Pons V2</span></div>
+      <div><b id="stPools">—</b><span>hooked v4 pools</span></div>
+      <div><b id="stAuctions">—</b><span>Dutch auctions</span></div>
+      <div><b id="stPaid">—</b><span>ETH paid to creators</span></div>
     </section>
-    <details class="coverage"><summary>Coverage</summary><p>Every figure here is read directly from the Rigs contracts on Robinhood Chain when the page loads. "Paid to creators" sums the latest 100 launches.</p></details>
 
-    <!-- BUILT ON -->
-    <section class="block">
-      <div class="head">
-        <div><p class="eyebrow">Foundation</p><h2>Plain Uniswap v4 pools underneath</h2>
-        <p class="lede">Every Rigs pool is a normal v4 pool that points at one verified router hook. Nothing custom to trust beyond the blocks you can read.</p></div>
-        <a href="/docs#architecture" class="more-link">How the pieces connect <span>›</span></a>
+    <section class="h-sec">
+      <div class="h-sec-head"><div><p class="eyebrow">Latest</p><h2>Fresh coins</h2></div><a href="/app" class="more-link">All coins <span>→</span></a></div>
+      <div class="coin-rail" id="rail"><div class="rail-empty">Reading the chain…</div></div>
+    </section>
+
+    <section class="h-sec">
+      <div class="h-sec-head"><div><p class="eyebrow">How it works</p><h2>Three moves, all on-chain</h2></div></div>
+      <ol class="h-steps">
+        <li><span class="n">01</span><b>Launch</b><p>Name, ticker, logo. One signature opens a Pons V2 bonding curve; your wallet becomes the creator.</p><a href="/launch" class="link-accent">Start a launch →</a></li>
+        <li><span class="n">02</span><b>Trade</b><p>Anyone buys and sells on the curve. When it fills, the coin graduates into a locked Uniswap v4 pool.</p><a href="/app" class="link-accent">See live coins →</a></li>
+        <li><span class="n">03</span><b>Earn</b><p>Creator fees land in the coin's own splitter. Claim your 80% any time; 20% funds Rigs.</p>
+          <div class="h-split"><span style="width:80%">80% creator</span><span>20%</span></div><a href="/portfolio" class="link-accent">Claim fees →</a></li>
+      </ol>
+    </section>
+
+    <section class="h-sec h-rules">
+      <div class="h-rules-intro">
+        <p class="eyebrow">Rule blocks</p>
+        <h2>Five rules. Frozen at open.</h2>
+        <p class="lede">Turn blocks on, tune them, and every parameter is locked the moment the pool opens. Anyone can read them before they trade.</p>
+        <div class="btn-row"><a href="/builder" class="btn btn-primary btn-sm">Open the builder</a><a href="/hooks" class="btn btn-ghost btn-sm">Read every rule</a></div>
       </div>
-      <div class="found">
-        <div class="card fcard"><div class="ico ico-img"><img src="/assets/uniswap.jpg" alt="" width="36" height="36" /></div><div><b>Uniswap v4</b><small>PoolManager, hooks and routing for every pool here.</small></div></div>
-        <div class="card fcard"><div class="ico ico-img"><img src="/assets/robinhood.png" alt="" width="36" height="36" /></div><div><b>Robinhood Chain</b><small>Low-fee L2 where the contracts, pools and markets live.</small></div></div>
-      </div>
+      <div class="rule-rows" id="ruleRows"></div>
     </section>
 
-    <!-- INTEGRATIONS -->
-    <section class="block">
-      <div class="head">
-        <div><p class="eyebrow">Built with Rigs</p><h2>Integrations</h2></div>
-        <a href="/integrations" class="more-link">Every integration <span>›</span></a>
-      </div>
-      <div class="grid4" id="integrations"></div>
+    <section class="h-sec">
+      <div class="h-sec-head"><div><p class="eyebrow">Build on Rigs</p><h2>For builders and bots</h2></div></div>
+      <div class="h-dev" id="devLinks"></div>
     </section>
 
-    <!-- DISCOVER -->
-    <section class="block" id="discover">
-      <div class="disc-bar">
-        <div class="tabs" id="tabs">
-          <button class="active" data-tab="launches">Launches</button>
-          <button data-tab="pools">Pools</button>
-          <button data-tab="auctions">Auctions</button>
-        </div>
-        <input id="filter" class="filter" placeholder="Filter…" />
-        <span class="status mono" id="discStatus">Reading…</span>
-        <a href="/app" class="more-link push">Full discover view <span>›</span></a>
-      </div>
-      <div class="card table-card">
-        <table class="table">
-          <thead id="thead"></thead>
-          <tbody id="tbody"><tr><td colspan="5" class="dim">Reading the chain…</td></tr></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- RULES -->
-    <section class="block" id="rules">
-      <div class="head">
-        <div><p class="eyebrow">Available blocks</p><h2>Rules you can check in seconds</h2><p class="lede">New blocks and presets get sealed over time.</p></div>
-        <a href="/hooks" class="more-link">What each block does <span>›</span></a>
-      </div>
-      <div class="grid6" id="rulesGrid"></div>
-    </section>
-
-    <!-- AUDIENCES -->
-    <section class="block">
-      <div class="grid6 aud-grid" id="audiences"></div>
-    </section>
-
-    <!-- GET STARTED -->
-    <section class="block" id="start">
-      <div class="head"><div><p class="eyebrow">Get started</p><h2>What you can do with Rigs</h2></div></div>
-      <div class="grid5" id="actions"></div>
-    </section>
-
-    <!-- FAQ -->
-    <section class="block faq" id="faq">
-      <h3>Questions</h3>
-      <div id="faqList"></div>
+    <section class="h-sec" id="faq">
+      <div class="h-sec-head"><div><p class="eyebrow">FAQ</p><h2>Good questions</h2></div></div>
+      <div class="h-faq" id="faqList"></div>
     </section>
   </main>
 
-  <footer class="footer">
-    <p>Rigs · composable Uniswap v4 hooks on Robinhood Chain · not financial advice</p>
-    <nav>
-      <a href="/docs#addresses">contracts</a><a href="/docs">how it works</a><a href="/learn">learn</a><a href="/updates">updates</a>
-      <a href="/token">token</a><a href="/scan">scan</a><a href="/community">community</a><a href="/app">open app</a>
-      <a href="/agents">agents</a><a href="/privacy">privacy</a><a href="/terms">terms</a><a class="x-link" href="https://x.com/userigsfun" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>@userigsfun</a>
-    </nav>
+  <footer class="h-foot">
+    <div class="h-foot-in">
+      <div class="h-foot-brand">
+        <a href="/" class="logo"><img class="logo-img" src="/assets/logo-64.png" width="28" height="28" alt="Rigs" /><span>Rigs</span></a>
+        <p>Composable markets, built with hooks. Not financial advice.</p>
+        <a class="x-link" href="https://x.com/userigsfun" target="_blank" rel="noopener"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>@userigsfun</a>
+      </div>
+      <nav><b>Product</b><a href="/app">Coins</a><a href="/launch">Launch</a><a href="/portfolio">Earn</a><a href="/auctions">Auctions</a><a href="/builder">Build</a></nav>
+      <nav><b>Developers</b><a href="/docs">Docs</a><a href="/docs#addresses">Contracts</a><a href="/agents">Agents</a><a href="/scan">Scan</a><a href="/integrations">Integrations</a></nav>
+      <nav><b>Rigs</b><a href="/learn">Learn</a><a href="/updates">Updates</a><a href="/community">Community</a><a href="/token">Token</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></nav>
+    </div>
   </footer>
 
   <div class="toast" id="toast"></div>
+  <script type="module" src="shell.js"></script>
   <script type="module" src="app.js"></script>
 </body>
 </html>

@@ -1,36 +1,14 @@
+// Rules page: the five RigsHook blocks, what each does, its knobs and what it costs.
 import { BLOCKS, blockIcon } from "./hooks-data.js";
 
-const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const fmt = (p) => `${p.value}${p.unit === "%" ? "%" : p.unit ? ` ${p.unit}` : ""}`;
 
-$("#featured").innerHTML = BLOCKS.map((b) => `
-  <a class="card feat" href="/hook?id=${b.id}">${blockIcon(b, 14)}<div><b>${b.name}</b><small>${b.short}</small></div></a>`).join("");
-
-let filter = "all";
-function render() {
-  const q = $("#hsearch").value.trim().toLowerCase();
-  const list = BLOCKS
-    .filter(() => filter === "all" || filter === "native")
-    .filter((b) => !q || `${b.name} ${b.short}`.toLowerCase().includes(q))
-    .sort((a, b) => ($("#hsort").value === "name" ? a.name.localeCompare(b.name) : a.gas - b.gas));
-  $("#hcount").textContent = `${list.length} listing${list.length === 1 ? "" : "s"}`;
-  $("#listing").innerHTML = list.length ? list.map((b) => `
-    <div class="card listing">
-      <div class="row-between"><div class="tok"><b>${b.name}</b>${blockIcon(b, 12)}<span class="dim small">native block</span></div><span class="badge">Block</span></div>
-      <p class="muted small">${esc(b.desc)}</p>
-      <p class="small"><span class="dim">Gas</span> ~${b.gas}K · <span class="dim">Review</span> Unaudited</p>
-      <div class="row-between listing-foot"><span class="small">by <b>Rigs</b></span>
-        <span class="btn-row"><a class="link-accent small" href="/hook?id=${b.id}">Inspect</a><a class="link-accent small" href="/builder?add=${b.id}">Build with</a><a class="link-accent small" href="/docs#blocks">Docs</a></span></div>
-    </div>`).join("")
-    : `<div class="empty"><b>${filter === "community" ? "No community hooks yet" : filter === "roots" ? "One root" : "Nothing matches"}</b><p>${filter === "roots" ? "Every Rigs pool uses the single RigsHook root; blocks are switched on per pool." : filter === "community" ? "Submitted hooks appear here after review." : "Try another search."}</p></div>`;
-}
-$("#htabs").addEventListener("click", (e) => {
-  const b = e.target.closest("button");
-  if (!b) return;
-  filter = b.dataset.f;
-  document.querySelectorAll("#htabs button").forEach((x) => x.classList.toggle("active", x === b));
-  render();
-});
-$("#hsearch").addEventListener("input", render);
-$("#hsort").addEventListener("change", render);
-render();
+document.getElementById("rules").innerHTML = BLOCKS.map((b) => `
+  <article class="rule-card" id="${b.id}">
+    <div class="rc-head">${blockIcon(b, 22)}<div><h2>${b.name}</h2><p>${esc(b.short)}</p></div><span class="rc-gas">~${b.gas}K gas / swap</span></div>
+    <p class="rc-desc">${esc(b.desc)}</p>
+    <div class="rc-params">${b.params.map((p) => `<div><span>${p.label}</span><b>${fmt(p)}</b><small>${p.min}–${p.max}${p.unit === "%" ? "%" : p.unit ? ` ${p.unit}` : ""}</small></div>`).join("")}</div>
+    <p class="rc-note"><b>Watch out</b> ${esc(b.tradeoff)}</p>
+    <div class="rc-foot"><span class="badge gray">Unaudited</span><a class="link-accent" href="/hook?id=${b.id}">How it works →</a><a class="link-accent" href="/builder?add=${b.id}">Add in builder →</a></div>
+  </article>`).join("");

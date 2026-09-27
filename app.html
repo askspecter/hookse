@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Discover · Rigs</title>
-  <meta name="description" content="Discover on Rigs" />
+  <title>Coins · Rigs</title>
+  <meta name="description" content="Every coin launched through Rigs on Robinhood Chain" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -19,32 +19,27 @@
   <div class="app">
     <aside id="sidebar"></aside>
     <main class="app-main">
-
       <div class="app-head">
-        <div><p class="kicker">Robinhood Chain · live markets</p><h1>Discover</h1>
-        <p class="lede muted">Coins launched through Rigs on Pons V2, and the hooked pools they graduate into.</p></div>
-        <div class="btn-row"><span class="status mono" id="updated">Reading…</span><button class="btn btn-dark btn-sm" id="refresh">Refresh</button></div>
+        <div><p class="kicker">Robinhood Chain · live</p><h1>Coins</h1>
+        <p class="lede muted">Every coin launched through Rigs: on a Pons V2 curve or straight into a hooked v4 pool.</p></div>
+        <a href="/launch" class="btn btn-primary btn-sm">+ Launch a coin</a>
       </div>
-      <div class="disc-bar">
+      <div class="toolbar">
         <div class="tabs" id="tabs">
-          <button data-tab="pools">Pools</button>
-          <button class="active" data-tab="launches">Launches</button>
-          <button data-tab="tokens">Tokens</button>
+          <button class="active" data-tab="all">All</button>
+          <button data-tab="curve">On curve</button>
+          <button data-tab="pools">v4 pools</button>
           <button data-tab="auctions">Auctions</button>
-          <button data-tab="hooks">Hooks</button>
         </div>
-        <input id="filter" class="filter" placeholder="Search name, ticker or address…" />
-        <a href="/launch" class="btn btn-primary btn-sm push">Launch a coin</a>
+        <div class="toolbar-r">
+          <input id="filter" class="filter" placeholder="Name, ticker or 0x…" />
+          <select id="sort" class="filter sel" aria-label="Sort"><option value="new">Newest</option><option value="earned">Creator earned</option></select>
+          <button class="icon-btn" id="refresh" aria-label="Refresh" title="Refresh">↻</button>
+        </div>
       </div>
-      <div class="card table-card">
-        <table class="table">
-          <thead id="thead"></thead>
-          <tbody id="tbody"><tr><td colspan="6" class="dim">Reading…</td></tr></tbody>
-        </table>
-      </div>
-      <div class="more-row"><button class="btn btn-dark btn-sm" id="more" hidden>Show 20 more</button></div>
-      <details class="coverage"><summary>Data coverage</summary><p>Launches are read straight from the Rigs Pons launcher contract. Pool and hook rows describe the Rigs v4 hook; live pool metrics appear once an indexer is connected.</p></details>
-
+      <p class="status mono" id="updated">Reading…</p>
+      <div class="coin-grid" id="grid"><div class="rail-empty">Reading the chain…</div></div>
+      <div class="more-row"><button class="btn btn-ghost btn-sm" id="more" hidden>Show more</button></div>
     </main>
   </div>
   <div class="toast" id="toast"></div>

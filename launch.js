@@ -107,10 +107,10 @@ function stepIntent() {
   const curve = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 20C10 20 14 14 21 4M3 20h18"/></svg>';
   const inst = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="8.5" y="14" width="7" height="7" rx="1.5"/><path d="M6.5 10v2h11v-2M12 12v2"/></svg>';
   return `
-    <h2 class="wiz-h">What are you launching?</h2>
+    <h2 class="wiz-h">What are you launching?</h2><p class="muted small">Pick one. You can come back and change it until you sign.</p>
     <div class="opts">
-      ${option("intent", "new", "NEW TOKEN", "fresh supply, minted at launch", null, false, pIcon)}
-      ${option("intent", "existing", "EXISTING ASSET", "open a hooked pool for a token", null, !v4live, eIcon)}
+      ${option("intent", "new", "New token", "fresh supply, minted at launch", null, false, pIcon)}
+      ${option("intent", "existing", "Existing asset", "open a hooked pool for a token", null, !v4live, eIcon)}
     </div>
     <div class="row2 wiz-row">
       ${existing() ? `<div class="stack"><p class="form-h">Subject token <span class="info" title="The existing ERC-20 to open a market for">i</span></p>
@@ -124,8 +124,8 @@ function stepIntent() {
     </div>
     <h3 class="wiz-h3">Choose how the market opens</h3>
     <div class="opts">
-      ${option("mode", "pons", "BONDING CURVE", "Pons V2 → locked Uniswap v4", ["Pons V2", "80% creator fees", live ? "live" : "not deployed"], existing(), curve)}
-      ${option("mode", "instant", "INSTANT MARKET", "Rigs hook on Uniswap v4", ["Custom hook", "Supply locked", v4live ? "live" : "not deployed"], false, inst)}
+      ${option("mode", "pons", "Bonding curve", "Pons V2 → locked Uniswap v4", ["Pons V2", "80% creator fees", live ? "live" : "not deployed"], existing(), curve)}
+      ${option("mode", "instant", "Instant market", "Rigs hook on Uniswap v4", ["Custom hook", "Supply locked", v4live ? "live" : "not deployed"], false, inst)}
     </div>
     <p class="muted small">${d.mode === "pons"
       ? "The coin trades on a Pons V2 curve until it sells out, then graduates into a locked Uniswap v4 pool. Creator fees go to its own fee splitter: 80% to you, 20% to the Rigs treasury."
@@ -164,10 +164,10 @@ function stepHook() {
       <p class="muted small">One block per behavior. Open <a class="link-accent" href="/builder">the Builder</a> for the diagram and swap flow.</p></div>`}
     <details class="subcard"><summary class="form-h">Suggested settings</summary><ul class="recs">
       <li><b>Base fee</b> · 0.30% for most new tokens; 1% for very thin markets.</li>
-      <li><b>Anti-Snipe</b> · On for new tokens: a short window with a max buy.</li>
-      <li><b>Auto Burn</b> · 1–2% if you want supply to shrink with volume.</li>
-      <li><b>LP Rewards</b> · 0.5–1% to reward in-range liquidity.</li>
-      <li><b>Nth-Buy Pot</b> · Optional; set a minimum buy so dust buys do not count.</li></ul></details>`;
+      <li><b>Launch Guard</b> · On for new tokens: a short window with a max buy.</li>
+      <li><b>Buy Burn</b> · 1–2% if you want supply to shrink with volume.</li>
+      <li><b>LP Boost</b> · 0.5–1% to reward in-range liquidity.</li>
+      <li><b>Counter Pot</b> · Optional; set a minimum buy so dust buys do not count.</li></ul></details>`;
 }
 
 function preview() {
@@ -185,7 +185,7 @@ function stepDetails() {
     return `<h2 class="wiz-h">Details</h2><div class="notebox"><b>${subject ? `${esc(subject.name)} · $${esc(subject.symbol)}` : "No token loaded"}</b>
       <p class="muted small">An existing token keeps its own name, ticker and logo. ${subject ? `Contract ${addrLink(subject.address)}.` : "Load it in step 1."}</p></div>`;
   }
-  return `<p class="form-h">Discover card preview</p><div id="prev">${preview()}</div>
+  return `<p class="form-h">Coin card preview</p><div id="prev">${preview()}</div>
     <div class="form wiz-form">
       ${field("name", "Name", 48, "Hook Frog")}
       ${field("symbol", "Ticker", 12, "HFROG")}
@@ -213,7 +213,7 @@ function stepFees() {
         <div class="kv"><span>You pay</span><b>${pons.fee == null || buy == null ? "—" : eth(pons.fee + buy, 6) + " ETH"}</b></div></div>
       <div class="subcard"><p class="form-h">Creator fees</p>
         <div class="split"><div class="split-bar"><span style="width:80%"></span></div><div class="split-legend"><span><i class="c1"></i>80% to you</span><span><i class="c2"></i>20% Rigs treasury</span></div></div>
-        <p class="muted small">On Pons, the coin's creator-fee recipient is its own fee splitter contract, not your wallet. It can never be changed. Claim your 80% in <a class="link-accent" href="/portfolio">Portfolio</a>.</p></div>`;
+        <p class="muted small">On Pons, the coin's creator-fee recipient is its own fee splitter contract, not your wallet. It can never be changed. Claim your 80% under <a class="link-accent" href="/portfolio">Earn</a>.</p></div>`;
   }
   if (existing()) {
     const amt = Number(d.tokenAmount) || 0;
@@ -228,7 +228,7 @@ function stepFees() {
       <p class="muted small">= ${perToken > 0 ? perToken.toPrecision(3) : "—"} ETH per token · ${SUPPLY.toLocaleString("en-US")} tokens</p></div>
     <div class="subcard"><p class="form-h">Founding position</p><p class="muted small">The whole supply opens as one position above the opening price, owned by the launcher and locked forever. Its LP fees go to the creator (you) whenever anyone collects them.</p>
       <div class="kv"><span>Fee recipient</span><b>${getAccount() ? addrLink(getAccount()) : "connect a wallet"}</b></div></div>
-    <div class="subcard"><p class="form-h">Dev buy</p><p class="muted small">Instant markets have no same-transaction dev buy. Buy right after launch like anyone else; with Anti-Snipe on, the cap applies to you too.</p></div>`;
+    <div class="subcard"><p class="form-h">Dev buy</p><p class="muted small">Instant markets have no same-transaction dev buy. Buy right after launch like anyone else; with Launch Guard on, the cap applies to you too.</p></div>`;
 }
 
 function stepReview() {
@@ -273,7 +273,7 @@ function render() {
   $("#sbName").textContent = STEPS[d.step - 1];
   $("#sbPrev").disabled = d.step === 1;
   $("#sbNext").disabled = d.step === 5;
-  $("#wizSteps").innerHTML = STEPS.map((s, i) => `<li class="${i + 1 <= d.step ? "on" : ""}" data-go="${i + 1}"><b>${i + 1}</b> ${s}${stepErrors(i + 1).length && i + 1 < d.step ? " ⚠" : ""}</li>`).join("");
+  $("#wizSteps").innerHTML = STEPS.map((s, i) => `<li class="${i + 1 < d.step ? "done" : i + 1 === d.step ? "on" : ""}" data-go="${i + 1}"><b>${i + 1 < d.step ? "✓" : i + 1}</b><span>${s}${stepErrors(i + 1).length && i + 1 < d.step ? ' <em class="warn-t">needs a fix</em>' : ""}</span></li>`).join("");
   $("#stepBody").innerHTML = [stepIntent, stepHook, stepDetails, stepFees, stepReview][d.step - 1]() + nav();
   renderSide();
 }

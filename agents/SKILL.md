@@ -32,7 +32,7 @@ poolId = keccak256(abi.encode(key))
 ## Read
 
 - Rules: `RigsHook.getPool(poolId)` → `(Config cfg, launchBlock, buyCount)`. `cfg.blocks` bits:
-  1 Anti-Snipe, 2 Surge Fee, 4 Auto Burn, 8 LP Rewards, 16 Nth-Buy Pot. Fees in pips, takes in bps.
+  1 Launch Guard, 2 Impact Fee, 4 Buy Burn, 8 LP Boost, 16 Counter Pot. Fees in pips, takes in bps.
 - Fee for a trade now: `RigsHook.quoteFee(poolId, ethSize)` (pips, before takes).
 - Price: `PoolManager.extsload(keccak256(poolId ‖ bytes32(6)))`, low 160 bits = sqrtPriceX96.
   Token raw units per wei = (sqrtPriceX96 / 2^96)^2.
@@ -75,7 +75,7 @@ after approving, seller `end(id)` and `withdraw(id)`. Prices are wei per whole t
 ## Safety rules
 
 1. Quote with a simulation before every swap and send a real minimum out. Never send `minOut = 0`.
-2. Read the pool's rules first. During an Anti-Snipe window buys above the cap revert and pay an extra fee.
+2. Read the pool's rules first. During an Launch Guard window buys above the cap revert and pay an extra fee.
 3. Never sign a call whose simulation reverted.
 4. Every number is a chain read at one block. Re-read right before you act on it.
 5. Only move funds the wallet owner asked you to move. The contracts are not audited.

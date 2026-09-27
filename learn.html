@@ -37,12 +37,12 @@
         <h2 id="launching">Launching a coin</h2>
         <p>Fill in a name, ticker and optional logo, description and socials on the <a href="/launch">Launch</a> page. You pay the Pons launch fee and, if you like, some extra ETH to buy your own coin in the same transaction. Rigs creates a fee splitter for the coin, then asks Pons V2 to deploy the token and its bonding curve with that splitter as the creator-fee recipient.</p>
         <h2 id="fees">Creator fees, 80/20</h2>
-        <p>Pons charges a creator tax on trades. For coins launched here, that tax goes to the coin's fee splitter. When anyone harvests, the splitter sends 20% to the Rigs treasury and keeps 80% for you. You withdraw it in <a href="/portfolio">Portfolio</a> with one click. You can hand your share to another wallet at any time.</p>
+        <p>Pons charges a creator tax on trades. For coins launched here, that tax goes to the coin's fee splitter. When anyone harvests, the splitter sends 20% to the Rigs treasury and keeps 80% for you. You withdraw it under <a href="/portfolio">Earn</a> with one click. You can hand your share to another wallet at any time.</p>
         <p>On Pons, the creator shown for your coin is the splitter's address, not your wallet. That is expected: the splitter is what makes the automatic split possible.</p>
         <h2 id="graduation">Curve and graduation</h2>
         <p>A new coin trades on a bonding curve: the price rises as people buy. When the curve sells out, Pons graduates the coin into a Uniswap v4 pool whose liquidity is locked for good. After graduation, pool fees reach the splitter when Pons' operator sweeps them.</p>
         <h2 id="hooks">What is a hook?</h2>
-        <p>Uniswap v4 lets a pool call a contract, the hook, before and after swaps. Rigs's hook bundles five rule blocks (Anti-Snipe, Surge Fee, Auto Burn, LP Rewards and Nth-Buy Pot) that a pool switches on at creation. Browse them in <a href="/hooks">Hooks</a> and combine them in the <a href="/builder">Builder</a>.</p>
+        <p>Uniswap v4 lets a pool call a contract, the hook, before and after swaps. Rigs's hook bundles five rule blocks (Launch Guard, Impact Fee, Buy Burn, LP Boost and Counter Pot) that a pool switches on at creation. Browse them in <a href="/hooks">Rules</a> and combine them in the <a href="/builder">Builder</a>.</p>
         <h2 id="safety">Staying safe</h2>
         <ul>
           <li>The contracts are not audited. Treat every launch as high risk.</li>

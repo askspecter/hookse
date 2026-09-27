@@ -20,23 +20,29 @@
     <aside id="sidebar"></aside>
     <main class="app-main">
 
-      <p class="crumb"><a href="/app">Discover</a> / <a href="/app#tokens">Coins</a> / <span>Coin</span> <span class="push-r mono dim" id="asOf"></span></p>
+      <p class="crumb"><a href="/app">Coins</a> / <span>Coin</span> <span class="push-r mono dim" id="asOf"></span></p>
       <div id="coinHead" class="coin-head"><div class="empty"><b>Reading…</b></div></div>
-      <div class="coin-actions">
-        <a class="btn btn-primary" href="#trade">Trade</a>
-        <a class="btn btn-dark" href="#" id="extLink" target="_blank" rel="noopener">Explorer ↗</a>
-        <button class="btn btn-dark" data-ctab="activity">Activity</button>
-        <a class="btn btn-dark" href="/launch">New coin</a>
+      <div class="coin-layout">
+        <div class="coin-main">
+          <section class="card coin-stats" id="stats"></section>
+          <div class="subtabs sec-gap" id="ctabs"><button class="on" data-ctab="price">Price</button><button data-ctab="rules">Rules</button><button data-ctab="activity">Activity</button><button data-ctab="details">Details</button></div>
+          <section data-cpanel="price" class="card pad" id="pricePanel"></section>
+          <section data-cpanel="rules" class="card pad" id="rulesPanel" hidden></section>
+          <section data-cpanel="activity" class="card table-card" id="activityPanel" hidden></section>
+          <section data-cpanel="details" class="card pad" id="detailsPanel" hidden></section>
+          <section class="card creator-box" id="creatorBox" hidden></section>
+          <section class="card winnings-box" id="winBox" hidden></section>
+        </div>
+        <aside class="coin-side">
+          <section class="card trade" id="trade"></section>
+          <nav class="coin-actions">
+            <a href="#" id="extLink" target="_blank" rel="noopener">Explorer ↗</a>
+            <button data-ctab="activity">Activity</button>
+            <a href="/launch">Launch a coin</a>
+          </nav>
+        </aside>
       </div>
-      <section class="card coin-stats" id="stats"></section>
-      <section class="card creator-box" id="creatorBox" hidden></section>
-      <section class="card winnings-box" id="winBox" hidden></section>
-      <div class="subtabs sec-gap" id="ctabs"><button class="on" data-ctab="price">Price</button><button data-ctab="rules">Rules</button><button data-ctab="activity">Activity</button><button data-ctab="details">Details</button></div>
-      <section data-cpanel="price" class="card pad" id="pricePanel"></section>
-      <section data-cpanel="rules" class="card pad" id="rulesPanel" hidden></section>
-      <section data-cpanel="activity" class="card table-card" id="activityPanel" hidden></section>
-      <section data-cpanel="details" class="card pad" id="detailsPanel" hidden></section>
-      <section class="card trade" id="trade"></section>
+      <a class="btn btn-primary m-trade" href="#trade">Buy / sell</a>
 
     </main>
   </div>

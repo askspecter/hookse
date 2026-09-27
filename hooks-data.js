@@ -1,7 +1,7 @@
 // Rule blocks of RigsHook (engine/contracts/RigsHook.sol). Parameters mirror RigsHook.Config.
 export const BLOCKS = [
   {
-    id: "anti-snipe", bit: 1, index: 0, name: "Anti-Snipe", color: "#8b5cf6", icon: "shield", gas: 160,
+    id: "anti-snipe", bit: 1, index: 0, name: "Launch Guard", color: "#8b5cf6", icon: "shield", gas: 160,
     short: "Caps early buys and adds a decaying LP fee",
     desc: "For the first blocks after a pool opens, each buy is capped in ETH and pays an extra LP fee that falls linearly to zero.",
     params: [
@@ -9,11 +9,11 @@ export const BLOCKS = [
       { key: "snipeMaxBuy", label: "Max buy", unit: "ETH", value: 0.5, min: 0.01, max: 100, step: 0.01 },
       { key: "snipeFee", label: "Extra fee at open", unit: "%", value: 5, min: 0, max: 10, step: 0.1 },
     ],
-    tradeoff: "A tight cap can sit below the Nth-Buy Pot's minimum qualifying buy. While the window is open, no buy can then count for the pot. The builder warns you when that happens.",
+    tradeoff: "A tight cap can sit below the Counter Pot's minimum qualifying buy. While the window is open, no buy can then count for the pot. The builder warns you when that happens.",
     mechanics: ["Runs in beforeSwap (fee) and afterSwap (cap).", "Cap is checked on the ETH actually paid, so exact-output buys cannot bypass it.", "Fee decays by block number: extra × blocksLeft / window."],
   },
   {
-    id: "surge-fee", bit: 2, index: 1, name: "Surge Fee", color: "#ff8a00", icon: "bars", gas: 120,
+    id: "surge-fee", bit: 2, index: 1, name: "Impact Fee", color: "#ff8a00", icon: "bars", gas: 120,
     short: "LP fee rises with trade size",
     desc: "The LP fee climbs from the base fee toward a ceiling as a swap's ETH-equivalent size approaches a reference size.",
     params: [
@@ -24,7 +24,7 @@ export const BLOCKS = [
     mechanics: ["Dynamic fee returned from beforeSwap with the override flag.", "Token-denominated sizes are converted to ETH at the current pool price.", "Fee = base + (ceiling − base) × min(size, ref) / ref."],
   },
   {
-    id: "auto-burn", bit: 4, index: 2, name: "Auto Burn", color: "#ff4d4d", icon: "flame", gas: 140,
+    id: "auto-burn", bit: 4, index: 2, name: "Buy Burn", color: "#ff4d4d", icon: "flame", gas: 140,
     short: "Burns a share of each buy's output",
     desc: "A share of every exact-input buy's token output is sent straight to the dead address, shrinking supply with volume.",
     params: [{ key: "burnBps", label: "Burn share", unit: "%", value: 1, min: 0, max: 5, step: 0.05 }],
@@ -32,7 +32,7 @@ export const BLOCKS = [
     mechanics: ["Taken in afterSwap through the returned delta.", "Tokens go to 0x…dEaD via PoolManager.take.", "Sells are never burned."],
   },
   {
-    id: "lp-rewards", bit: 8, index: 3, name: "LP Rewards", color: "#40b66b", icon: "drop", gas: 150,
+    id: "lp-rewards", bit: 8, index: 3, name: "LP Boost", color: "#40b66b", icon: "drop", gas: 150,
     short: "Donates a slice of each swap to LPs",
     desc: "A share of every swap is donated to liquidity in range at the current price, on top of the normal LP fee.",
     params: [{ key: "lpBps", label: "Donation share", unit: "%", value: 0.5, min: 0, max: 5, step: 0.05 }],
@@ -40,7 +40,7 @@ export const BLOCKS = [
     mechanics: ["Taken in afterSwap, then passed to PoolManager.donate.", "Only in-range positions receive it."],
   },
   {
-    id: "nth-buy-pot", bit: 16, index: 4, name: "Nth-Buy Pot", color: "#ffc700", icon: "pot", gas: 180,
+    id: "nth-buy-pot", bit: 16, index: 4, name: "Counter Pot", color: "#ffc700", icon: "pot", gas: 180,
     short: "A public counter pays every Nth buy",
     desc: "A share of each swap fills a pot. Every Nth buy above a minimum size wins the whole pot. There is no randomness: the counter is on-chain.",
     params: [
@@ -48,7 +48,7 @@ export const BLOCKS = [
       { key: "potEvery", label: "Every Nth buy", unit: "", value: 50, min: 2, max: 10000, step: 1 },
       { key: "potMinBuy", label: "Min qualifying buy", unit: "ETH", value: 0.01, min: 0, max: 10, step: 0.001 },
     ],
-    tradeoff: "Because the counter is public, bots can time the Nth buy. Pair with Anti-Snipe and a sensible minimum buy.",
+    tradeoff: "Because the counter is public, bots can time the Nth buy. Pair with Launch Guard and a sensible minimum buy.",
     mechanics: ["Winner is the address in hookData, else tx.origin.", "Winnings are pulled with claim(currency) on the hook."],
   },
 ];
@@ -76,7 +76,7 @@ const PATHS = {
   cycle: '<path d="M4 12a8 8 0 0 1 14-5l2 2M20 12a8 8 0 0 1-14 5l-2-2M20 4v5h-5M4 20v-5h5"/>',
 };
 export const blockIcon = (b, size = 16) =>
-  `<span class="bicon" style="color:${b.color};background:${b.color}22;border-color:${b.color}44"><svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${PATHS[b.icon]}</svg></span>`;
+  `<span class="bicon" style="--s:${size + 12}px" aria-hidden="true">${String(b.index + 1).padStart(2, "0")}</span>`;
 
 // ---------------------------------------------------------------- shared rule logic (Builder + Launch wizard)
 
@@ -102,9 +102,9 @@ export function configFor(baseFee, on, v) {
 export function conflictsFor(baseFee, on, v) {
   const out = [];
   if (on.has("anti-snipe") && on.has("nth-buy-pot") && v["anti-snipe"].snipeMaxBuy < v["nth-buy-pot"].potMinBuy) {
-    out.push(`Anti-Snipe caps buys at ${v["anti-snipe"].snipeMaxBuy} ETH, below the pot's ${v["nth-buy-pot"].potMinBuy} ETH minimum: no buy can count for the pot during the snipe window.`);
+    out.push(`Launch Guard caps buys at ${v["anti-snipe"].snipeMaxBuy} ETH, below the pot's ${v["nth-buy-pot"].potMinBuy} ETH minimum: no buy can count for the pot during the snipe window.`);
   }
-  if (on.has("surge-fee") && v["surge-fee"].surgeMaxFee <= baseFee) out.push("Surge Fee ceiling is not above the base fee, so it never changes anything.");
+  if (on.has("surge-fee") && v["surge-fee"].surgeMaxFee <= baseFee) out.push("Impact Fee ceiling is not above the base fee, so it never changes anything.");
   const takes = (on.has("auto-burn") ? v["auto-burn"].burnBps : 0) + (on.has("lp-rewards") ? v["lp-rewards"].lpBps : 0) + (on.has("nth-buy-pot") ? v["nth-buy-pot"].potBps : 0);
   if (takes + 0.25 * BLOCKS.length > 10) out.push(`Takes add up to ${takes.toFixed(2)}%. With the maximum royalties that passes the 10% cap, so the launch would revert.`);
   if (baseFee > 10) out.push("Base LP fee is capped at 10%.");
