@@ -51,12 +51,16 @@
         </div>
       </div>
       <section class="card review">
-        <div><p class="form-h">3 · Review, name &amp; create pool</p><p class="muted small">Check the blocks and swap flow above before creating the pool.</p></div>
-        <label>Hook name<input id="hookName" value="MY FIRST HOOK" maxlength="32" /></label>
-        <span class="badge gray" id="blockCount">0 blocks</span>
-        <label>Royalty %<input id="royalty" type="number" min="0" max="0.25" step="0.01" value="0" /></label>
-        <button class="btn btn-pink btn-sm" data-connect>Connect wallet</button>
-        <button class="btn btn-dark btn-sm" id="create">Create pool</button>
+        <div><p class="form-h">3 · Review, name &amp; create pool</p><p class="muted small">Mints a fixed-supply token and opens an ETH/token Uniswap v4 pool on the Hookse hook with these rules. The whole supply is locked in the pool; you collect its LP fees in Portfolio.</p></div>
+        <div class="review-fields">
+          <label>Token name<input id="tName" maxlength="32" placeholder="Hook Frog" /></label>
+          <label>Ticker<input id="tSym" maxlength="10" placeholder="HFROG" /></label>
+          <label>Supply<input id="tSupply" type="number" min="1" value="1000000000" /></label>
+          <label>Start market cap (ETH)<input id="tMcap" type="number" min="0.001" step="0.1" value="10" /></label>
+          <span class="badge gray" id="blockCount">0 blocks</span>
+          <button class="btn btn-pink btn-sm" id="create">Create pool</button>
+        </div>
+        <p class="muted small" id="createNote"></p>
       </section>
       <details class="card pad cfg"><summary>Config for HookseHook.register</summary><pre class="mono" id="cfg"></pre></details>
 

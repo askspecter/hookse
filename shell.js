@@ -27,7 +27,7 @@ const NAV = [
   ["agents", "Agents", "bot", true],
 ];
 const LEARN = [["learn", "Learn", "book"], ["docs", "Docs", "doc"], ["community", "Community", "people"]];
-const EXTRA = [["hooks", "Hooks catalog"], ["token", "Token"], ["updates", "Updates"], ["index", "Home"], ["privacy", "Privacy"], ["terms", "Terms"]];
+const EXTRA = [["deploy", "Deploy contracts (admin)"], ["hooks", "Hooks catalog"], ["token", "Token"], ["updates", "Updates"], ["index", "Home"], ["privacy", "Privacy"], ["terms", "Terms"]];
 const ACCENTS = { pink: "#fc72ff", blue: "#4c82fb", green: "#40b66b", amber: "#e0a030" };
 
 const store = {

@@ -16,6 +16,7 @@ export const chain = defineChain({
 });
 export const client = createPublicClient({ chain, transport: http() });
 export const live = isAddress(CONFIG.ponsLauncher || "");
+export const v4live = isAddress(CONFIG.hookseLauncher || "") && isAddress(CONFIG.hookseHook || "");
 
 export const ABI = {
   pons: parseAbi([
@@ -45,6 +46,26 @@ export const ABI = {
     "function setCreator(address next)",
   ]),
   erc20: parseAbi(["function name() view returns (string)", "function symbol() view returns (string)"]),
+  hookseLauncher: parseAbi([
+    "struct Config { uint8 blocks; uint24 baseFee; uint32 snipeBlocks; uint24 snipeFee; uint128 snipeMaxBuy; uint24 surgeMaxFee; uint128 surgeRefSize; uint16 burnBps; uint16 lpBps; uint16 potBps; uint32 potEvery; uint128 potMinBuy; }",
+    "struct PoolKey { address currency0; address currency1; uint24 fee; int24 tickSpacing; address hooks; }",
+    "function launch(string name, string symbol, uint256 supply, int24 startTick, Config cfg) returns (address token, bytes32 id)",
+    "function tokenCount() view returns (uint256)",
+    "function tokens(uint256) view returns (address)",
+    "function keyOf(address token) view returns (PoolKey)",
+    "function launches(bytes32 id) view returns (address token, address creator, int24 tickLower, int24 tickUpper, uint128 liquidity)",
+    "function collectCreatorFees(address token) returns (uint256 amount0, uint256 amount1)",
+    "event Launched(address indexed token, address indexed creator, bytes32 indexed id, string name, string symbol, uint256 supply, int24 startTick)",
+  ]),
+  hookseHook: parseAbi([
+    "struct Config { uint8 blocks; uint24 baseFee; uint32 snipeBlocks; uint24 snipeFee; uint128 snipeMaxBuy; uint24 surgeMaxFee; uint128 surgeRefSize; uint16 burnBps; uint16 lpBps; uint16 potBps; uint32 potEvery; uint128 potMinBuy; }",
+    "function getPool(bytes32 id) view returns (Config cfg, uint64 launchBlock, uint64 buyCount)",
+    "function owner() view returns (address)",
+    "function launcher() view returns (address)",
+    "function setLauncher(address)",
+    "function setAuthor(uint8 blockIndex, address account, uint16 royaltyBps)",
+    "function authors(uint8) view returns (address account, uint16 royaltyBps)",
+  ]),
 };
 
 // ---------------------------------------------------------------- small helpers

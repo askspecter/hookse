@@ -140,11 +140,49 @@ $("#vtabs").addEventListener("click", (e) => {
   $("#diagram").hidden = v !== "blocks";
   $("#flow").hidden = v !== "flow";
 });
-$("#create").addEventListener("click", async () => {
-  const { toast } = await import("./web3.js");
+/** Opening tick for `supply` tokens valued at `mcapEth`: price is tokens per ETH, rounded down to spacing 60. */
+function startTick(supply, mcapEth) {
+  const t = Math.floor(Math.log(supply / mcapEth) / Math.log(1.0001));
+  return Math.floor(t / 60) * 60;
+}
+
+$("#create").addEventListener("click", async (e) => {
+  const btn = e.currentTarget; // read before any await: currentTarget is reset after dispatch
+  const w = await import("./web3.js");
   const c = conflicts();
-  if (c.length) return toast(c[0]);
-  toast("Hookse v4 pools open once the v4 launcher is deployed. Your config is shown below.");
-  document.querySelector("details.cfg").open = true;
+  if (c.length) return w.toast(c[0]);
+  if (!w.v4live) {
+    w.toast("The v4 launcher is not deployed yet. Your config is shown below.");
+    document.querySelector("details.cfg").open = true;
+    return;
+  }
+  const name = $("#tName").value.trim();
+  const symbol = $("#tSym").value.trim().toUpperCase();
+  const supply = Number($("#tSupply").value);
+  const mcap = Number($("#tMcap").value);
+  if (!name || !/^[A-Z0-9]{1,10}$/.test(symbol)) return w.toast("Enter a token name and a 1–10 character ticker");
+  if (!(supply >= 1 && supply <= 1e15) || !(mcap > 0)) return w.toast("Check supply and market cap");
+  const tick = startTick(supply, mcap);
+  if (tick <= -887220 || tick > 887220) return w.toast("That price is out of range; change supply or market cap");
+  const raw = configJson();
+  const cfg = { ...raw, snipeMaxBuy: BigInt(raw.snipeMaxBuy), surgeRefSize: BigInt(raw.surgeRefSize), potMinBuy: BigInt(raw.potMinBuy) };
+  btn.disabled = true;
+  btn.textContent = "Confirm in wallet…";
+  try {
+    const rc = await w.write({
+      address: w.CONFIG.hookseLauncher, abi: w.ABI.hookseLauncher, functionName: "launch",
+      args: [name, symbol, BigInt(Math.floor(supply)) * 10n ** 18n, tick, cfg],
+    });
+    const n = await w.client.readContract({ address: w.CONFIG.hookseLauncher, abi: w.ABI.hookseLauncher, functionName: "tokenCount" });
+    const token = await w.client.readContract({ address: w.CONFIG.hookseLauncher, abi: w.ABI.hookseLauncher, functionName: "tokens", args: [n - 1n] });
+    $("#createNote").innerHTML = `Pool opened for <b>$${esc(symbol)}</b>: token ${w.addrLink(token)} · <a class="link-pink" href="${w.CONFIG.explorer}/tx/${rc.transactionHash}" target="_blank" rel="noopener">transaction ↗</a> · <a class="link-pink" href="app.html#pools">see it in Discover</a>`;
+    w.toast(`$${symbol} pool created`);
+  } catch (err) {
+    console.error(err);
+    w.toast(w.friendlyError(err));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Create pool";
+  }
 });
 render();

@@ -1,5 +1,5 @@
-// Fill `ponsLauncher` and `startBlock` after running engine/scripts/deploy-pons.js on Robinhood Chain.
-// While `ponsLauncher` is empty, launching and claiming are disabled and the site says so.
+// Contract addresses. After deploying on deploy.html, paste the generated block over this file
+// (or send the addresses to be committed). Empty addresses switch the matching features off.
 export const CONFIG = {
   chainId: 4663,
   chainName: "Robinhood Chain",
@@ -10,6 +10,10 @@ export const CONFIG = {
   ponsLauncher: "",
   startBlock: 0,
   creatorShareBps: 8000, // mirrors CreatorFeeSplitter.CREATOR_BPS
-  // Reown (WalletConnect) Project ID from https://cloud.reown.com. Empty = browser wallet only.
-  reownProjectId: "",
+  // Uniswap v4 (direct hooked pools from the Builder)
+  poolManager: "",
+  hookseHook: "",
+  hookseLauncher: "",
+  // Reown (WalletConnect) Project ID from https://cloud.reown.com. Public by design.
+  reownProjectId: "5c559ec7c86f657976f14d599d5e66b5",
 };

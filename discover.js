@@ -4,11 +4,12 @@ const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const HEADS = {
   launches: ["#", "Coin", "Creator", "Claimed by creator", "Launched", ""],
-  pools: ["Pool", "Hook", "Rules", "Fee", ""],
+  pools: ["Pool", "Creator", "Rules", "Base fee", ""],
   hooks: ["Block", "What it does", "Gas / swap", "Status", ""],
 };
 let tab = "launches";
 let launches = [];
+let pools = [];
 let shown = 20;
 let web3 = null;
 
@@ -37,7 +38,17 @@ function render() {
       $("#more").hidden = list.length <= shown;
     }
   } else if (tab === "pools") {
-    rows = [`<tr><td colspan="5" class="dim">Hookse v4 pools (direct launches with rule blocks) appear once the v4 launcher is deployed. Pons graduations trade on Pons' own locked v4 pools.</td></tr>`];
+    if (!web3?.v4live) {
+      rows = [`<tr><td colspan="5" class="dim">Hookse v4 pools (created in the <a href="builder.html">Builder</a>) appear once the v4 launcher is deployed. Pons graduations trade on Pons' own locked v4 pools.</td></tr>`];
+    } else {
+      rows = pools.filter((p) => !q || `${p.name} ${p.symbol} ${p.token}`.toLowerCase().includes(q)).map((p) => `<tr>
+        <td><div class="tok"><div class="av">${esc((p.symbol || "?").slice(0, 2))}</div><span>ETH / ${esc(p.symbol || "?")} <span class="dim">${esc(p.name || "")}</span></span></div></td>
+        <td>${web3.addrLink(p.creator)}</td>
+        <td><div class="chips">${BLOCKS.filter((b) => p.blocks & b.bit).map((b) => `<span class="chip">${b.name}</span>`).join("") || '<span class="dim">base fee only</span>'}</div></td>
+        <td class="r mono">${(p.baseFee / 10000).toFixed(2)}%</td>
+        <td class="r nowrap"><a class="link-pink" href="${web3.CONFIG.explorer}/token/${p.token}" target="_blank" rel="noopener">Token ↗</a> · <button class="btn btn-dark btn-xs" data-collect="${p.token}">Send LP fees to creator</button></td></tr>`);
+      if (!rows.length) rows = [`<tr><td colspan="5" class="dim">${pools.length ? "Nothing matches." : "No pools yet. <a href=\"builder.html\">Create one →</a>"}</td></tr>`];
+    }
   } else {
     rows = BLOCKS.filter((b) => !q || b.name.toLowerCase().includes(q)).map((b) => `<tr>
       <td><div class="tok">${blockIcon(b)}<span>${b.name}</span></div></td><td class="dim">${b.short}</td>
@@ -46,6 +57,25 @@ function render() {
   }
   if (tab !== "launches") $("#more").hidden = true;
   $("#tbody").innerHTML = rows.join("");
+}
+
+async function loadPools({ client, CONFIG, ABI }) {
+  const { encodeAbiParameters, keccak256 } = await import("https://cdn.jsdelivr.net/npm/viem@2.21.0/+esm");
+  const r = (functionName, args, address = CONFIG.hookseLauncher, abi = ABI.hookseLauncher) => client.readContract({ address, abi, functionName, args });
+  const n = Number(await r("tokenCount"));
+  const ids = Array.from({ length: Math.min(n, 100) }, (_, i) => n - 1 - i);
+  return Promise.all(ids.map(async (i) => {
+    const token = await r("tokens", [BigInt(i)]);
+    const key = await r("keyOf", [token]);
+    const id = keccak256(encodeAbiParameters(
+      [{ type: "address" }, { type: "address" }, { type: "uint24" }, { type: "int24" }, { type: "address" }],
+      [key.currency0, key.currency1, key.fee, key.tickSpacing, key.hooks]));
+    const [[, creator], [cfg], name, symbol] = await Promise.all([
+      r("launches", [id]), r("getPool", [id], CONFIG.hookseHook, ABI.hookseHook),
+      r("name", [], token, ABI.erc20).catch(() => ""), r("symbol", [], token, ABI.erc20).catch(() => ""),
+    ]);
+    return { token, creator, name, symbol, blocks: Number(cfg.blocks), baseFee: Number(cfg.baseFee) };
+  }));
 }
 
 async function load() {
@@ -58,7 +88,8 @@ async function load() {
       const ids = Array.from({ length: Math.min(n, 100) }, (_, i) => n - 1 - i);
       launches = await Promise.all(ids.map((id) => loadLaunch(id)));
     }
-    $("#updated").innerHTML = web3.live ? '<i class="dot-green"></i>Updated' : "Launcher not deployed";
+    if (web3.v4live) pools = await loadPools(web3);
+    $("#updated").innerHTML = web3.live || web3.v4live ? '<i class="dot-green"></i>Updated' : "Launcher not deployed";
   } catch (err) {
     console.error(err);
     $("#updated").textContent = "Could not reach the chain";
@@ -76,5 +107,16 @@ $("#tabs").addEventListener("click", (e) => {
 $("#filter").addEventListener("input", render);
 $("#refresh").addEventListener("click", load);
 $("#more").addEventListener("click", () => { shown += 20; render(); });
+$("#tbody").addEventListener("click", async (e) => {
+  const b = e.target.closest("button[data-collect]");
+  if (!b) return;
+  const p = pools.find((x) => x.token === b.dataset.collect);
+  b.disabled = true;
+  try {
+    await web3.write({ address: web3.CONFIG.hookseLauncher, abi: web3.ABI.hookseLauncher, functionName: "collectCreatorFees", args: [p.token] });
+    web3.toast(`LP fees for $${p.symbol} sent to its creator`);
+  } catch (err) { web3.toast(web3.friendlyError(err)); } finally { b.disabled = false; }
+});
+if (location.hash === "#pools") document.querySelector('#tabs [data-tab="pools"]').click();
 render();
 load();
