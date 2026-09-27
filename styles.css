@@ -669,3 +669,18 @@ details.subcard summary { cursor: pointer; }
   .sidebar .side-h:not(.side-foot .side-h) { font-size: 13px; }
 }
 @media (max-width: 900px) { .sidebar .side-net .mono { display: none; } }
+/* agents page */
+.agents-head { margin: 8px 0 28px; max-width: 760px; }
+.agents-head h1 { font-size: 44px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; margin: 6px 0 14px; }
+.agents-head .lede { font-size: 17px; }
+.agent-card { padding: 26px; margin-bottom: 16px; max-width: 820px; display: flex; flex-direction: column; gap: 16px; }
+.agent-card h2 { font-size: 30px; font-weight: 700; letter-spacing: -.01em; line-height: 1.1; }
+.path { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; }
+.curl { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; background: var(--bg); overflow-x: auto; font-size: 14px; }
+.cap { display: flex; flex-direction: column; gap: 6px; padding: 4px 0 10px; }
+.cap p:not(.eyebrow) { font-size: 16px; }
+.rules-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.rules-list li { display: flex; gap: 16px; font-size: 16px; }
+.rules-list span { font-family: var(--mono); color: var(--dim); }
+@media (max-width: 640px) { .agents-head h1 { font-size: 34px; } .agent-card h2 { font-size: 26px; } }
+.agent-card .btn { padding: 12px 20px; font-size: 15px; font-weight: 600; }

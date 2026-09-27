@@ -161,7 +161,7 @@ function appKit() {
     const projectId = CONFIG.reownProjectId;
     const kit = createAppKit({
       adapters: [new WagmiAdapter({ projectId, networks: [NETWORK] })], networks: [NETWORK], defaultNetwork: NETWORK, projectId,
-      metadata: { name: "Rigs", description: "Launch on Pons V2 and Uniswap v4 hooks", url: location.origin, icons: [] },
+      metadata: { name: "Rigs", description: "Open Rigs pools on Uniswap v4 and Pons V2", url: location.origin, icons: [] },
       features: { analytics: false, email: false, socials: false, swaps: false, onramp: false, send: false },
       allowUnsupportedChain: true,
       themeMode: "dark",

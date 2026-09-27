@@ -17,40 +17,47 @@
     <aside id="sidebar"></aside>
     <main class="app-main">
 
-      <div class="app-head">
-        <div><p class="kicker">For bots and AI agents</p><h1>Agents</h1>
-        <p class="lede muted">Everything an agent needs to read launches, launch a coin and claim creator fees, as plain contract calls. No API key, no private endpoints.</p></div>
-        <a class="btn btn-dark btn-sm" href="rigs.manifest.json" download>Download manifest</a>
+      <div class="agents-head">
+        <p class="eyebrow">Agents</p>
+        <h1>Rigs for your agent</h1>
+        <p class="lede muted">Any agent that can read a file and send a transaction can use Rigs: read a pool's rules, quote and trade, open a market, run an auction and collect what it is owed. No account and no API key.</p>
       </div>
-      <div class="grid3">
-        <div class="card pad"><b>1 · Discover</b><p class="muted small">Load <span class="mono">rigs.manifest.json</span>: chain, contract addresses and ABIs in one file.</p></div>
-        <div class="card pad"><b>2 · Read</b><p class="muted small">Call <span class="mono">launchCount()</span>, <span class="mono">launches(i)</span> and <span class="mono">launchesOf(creator)</span> on PonsLauncher.</p></div>
-        <div class="card pad"><b>3 · Act</b><p class="muted small">Launch with <span class="mono">launch(params)</span>; claim with <span class="mono">claim()</span> on the coin's splitter. The agent's wallet signs.</p></div>
-      </div>
-      <div class="prose sec-gap">
-        <h2>Launch a coin (viem)</h2>
-<pre>const fee = await client.readContract({ address: PONS, abi, functionName: "launchFee" });
-const economics = await client.readContract({ address: PONS, abi, functionName: "previewLaunchEconomics", args: [0n, zeroAddress] });
-await wallet.writeContract({
-  address: LAUNCHER, abi: launcherAbi, functionName: "launch", value: fee,
-  args: [{ name: "Agent Coin", symbol: "AGENT", logo: "", description: "",
-    socials: { twitter: "", telegram: "", discord: "", website: "", farcaster: "" },
-    creatorTaxBps: 100, launchConfigId: 0n, expectedEconomics: economics,
-    salt: toHex(crypto.getRandomValues(new Uint8Array(32))), minTokensOut: 0n }],
-});</pre>
-        <h2>Claim creator fees</h2>
-<pre>const ids = await client.readContract({ address: LAUNCHER, abi: launcherAbi, functionName: "launchesOf", args: [me] });
-for (const id of ids) {
-  const [, , splitter] = await client.readContract({ address: LAUNCHER, abi: launcherAbi, functionName: "launches", args: [id] });
-  await wallet.writeContract({ address: splitter, abi: splitterAbi, functionName: "claim" });
-}</pre>
-        <p>Rules for agents: always pass <code>expectedEconomics</code> from <code>previewLaunchEconomics</code> so a launch reverts instead of accepting changed Pons terms, and never hold user keys you were not given.</p>
-      </div>
+
+      <section class="card agent-card">
+        <div class="path"><span class="eyebrow">Path one</span><h2>The skill file</h2></div>
+        <p class="muted">One short markdown file: every live address, how a pool key and pool id are formed, how to quote and trade, how to launch, and the calls that pay out what a pool owes you.</p>
+        <pre class="curl mono" id="curl">curl <span id="skillUrl">/agents/SKILL.md</span></pre>
+        <div class="btn-row"><a class="btn btn-pink" href="agents/SKILL.md" target="_blank" rel="noopener">Open the skill file</a><a class="btn btn-dark" href="rigs.manifest.json" target="_blank" rel="noopener">Manifest (JSON)</a></div>
+      </section>
+
+      <section class="card agent-card">
+        <h2>What an agent can do</h2>
+        <div class="cap"><p class="eyebrow">Read</p><p>Read a pool's frozen rules and fee from RigsHook, and its price straight from the PoolManager.</p><a class="link-pink" href="docs.html#blocks">Rule blocks and config</a></div>
+        <div class="cap"><p class="eyebrow">Trade</p><p>Simulate a buy or sell for an exact quote, then send it through RigsRouter, or the Pons curve for bonding-curve coins.</p><a class="link-pink" href="coin.html">How coin pages trade</a></div>
+        <div class="cap"><p class="eyebrow">Launch</p><p>Open a Pons V2 coin with the 80/20 creator split, a new-token Rigs pool, or a pool for a token that already exists, each in one transaction.</p><a class="link-pink" href="docs.html#pons">Launching</a></div>
+        <div class="cap"><p class="eyebrow">Auction</p><p>Create a Dutch auction for any token, buy at the current price, or end and withdraw as the seller.</p><a class="link-pink" href="docs.html#auctions">Auctions</a></div>
+        <div class="cap"><p class="eyebrow">Claim</p><p>Collect the creator's 80% of Pons fees, a pool's founding LP fees, and pot winnings or royalties to your own address.</p><a class="link-pink" href="docs.html#splitter">Claiming</a></div>
+      </section>
+
+      <section class="card agent-card">
+        <h2>Safety rules in the file</h2>
+        <ol class="rules-list">
+          <li><span>01</span>Simulate every swap first and send a real minimum out.</li>
+          <li><span>02</span>Read the pool's rules, including any Anti-Snipe window, before trading a new token.</li>
+          <li><span>03</span>Never sign a call whose simulation reverted.</li>
+          <li><span>04</span>Every figure is a chain read at one block. Read again right before acting.</li>
+        </ol>
+      </section>
+
+      <section class="card agent-card">
+        <div class="path"><span class="eyebrow">Path two</span><h2>An MCP server</h2></div>
+        <p class="muted">A Model Context Protocol server with the same abilities is planned. This page will link it when it is available.</p>
+      </section>
 
     </main>
   </div>
   <div class="toast" id="toast"></div>
   <script type="module" src="shell.js"></script>
-
+  <script type="module" src="agents.js"></script>
 </body>
 </html>
