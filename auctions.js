@@ -1,6 +1,6 @@
 import {
   CONFIG, ABI, $, esc, toast, friendlyError, client, auctionsLive, write, getAccount, onAccount, isAddress, getAddress,
-  addrLink, tokenInfo, ensureAllowance,
+  addrLink, tokenInfo, ensureAllowance, fmtPrice,
 } from "./web3.js";
 import { formatUnits, parseUnits, formatEther, parseEther } from "https://cdn.jsdelivr.net/npm/viem@2.21.0/+esm";
 
@@ -42,8 +42,8 @@ function card(a) {
   return `<div class="card listing auction" id="auction-${a.id}">
     <div class="row-between"><div class="tok"><div class="av">${esc((a.info.symbol || "?").slice(0, 2))}</div><b>${esc(a.info.name || "Token")} <span class="dim">$${esc(a.info.symbol || "")}</span></b></div>
       <span class="badge ${st === "live" ? "green" : st === "upcoming" ? "violet" : "gray"}">${st}</span></div>
-    <div class="kv"><span>Price now</span><b>${Number(formatEther(price(a))).toPrecision(4)} ETH</b></div>
-    <div class="kv"><span>Start → floor</span><b>${Number(formatEther(a.startPrice)).toPrecision(3)} → ${Number(formatEther(a.floorPrice)).toPrecision(3)}</b></div>
+    <div class="kv"><span>Price now</span><b>${fmtPrice(Number(formatEther(price(a))))} ETH</b></div>
+    <div class="kv"><span>Start → floor</span><b>${fmtPrice(Number(formatEther(a.startPrice)), 3)} → ${fmtPrice(Number(formatEther(a.floorPrice)), 3)}</b></div>
     <div class="kv"><span>Left</span><b>${fmtT(a, remaining)} / ${fmtT(a, a.amount)}</b></div>
     <div class="bar"><span style="width:${pctSold}%"></span></div>
     <p class="dim small">${timeNote} · seller ${addrLink(a.seller)} · token ${addrLink(a.token)}</p>

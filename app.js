@@ -39,13 +39,13 @@ const RULES = [
 ];
 
 const INTEGRATIONS = [
-  { name: "Pons V2", av: "P", st: "live", href: "docs.html#pons", desc: "Every Rigs coin launches on a Pons V2 bonding curve and graduates into a locked Uniswap v4 pool." },
-  { name: "Uniswap v4", av: "U", st: "live", href: "docs.html#blocks", desc: "Hooks, the PoolManager and routing. The Rigs rule blocks are a standard v4 hook." },
-  { name: "Robinhood Chain", av: "R", st: "live", href: "docs.html#addresses", desc: "Chain 4663, where the launcher, fee splitters and pools live." },
-  { name: "WalletConnect", av: "W", st: "live", href: "docs.html#wallets", desc: "Mobile and desktop wallets connect through Reown AppKit." },
+  { name: "Pons V2", av: "P", st: "live", href: "/docs#pons", desc: "Every Rigs coin launches on a Pons V2 bonding curve and graduates into a locked Uniswap v4 pool." },
+  { name: "Uniswap v4", av: "U", st: "live", href: "/docs#blocks", desc: "Hooks, the PoolManager and routing. The Rigs rule blocks are a standard v4 hook." },
+  { name: "Robinhood Chain", av: "R", st: "live", href: "/docs#addresses", desc: "Chain 4663, where the launcher, fee splitters and pools live." },
+  { name: "WalletConnect", av: "W", st: "live", href: "/docs#wallets", desc: "Mobile and desktop wallets connect through Reown AppKit." },
 ];
 
-const AUDIENCE_LINKS = { "Traders": "app.html", "Liquidity providers": "portfolio.html", "Launchers": "launch.html", "Hook builders": "builder.html", "Analysts": "scan.html", "Integrators": "integrations.html", "Agents": "agents.html" };
+const AUDIENCE_LINKS = { "Traders": "/app", "Liquidity providers": "/portfolio", "Launchers": "/launch", "Hook builders": "/builder", "Analysts": "/scan", "Integrators": "/integrations", "Agents": "/agents" };
 const AUDIENCES = [
   ["Traders", "Check every rule before a swap", "Each market shows its decoded blocks plus the on-chain proof."],
   ["Liquidity providers", "Positions, fees, migration", "Mint, manage and move liquidity between hooked pools."],
@@ -57,15 +57,15 @@ const AUDIENCES = [
 ];
 
 const ACTIONS = [
-  ["Launch", "Launch a coin on Pons V2 in one transaction. You keep 80% of its creator fees.", "launch.html", true],
-  ["Claim fees", "See every coin you launched and withdraw your share of creator fees.", "portfolio.html"],
-  ["Builder", "Pick blocks, tune each parameter and preview the result before you sign.", "builder.html"],
-  ["Integrate", "Launch from your own app; your users still claim their fees here.", "integrations.html"],
-  ["Agents", "Contract calls and a manifest file any bot or agent can use.", "agents.html"],
-  ["Build a block", "Write a new block and submit it for review to enter the catalog.", "scan.html#listing"],
-  ["Scan a hook", "Decode any Uniswap v4 hook's permissions from its address.", "scan.html"],
-  ["Learn", "Short guides on curves, graduation, fees and risks.", "learn.html"],
-  ["Docs", "Contracts, fee model, events and addresses.", "docs.html"],
+  ["Launch", "Launch a coin on Pons V2 in one transaction. You keep 80% of its creator fees.", "/launch", true],
+  ["Claim fees", "See every coin you launched and withdraw your share of creator fees.", "/portfolio"],
+  ["Builder", "Pick blocks, tune each parameter and preview the result before you sign.", "/builder"],
+  ["Integrate", "Launch from your own app; your users still claim their fees here.", "/integrations"],
+  ["Agents", "Contract calls and a manifest file any bot or agent can use.", "/agents"],
+  ["Build a block", "Write a new block and submit it for review to enter the catalog.", "/scan#listing"],
+  ["Scan a hook", "Decode any Uniswap v4 hook's permissions from its address.", "/scan"],
+  ["Learn", "Short guides on curves, graduation, fees and risks.", "/learn"],
+  ["Docs", "Contracts, fee model, events and addresses.", "/docs"],
 ];
 
 const FAQ = [
@@ -87,7 +87,7 @@ $("#integrations").innerHTML = INTEGRATIONS.map(x => `
   </a>`).join("");
 
 $("#rulesGrid").innerHTML = RULES.map(r => `
-  <a href="hook.html?id=${({ antisnipe: "anti-snipe", surge: "surge-fee", burn: "auto-burn", lp: "lp-rewards", pot: "nth-buy-pot" })[r.id]}" class="card rule">
+  <a href="/hook?id=${({ antisnipe: "anti-snipe", surge: "surge-fee", burn: "auto-burn", lp: "lp-rewards", pot: "nth-buy-pot" })[r.id]}" class="card rule">
     ${icon(r.ic, r.c)}
     <h4>${r.name}</h4>
     <p>${r.desc}</p>
@@ -98,7 +98,7 @@ $("#audiences").innerHTML = AUDIENCES.map(([k, h, p]) => `
   <a href="${AUDIENCE_LINKS[k]}" class="card aud"><span class="k">${k}</span><h4>${h}</h4><p>${p}</p></a>`).join("");
 
 $("#actions").innerHTML = ACTIONS.map(([h, p, href, isNew]) => `
-  <a href="${href}" class="card act"><b>${h}</b>${isNew ? ' <span class="tag tag-new">New</span>' : ""}<p>${p}</p></a>`).join("");
+  <a href="${href}" class="card act"><b>${h}</b><p>${p}</p></a>`).join("");
 
 $("#faqList").innerHTML = FAQ.map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join("");
 
@@ -113,7 +113,7 @@ const data = { launches: [], pools: [], auctions: [] };
 let w = null;
 const esc = (x) => String(x ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const ago = (ts) => { const s = Math.max(0, Date.now() / 1000 - ts); return s < 3600 ? `${Math.floor(s / 60)}m ago` : s < 86400 ? `${Math.floor(s / 3600)}h ago` : `${Math.floor(s / 86400)}d ago`; };
-const tok = (sym, name, addr) => `${addr ? `<a href="coin.html?token=${addr}">` : ""}<div class="tok"><div class="av">${esc((sym || "?").slice(0, 2))}</div><span>${esc(name || "Unknown")} <span class="dim">$${esc(sym || "")}</span></span></div>${addr ? "</a>" : ""}`;
+const tok = (sym, name, addr) => `${addr ? `<a href="/coin?token=${addr}">` : ""}<div class="tok">${w ? w.coinAvatar(sym, addr ? w.metaOf(addr).logo : "") : `<div class="av">${esc((sym || "?").slice(0, 2))}</div>`}<span>${esc(name || "Unknown")} <span class="dim">$${esc(sym || "")}</span></span></div>${addr ? "</a>" : ""}`;
 const NAMES = { 1: "Anti-Snipe", 2: "Surge Fee", 4: "Auto Burn", 8: "LP Rewards", 16: "Nth-Buy Pot" };
 
 function renderTable() {
@@ -121,10 +121,10 @@ function renderTable() {
   $("#thead").innerHTML = "<tr>" + HEADS[tab].map((h, i) => `<th class="${i >= 2 ? "r" : ""}">${h}</th>`).join("") + "</tr>";
   const match = (x) => !q || `${x.name} ${x.symbol} ${x.token}`.toLowerCase().includes(q);
   let rows = [];
-  if (tab === "launches") rows = data.launches.filter(match).slice(0, 10).map((l) => `<tr><td>${tok(l.symbol, l.name, l.token)}</td><td>${w.addrLink(l.creator || l.creatorAtLaunch)}</td><td class="r mono">${w.eth(l.totalToCreator, 5)} ETH</td><td class="r dim">${ago(l.launchedAt)}</td><td class="r"><a class="link-pink" href="coin.html?token=${l.token}">Trade</a></td></tr>`);
-  if (tab === "pools") rows = data.pools.filter(match).slice(0, 10).map((p) => `<tr><td>${tok(p.symbol, p.name, p.token)}</td><td>${w.addrLink(p.creator)}</td><td><div class="chips">${Object.entries(NAMES).filter(([b]) => p.blocks & b).map(([, n]) => `<span class="chip">${n}</span>`).join("") || '<span class="dim">base fee only</span>'}</div></td><td class="r mono">${(p.baseFee / 10000).toFixed(2)}%</td><td class="r"><a class="link-pink" href="coin.html?token=${p.token}">Trade</a></td></tr>`);
-  if (tab === "auctions") rows = data.auctions.filter(match).slice(0, 10).map((a) => `<tr><td>${tok(a.symbol, a.name)}</td><td><span class="badge gray">${a.status}</span></td><td class="r mono">${a.priceEth} ETH</td><td class="r mono">${a.pctSold}%</td><td class="r"><a class="link-pink" href="auctions.html#auction-${a.id}">Open</a></td></tr>`);
-  $("#tbody").innerHTML = rows.join("") || `<tr><td colspan="5" class="dim">${!w ? "Reading the chain…" : `Nothing here yet. <a href="${tab === "auctions" ? "auctions.html#create" : "launch.html"}">Be the first →</a>`}</td></tr>`;
+  if (tab === "launches") rows = data.launches.filter(match).slice(0, 10).map((l) => `<tr><td>${tok(l.symbol, l.name, l.token)}</td><td>${w.addrLink(l.creator || l.creatorAtLaunch)}</td><td class="r mono">${w.eth(l.totalToCreator, 5)} ETH</td><td class="r dim">${ago(l.launchedAt)}</td><td class="r"><a class="link-pink" href="/coin?token=${l.token}">Trade</a></td></tr>`);
+  if (tab === "pools") rows = data.pools.filter(match).slice(0, 10).map((p) => `<tr><td>${tok(p.symbol, p.name, p.token)}</td><td>${w.addrLink(p.creator)}</td><td><div class="chips">${Object.entries(NAMES).filter(([b]) => p.blocks & b).map(([, n]) => `<span class="chip">${n}</span>`).join("") || '<span class="dim">base fee only</span>'}</div></td><td class="r mono">${(p.baseFee / 10000).toFixed(2)}%</td><td class="r"><a class="link-pink" href="/coin?token=${p.token}">Trade</a></td></tr>`);
+  if (tab === "auctions") rows = data.auctions.filter(match).slice(0, 10).map((a) => `<tr><td>${tok(a.symbol, a.name)}</td><td><span class="badge gray">${a.status}</span></td><td class="r mono">${a.priceEth} ETH</td><td class="r mono">${a.pctSold}%</td><td class="r"><a class="link-pink" href="/auctions#auction-${a.id}">Open</a></td></tr>`);
+  $("#tbody").innerHTML = rows.join("") || `<tr><td colspan="5" class="dim">${!w ? "Reading the chain…" : `Nothing here yet. <a href="${tab === "auctions" ? "/auctions#create" : "/launch"}">Be the first →</a>`}</td></tr>`;
   $("#discStatus").textContent = w ? `${rows.length} shown · live` : "Reading…";
 }
 
@@ -152,6 +152,7 @@ renderTable();
     $("#stPools").textContent = nP.toLocaleString("en-US");
     $("#stAuctions").textContent = nA.toLocaleString("en-US");
     data.launches = await Promise.all(Array.from({ length: Math.min(nL, 100) }, (_, i) => w.loadLaunch(nL - 1 - i)));
+    await w.loadMeta(data.launches.map((l) => l.token)).catch(() => {});
     $("#stPaid").textContent = w.eth(data.launches.reduce((s2, l) => s2 + l.totalToCreator, 0n), 4);
     const { encodeAbiParameters, keccak256, formatEther } = await import("https://cdn.jsdelivr.net/npm/viem@2.21.0/+esm");
     data.pools = await Promise.all(Array.from({ length: Math.min(nP, 20) }, async (_, i) => {
@@ -174,7 +175,7 @@ renderTable();
       ]);
       const info = await w.tokenInfo(a.token);
       const status = nowS < Number(a.start) ? "upcoming" : nowS >= Number(a.end) || a.sold >= a.amount ? "ended" : "live";
-      return { id, token: a.token, name: info.name, symbol: info.symbol, status, priceEth: Number(formatEther(p)).toPrecision(4), pctSold: a.amount ? Number((a.sold * 1000n) / a.amount) / 10 : 0 };
+      return { id, token: a.token, name: info.name, symbol: info.symbol, status, priceEth: w.fmtPrice(Number(formatEther(p))), pctSold: a.amount ? Number((a.sold * 1000n) / a.amount) / 10 : 0 };
     }));
   } catch (err) {
     console.error(err);

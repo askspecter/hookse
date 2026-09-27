@@ -1,9 +1,10 @@
-// Coin page: coin.html?token=0x…  Works for Pons launches (trade on the Pons curve) and Rigs v4
+// Coin page: /coin?token=0x…  Works for Pons launches (trade on the Pons curve) and Rigs v4
 // pools (trade through RigsRouter). Shows a creator-only claim panel and the viewer's pot winnings.
 import {
   CONFIG, ABI, $, esc, toast, friendlyError, client, live, v4live, routerLive, write, getAccount, onAccount,
-  isAddress, getAddress, zeroAddress, eth, addrLink, tokenInfo, ensureAllowance, loadLaunch,
+  isAddress, getAddress, zeroAddress, eth, addrLink, tokenInfo, ensureAllowance, loadLaunch, fmtPrice, CHAIN_LOGO, loadMeta, saveMeta,
 } from "./web3.js";
+import { uploadLogo } from "./upload.js";
 import { BLOCKS, blockIcon } from "./hooks-data.js";
 import { formatUnits, parseUnits, formatEther, parseEther, keccak256, encodeAbiParameters, encodePacked, pad, toHex } from "https://cdn.jsdelivr.net/npm/viem@2.21.0/+esm";
 
@@ -49,13 +50,14 @@ async function resolve() {
     }
   }
   if (!c.kind) return fail(`$${esc(c.info.symbol)} was not launched through Rigs.`);
+  c.meta = (await loadMeta([token]).catch(() => ({})))[token.toLowerCase()] || {};
   await refreshPrice();
   renderAll();
   if (c.kind === "v4") loadActivity();
 }
 
 function fail(msg) {
-  $("#coinHead").innerHTML = `<div class="empty"><b>${msg}</b><p><a class="link-pink" href="app.html#tokens">Browse coins →</a></p></div>`;
+  $("#coinHead").innerHTML = `<div class="empty"><b>${msg}</b><p><a class="link-pink" href="/app#tokens">Browse coins →</a></p></div>`;
   ["#stats", "#trade", "#ctabs", "#pricePanel"].forEach((s) => ($(s).hidden = true));
 }
 
@@ -130,7 +132,7 @@ async function quote() {
 
 // ---------------------------------------------------------------- render
 
-const fmtEth = (n) => (n == null ? "—" : n === 0 ? "0" : n < 1e-6 ? n.toExponential(3) : n.toPrecision(4));
+const fmtEth = (n) => fmtPrice(n);
 const takesOf = () => {
   if (c.kind !== "v4") return null;
   const on = (bit) => (Number(c.cfg.blocks) & bit) !== 0;
@@ -144,14 +146,15 @@ const takesOf = () => {
 
 function renderHead() {
   const sym = esc(c.info.symbol);
-  const logo = c.kind === "pons" && /^https:\/\//.test(c.launch.logo || "") ? `<img src="${esc(c.launch.logo)}" alt="" />` : sym.slice(0, 2);
+  const logo = /^https:\/\//.test(c.meta?.logo || "") ? `<img src="${esc(c.meta.logo)}" alt="" onerror="this.replaceWith('${sym.slice(0, 2)}')" />` : sym.slice(0, 2);
   $("#coinHead").innerHTML = `
-    <div class="pair-logos"><span class="eth-logo">Ξ</span><span class="coin-logo">${logo}</span></div>
+    <div class="pair-logos"><span class="eth-logo"><img src="${CHAIN_LOGO}" alt="Robinhood Chain" /></span><span class="coin-logo">${logo}</span></div>
     <h1>ETH <span class="dim">/</span> ${sym}</h1>
-    <div class="coin-meta"><span class="pill pill-live"><i></i>${esc(CONFIG.chainName)}</span>
+    <div class="coin-meta"><span class="pill pill-live"><img class="chain-ic" src="${CHAIN_LOGO}" alt="" />${esc(CONFIG.chainName)}</span>
       <span class="mono dim">${token.slice(0, 10)}…${token.slice(-6)}</span><button class="copy" data-copy="${token}" title="Copy address">⧉</button></div>
     <p class="muted small">${esc(c.info.name)} · ${c.kind === "pons" ? (c.graduated ? "Pons V2 · graduated" : "Pons V2 bonding curve") : c.existing ? "Rigs v4 pool · existing token" : "Rigs v4 pool"}
-      · creator ${addrLink(c.creator)}</p>`;
+      · creator ${addrLink(c.creator)}</p>
+    ${c.meta?.description ? `<p class="coin-desc">${esc(c.meta.description)}</p>` : ""}`;
   $("#extLink").href = `${CONFIG.explorer}/token/${token}`;
 }
 
@@ -185,12 +188,21 @@ async function renderCreator() {
       <div class="kv"><span>Claimed to date</span><b>${eth(l.totalToCreator, 6)} ETH</b></div>
       <p class="dim small">Fees still on the bonding curve are swept when you claim. 80% is yours, 20% goes to the Rigs treasury.</p>
       <div class="btn-row"><button class="btn btn-pink btn-sm" data-act="claim">Claim creator fees</button><button class="btn btn-dark btn-sm" data-act="harvest">Harvest only</button>
-        <button class="btn btn-dark btn-sm" data-act="handover">Hand over to another wallet</button></div>`;
+        <button class="btn btn-dark btn-sm" data-act="handover">Hand over to another wallet</button></div>${detailsEditor()}`;
   } else {
     box.innerHTML = `<div class="row-between"><p class="form-h">Creator · only you see this</p><span class="badge green">You opened this pool</span></div>
       <p class="muted small">Your founding position is locked forever; its LP fees (both ETH and $${esc(c.info.symbol)}) are yours. Collecting sends everything accrued to your wallet.</p>
-      <div class="btn-row"><button class="btn btn-pink btn-sm" data-act="collect">Claim LP fees</button></div>`;
+      <div class="btn-row"><button class="btn btn-pink btn-sm" data-act="collect">Claim LP fees</button></div>${detailsEditor()}`;
   }
+}
+
+function detailsEditor() {
+  return `<details class="subcard"><summary class="form-h">Logo &amp; one-liner</summary>
+    <label class="small muted">Logo URL<input class="filter mono wide" id="mLogo" value="${esc(c.meta?.logo || "")}" placeholder="https://…" /></label>
+    <label class="btn btn-dark btn-xs upload-btn">Upload an image<input type="file" id="mFile" accept="image/png,image/jpeg,image/webp,image/gif" hidden /></label>
+    <label class="small muted">One-liner<input class="filter wide" id="mDesc" maxlength="160" value="${esc(c.meta?.description || "")}" /></label>
+    <button class="btn btn-pink btn-sm" data-act="meta">Sign &amp; save</button>
+    <p class="dim small">Signing proves you are the creator. It costs no gas.</p></details>`;
 }
 
 async function renderWinnings() {
@@ -216,7 +228,7 @@ function renderRules() {
   const on = BLOCKS.filter((b) => (Number(c.cfg.blocks) & b.bit) !== 0);
   $("#rulesPanel").innerHTML = `<p class="form-h">Hook rules · RigsHook</p>
     <div class="kv"><span>Base LP fee</span><b>${Number(c.cfg.baseFee) / 10000}%</b></div>
-    ${on.length ? on.map((b) => `<div class="rule-row">${blockIcon(b)}<div><b>${b.name}</b><small>${b.short}</small></div><a class="info" href="hook.html?id=${b.id}">i</a></div>`).join("") : '<p class="dim small">No rule blocks: base fee only.</p>'}
+    ${on.length ? on.map((b) => `<div class="rule-row">${blockIcon(b)}<div><b>${b.name}</b><small>${b.short}</small></div><a class="info" href="/hook?id=${b.id}">i</a></div>`).join("") : '<p class="dim small">No rule blocks: base fee only.</p>'}
     <p class="dim small">Rules were fixed when the pool opened at block ${c.launchBlock.toLocaleString("en-US")} and can never change.</p>`;
 }
 
@@ -240,7 +252,7 @@ function renderTrade() {
   }
   const tk = takesOf();
   const minOut = t.quote != null ? (t.quote * BigInt(Math.round((100 - t.slippage) * 100))) / 10000n : null;
-  const outFmt = (v) => (v == null ? "—" : buy ? `${Number(formatUnits(v, c.info.decimals)).toLocaleString("en-US", { maximumFractionDigits: 2 })} ${sym}` : `${Number(formatEther(v)).toPrecision(5)} ETH`);
+  const outFmt = (v) => (v == null ? "—" : buy ? `${Number(formatUnits(v, c.info.decimals)).toLocaleString("en-US", { maximumFractionDigits: 2 })} ${sym}` : `${fmtPrice(Number(formatEther(v)), 5)} ETH`);
   const me = getAccount();
   const label = !me ? "Connect wallet" : !t.amount ? "Enter an amount" : !buy && !t.allowanceOk ? `Approve ${sym}` : buy ? `Buy ${sym}` : `Sell ${sym}`;
   $("#trade").innerHTML = `
@@ -419,6 +431,10 @@ async function act(b) {
     } else if (a === "collect") {
       await write({ address: CONFIG.rigsLauncher, abi: ABI.rigsLauncher, functionName: "collectCreatorFees", args: [token] });
       toast("LP fees sent to your wallet");
+    } else if (a === "meta") {
+      c.meta = await saveMeta(token, { logo: $("#mLogo").value.trim(), description: $("#mDesc").value.trim() });
+      toast("Details saved");
+      renderHead();
     } else if (a === "win-eth" || a === "win-token") {
       await write({ address: CONFIG.rigsHook, abi: ABI.rigsHook, functionName: "claim", args: [a === "win-eth" ? zeroAddress : token] });
       toast("Claimed");
@@ -431,6 +447,12 @@ async function act(b) {
     b.disabled = false;
   }
 }
+
+document.addEventListener("change", async (e) => {
+  if (e.target.id !== "mFile" || !e.target.files[0]) return;
+  toast("Uploading…");
+  try { $("#mLogo").value = await uploadLogo(e.target.files[0]); toast("Uploaded. Press Sign & save."); } catch (err) { toast(friendlyError(err)); }
+});
 
 onAccount(async (me) => {
   if (!c.kind) return;

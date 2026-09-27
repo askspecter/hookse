@@ -22,7 +22,7 @@ function renderRules() {
   $("#ruleList").innerHTML = BLOCKS.map((b) => `
     <div class="rule-row${state.focus === b.id ? " focus" : ""}" data-id="${b.id}">
       ${blockIcon(b)}<div><b>${b.name}</b><small>${b.short}</small></div>
-      <a class="info" href="hook.html?id=${b.id}" title="Details">i</a>
+      <a class="info" href="/hook?id=${b.id}" title="Details">i</a>
       <button class="plus${state.on.has(b.id) ? " on" : ""}" data-toggle="${b.id}" aria-label="${state.on.has(b.id) ? "Remove" : "Add"} ${b.name}">${state.on.has(b.id) ? "✓" : "+"}</button>
     </div>`).join("");
 }
@@ -146,7 +146,7 @@ $("#create").addEventListener("click", async (e) => {
     });
     const n = await w.client.readContract({ address: w.CONFIG.rigsLauncher, abi: w.ABI.rigsLauncher, functionName: "tokenCount" });
     const token = await w.client.readContract({ address: w.CONFIG.rigsLauncher, abi: w.ABI.rigsLauncher, functionName: "tokens", args: [n - 1n] });
-    $("#createNote").innerHTML = `Pool opened for <b>$${esc(symbol)}</b>: token ${w.addrLink(token)} · <a class="link-pink" href="${w.CONFIG.explorer}/tx/${rc.transactionHash}" target="_blank" rel="noopener">transaction ↗</a> · <a class="link-pink" href="app.html#pools">see it in Discover</a>`;
+    $("#createNote").innerHTML = `Pool opened for <b>$${esc(symbol)}</b>: token ${w.addrLink(token)} · <a class="link-pink" href="${w.CONFIG.explorer}/tx/${rc.transactionHash}" target="_blank" rel="noopener">transaction ↗</a> · <a class="link-pink" href="/app#pools">see it in Discover</a>`;
     w.toast(`$${symbol} pool created`);
   } catch (err) {
     console.error(err);

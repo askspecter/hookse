@@ -47,17 +47,17 @@ function applyTheme() {
   document.querySelectorAll("[data-accent]").forEach((b) => b.classList.toggle("on", b.dataset.accent === accent));
 }
 
-const page = (location.pathname.split("/").pop() || "index.html").replace(".html", "") || "index";
+const page = location.pathname.split("/").pop().replace(".html", "") || "index";
 const active = document.body.dataset.nav || page;
 const link = ([href, label, ic, isNew]) =>
-  `<a href="${href}.html" class="side-link${active === href ? " on" : ""}">${icon(ic)}<span>${label}</span>${isNew ? '<em class="new">NEW</em>' : ""}</a>`;
+  `<a href="${href === "index" ? "/" : "/" + href}" class="side-link${active === href ? " on" : ""}">${icon(ic)}<span>${label}</span></a>`;
 
 const side = document.getElementById("sidebar");
 if (side) {
   side.className = "sidebar";
   side.innerHTML = `
     <div class="side-top">
-      <a href="index.html" class="logo side-logo">
+      <a href="/" class="logo side-logo">
         <svg viewBox="0 0 32 32" width="24" height="24" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--pink)"/><path d="M11 7v11a5 5 0 0 0 10 0v-3" stroke="#0b0d12" stroke-width="3.2" fill="none" stroke-linecap="round"/></svg>
         <span>RIGS</span>
       </a>
@@ -69,18 +69,18 @@ if (side) {
     <nav class="side-nav">${LEARN.map(link).join("")}</nav>
     <div class="side-foot">
       <button class="btn btn-pink side-connect" data-connect>${icon("wallet", 15)}<span>Connect wallet</span></button>
-      <label class="side-net"><i></i>Network
+      <label class="side-net"><img class="chain-ic" src="/assets/robinhood.png" alt="" />Network
         <select id="netSel"><option value="all">All networks</option><option value="4663" selected>Robinhood Chain</option></select>
         <span class="mono dim">4663</span></label>
       <p class="side-h">Appearance</p>
       <div class="seg">${["light", "system", "dark"].map((t) => `<button data-theme-set="${t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join("")}</div>
       <div class="accents">${Object.entries(ACCENTS).map(([k, c]) => `<button data-accent="${k}" style="--c:${c}" aria-label="${k} accent"></button>`).join("")}</div>
       <div class="side-stat">${icon("flame", 16)}<div><small>Rigs launches</small><b class="mono" id="sideLaunches">—</b></div></div>
-      <nav class="side-links"><a href="token.html">Token</a><a href="updates.html">Updates</a><a href="docs.html#fee-model">Methodology</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></nav>
+      <nav class="side-links"><a href="/token">Token</a><a href="/updates">Updates</a><a href="/docs#fee-model">Methodology</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></nav>
     </div>`;
   const bar = document.createElement("div");
   bar.className = "mobile-bar";
-  bar.innerHTML = `<a href="index.html" class="logo side-logo"><svg viewBox="0 0 32 32" width="26" height="26"><rect width="32" height="32" rx="8" fill="var(--pink)"/><path d="M11 7v11a5 5 0 0 0 10 0v-3" stroke="#0b0d12" stroke-width="3.2" fill="none" stroke-linecap="round"/></svg><span>RIGS</span></a>
+  bar.innerHTML = `<a href="/" class="logo side-logo"><svg viewBox="0 0 32 32" width="26" height="26"><rect width="32" height="32" rx="8" fill="var(--pink)"/><path d="M11 7v11a5 5 0 0 0 10 0v-3" stroke="#0b0d12" stroke-width="3.2" fill="none" stroke-linecap="round"/></svg><span>RIGS</span></a>
     <button class="btn btn-pink bar-connect" data-connect>${icon("wallet", 16)}<span>Connect wallet</span></button>
     <button class="menu-btn" id="sideToggle" aria-label="Menu"><span></span><span></span><span></span></button>`;
   document.body.prepend(bar);
@@ -114,11 +114,11 @@ const HOOKS = ["anti-snipe", "surge-fee", "auto-burn", "lp-rewards", "nth-buy-po
 function renderPalette() {
   const q = input.value.trim().toLowerCase();
   if (/^0x[0-9a-f]{40}$/i.test(q)) {
-    list.innerHTML = `<a href="scan.html?address=${q}">Scan ${q.slice(0, 10)}…</a><a href="portfolio.html?token=${q}">Creator fees for token ${q.slice(0, 10)}…</a>`;
+    list.innerHTML = `<a href="/scan?address=${q}">Scan ${q.slice(0, 10)}…</a><a href="/portfolio?token=${q}">Creator fees for token ${q.slice(0, 10)}…</a>`;
     return;
   }
-  const pages = ALL.filter(([, l]) => l.toLowerCase().includes(q)).map(([h, l]) => `<a href="${h}.html">${l}</a>`);
-  const hooks = HOOKS.filter((h) => h.includes(q)).map((h) => `<a href="hook.html?id=${h}">Hook · ${h.replace(/-/g, " ")}</a>`);
+  const pages = ALL.filter(([, l]) => l.toLowerCase().includes(q)).map(([h, l]) => `<a href="${h === "index" ? "/" : "/" + h}">${l}</a>`);
+  const hooks = HOOKS.filter((h) => h.includes(q)).map((h) => `<a href="/hook?id=${h}">Hook · ${h.replace(/-/g, " ")}</a>`);
   list.innerHTML = [...pages, ...hooks].slice(0, 10).join("") || '<p class="dim">No matches</p>';
 }
 const openPalette = () => { pal.hidden = false; input.value = ""; renderPalette(); input.focus(); };

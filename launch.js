@@ -3,7 +3,7 @@
 // Uniswap v4 market on the Rigs hook (RigsLauncher). The draft lives in localStorage.
 import {
   CONFIG, ABI, $, esc, toast, friendlyError, client, live, v4live, write, getAccount, connect, onAccount,
-  parseEther, toHex, zeroAddress, eth, addrLink, isAddress, getAddress, tokenInfo, ensureAllowance,
+  parseEther, toHex, zeroAddress, eth, addrLink, isAddress, getAddress, tokenInfo, ensureAllowance, saveMeta,
 } from "./web3.js";
 import { uploadLogo } from "./upload.js";
 import { formatUnits, parseUnits } from "https://cdn.jsdelivr.net/npm/viem@2.21.0/+esm";
@@ -144,7 +144,7 @@ function stepHook() {
     const active = s.has(b.id);
     return `<div class="rule-row${active ? " focus" : ""}">
       ${blockIcon(b)}<div><b>${b.name}</b><small>${b.short}</small></div>
-      <a class="info" href="hook.html?id=${b.id}" target="_blank" title="Details">i</a>
+      <a class="info" href="/hook?id=${b.id}" target="_blank" title="Details">i</a>
       <button class="plus${active ? " on" : ""}" data-toggle="${b.id}" aria-label="${active ? "Remove" : "Add"} ${b.name}">${active ? "✓" : "+"}</button>
     </div>${active ? `<div class="tune-grid inline-tune">${b.params.map((p) => `<label>${p.label}<span class="inp"><input type="number" data-block="${b.id}" data-param="${p.key}" min="${p.min}" max="${p.max}" step="${p.step}" value="${d.values[b.id][p.key]}" /><em>${p.unit}</em></span></label>`).join("")}</div>` : ""}`;
   };
@@ -161,7 +161,7 @@ function stepHook() {
       <div class="kv"><span>Base fee</span><b>${pct(d.baseFee)}</b></div>
       <div class="kv"><span>Buy total</span><b>${pct(buy)}</b></div><div class="kv"><span>Sell total</span><b>${pct(sell)}</b></div></div>
     <div class="subcard"><p class="form-h">Hook blocks · click to add</p><div class="rule-list">${BLOCKS.map(block).join("")}</div>
-      <p class="muted small">One block per behavior. Open <a class="link-pink" href="builder.html">the Builder</a> for the diagram and swap flow.</p></div>`}
+      <p class="muted small">One block per behavior. Open <a class="link-pink" href="/builder">the Builder</a> for the diagram and swap flow.</p></div>`}
     <details class="subcard"><summary class="form-h">Suggested settings</summary><ul class="recs">
       <li><b>Base fee</b> · 0.30% for most new tokens; 1% for very thin markets.</li>
       <li><b>Anti-Snipe</b> · On for new tokens: a short window with a max buy.</li>
@@ -213,7 +213,7 @@ function stepFees() {
         <div class="kv"><span>You pay</span><b>${pons.fee == null || buy == null ? "—" : eth(pons.fee + buy, 6) + " ETH"}</b></div></div>
       <div class="subcard"><p class="form-h">Creator fees</p>
         <div class="split"><div class="split-bar"><span style="width:80%"></span></div><div class="split-legend"><span><i class="c1"></i>80% to you</span><span><i class="c2"></i>20% Rigs treasury</span></div></div>
-        <p class="muted small">On Pons, the coin's creator-fee recipient is its own fee splitter contract, not your wallet. It can never be changed. Claim your 80% in <a class="link-pink" href="portfolio.html">Portfolio</a>.</p></div>`;
+        <p class="muted small">On Pons, the coin's creator-fee recipient is its own fee splitter contract, not your wallet. It can never be changed. Claim your 80% in <a class="link-pink" href="/portfolio">Portfolio</a>.</p></div>`;
   }
   if (existing()) {
     const amt = Number(d.tokenAmount) || 0;
@@ -412,9 +412,14 @@ document.addEventListener("click", async (e) => {
       token = await client.readContract({ address: CONFIG.rigsLauncher, abi: ABI.rigsLauncher, functionName: "tokens", args: [n - 1n] });
     }
     toast(`Launched $${symbol}!`);
+    // Instant markets keep no logo on-chain: the creator signs once (no gas) to show it on Rigs.
+    if (d.mode === "instant" && !existing() && (d.logo || d.description)) {
+      btn.textContent = "Sign to save the logo (no gas)…";
+      await saveMeta(token, { logo: d.logo, description: d.description }).catch((err) => toast(`Coin is live; logo not saved: ${friendlyError(err)}`));
+    }
     $("#result").innerHTML = `<div class="card done"><b>$${esc(symbol)} is live${d.mode === "pons" ? " on Pons" : ""}.</b>
-      <p><a href="coin.html?token=${token}">Open the coin page →</a> · ${d.mode === "pons" ? `<a href="${CONFIG.ponsCoinUrl}${token}" target="_blank" rel="noopener">Pons ↗</a> · ` : ""}
-      <a href="${CONFIG.explorer}/tx/${hash}" target="_blank" rel="noopener">View transaction ↗</a> · <a href="portfolio.html">Your creator fees →</a></p></div>`;
+      <p><a href="/coin?token=${token}">Open the coin page →</a> · ${d.mode === "pons" ? `<a href="${CONFIG.ponsCoinUrl}${token}" target="_blank" rel="noopener">Pons ↗</a> · ` : ""}
+      <a href="${CONFIG.explorer}/tx/${hash}" target="_blank" rel="noopener">View transaction ↗</a> · <a href="/portfolio">Your creator fees →</a></p></div>`;
     d = { ...fresh(), mode: d.mode };
     render();
     $("#result").scrollIntoView({ behavior: "smooth" });

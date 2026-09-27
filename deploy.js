@@ -161,7 +161,7 @@ function stepHtml(s, i) {
 
 function configText() {
   const v = (k) => st[k] || CONFIG[k] || "";
-  return `// Generated on deploy.html
+  return `// Generated on /deploy
 export const CONFIG = {
   chainId: ${CONFIG.chainId},
   chainName: ${JSON.stringify(CONFIG.chainName)},

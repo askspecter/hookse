@@ -1,5 +1,5 @@
 import {
-  CONFIG, ABI, $, esc, toast, friendlyError, client, live, write, onAccount, getAccount,
+  CONFIG, ABI, $, esc, toast, friendlyError, client, live, write, onAccount, getAccount, loadMeta, metaOf, coinAvatar,
   isAddress, getAddress, eth, addrLink, loadLaunch,
 } from "./web3.js";
 
@@ -9,12 +9,12 @@ if (!live) $("#notLive").hidden = false;
 function renderRows() {
   const me = getAccount();
   if (!coins.length) {
-    $("#rows").innerHTML = `<tr><td colspan="6" class="dim">${me ? "No coins launched from this wallet yet. <a href=\"launch.html\">Launch one →</a>" : "Connect your wallet to see coins you launched."}</td></tr>`;
+    $("#rows").innerHTML = `<tr><td colspan="6" class="dim">${me ? "No coins launched from this wallet yet. <a href=\"/launch\">Launch one →</a>" : "Connect your wallet to see coins you launched."}</td></tr>`;
   } else {
     $("#rows").innerHTML = coins.map((c, i) => {
       const mine = me && c.creator && getAddress(c.creator) === me;
       return `<tr>
-        <td><a href="coin.html?token=${c.token}"><div class="tok"><div class="av">${esc((c.symbol || "?").slice(0, 2))}</div><span>${esc(c.name || "Unknown")} <span class="dim">$${esc(c.symbol || "")}</span></span></div></a></td>
+        <td><a href="/coin?token=${c.token}"><div class="tok">${coinAvatar(c.symbol, metaOf(c.token).logo)}<span>${esc(c.name || "Unknown")} <span class="dim">$${esc(c.symbol || "")}</span></span></div></a></td>
         <td>${addrLink(c.splitter)}</td>
         <td class="r mono">${eth(c.claimable, 6)} ETH</td>
         <td class="r mono">${eth(c.totalToCreator, 6)} ETH</td>
@@ -41,6 +41,7 @@ async function loadMine(account) {
     const all = await Promise.all(ids.map((id) => loadLaunch(id)));
     // A creator can hand their share to another wallet; only show coins this wallet still controls.
     coins = all.filter((c) => c.creator && getAddress(c.creator) === account);
+    await loadMeta(coins.map((c) => c.token)).catch(() => {});
   } catch (err) {
     console.error(err);
     toast("Could not load your coins");

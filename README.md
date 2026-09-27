@@ -8,27 +8,27 @@ Static pages, no build step. Serve the folder (`python3 -m http.server`) or depl
 
 | Page | What it does |
 | --- | --- |
-| `index.html` | Landing page |
-| `deploy.html` | Admin: deploy every contract from your wallet, generate `config.js`, change treasury and royalties |
-| `app.html` | Discover: live launches from the launcher, hooks, pools |
-| `launch.html` | Launch a coin on Pons V2 (wallet signs) |
-| `portfolio.html` | Creator fees: claim your 80%, harvest, look up a coin (`claim.html` redirects here) |
-| `coin.html?token=…` | Coin page: price, chart, rules, activity, buy/sell, creator-only claim, pot winnings |
-| `auctions.html` | Dutch auctions: create, buy, end and withdraw |
-| `builder.html` | Compose rule blocks, check conflicts, get the `RigsHook` config |
-| `hooks.html`, `hook.html?id=…` | Rule-block catalog and detail pages |
-| `scan.html` | Decode any v4 hook's permission bits from its address |
-| `integrations.html`, `agents.html`, `rigs.manifest.json` | For integrators and bots |
-| `learn.html`, `docs.html` | Guides and developer docs |
-| `community.html`, `updates.html`, `token.html`, `privacy.html`, `terms.html` | Leaderboard, changelog, token, legal |
+| `/` | Landing page |
+| `/deploy` | Admin: deploy every contract from your wallet, generate `config.js`, change treasury and royalties |
+| `/app` | Discover: live launches from the launcher, hooks, pools |
+| `/launch` | Launch a coin on Pons V2 (wallet signs) |
+| `/portfolio` | Creator fees: claim your 80%, harvest, look up a coin (`/claim` redirects here) |
+| `/coin?token=…` | Coin page: price, chart, rules, activity, buy/sell, creator-only claim, pot winnings |
+| `/auctions` | Dutch auctions: create, buy, end and withdraw |
+| `/builder` | Compose rule blocks, check conflicts, get the `RigsHook` config |
+| `/hooks`, `/hook?id=…` | Rule-block catalog and detail pages |
+| `/scan` | Decode any v4 hook's permission bits from its address |
+| `/integrations`, `/agents`, `rigs.manifest.json` | For integrators and bots |
+| `/learn`, `/docs` | Guides and developer docs |
+| `/community`, `/updates`, `/token`, `/privacy`, `/terms` | Leaderboard, changelog, token, legal |
 
-Logo uploads go through `api/upload.js` into Vercel KV (connect a KV / Upstash Redis store to the Vercel project) and are served by `api/img.js`.
+Logo uploads go through `api/upload.js` into Vercel KV (connect a KV / Upstash Redis store to the Vercel project) and are served by `api/img.js`. `api/meta.js` serves coin logos and one-liners: Pons coins are read from their launch transaction; any coin's creator can change them by signing a message (checked against the chain). URLs are clean (`/launch`, `/coin?token=…`) via `cleanUrls` in `vercel.json`.
 
 Shared code: `shell.js` (sidebar, search ⌘K, theme), `web3.js` (viem client, wallet, ABIs), `config.js` (addresses), `hooks-data.js` (rule blocks).
 
 ## Going live (from the browser, no private keys)
 
-1. Deploy the site, open `deploy.html` and connect the wallet that should own Rigs (it needs a little ETH on Robinhood Chain for gas).
+1. Deploy the site, open `/deploy` and connect the wallet that should own Rigs (it needs a little ETH on Robinhood Chain for gas).
 2. Sign the seven steps: fee splitter template, Pons launcher, CREATE2 deployer, hook (address mined in the browser), v4 launcher, hook → launcher link, swap router, auctions. Large contracts go through the CREATE2 deployer so wallets that cap creations at 1.2M gas still work. Progress is saved in that browser.
 3. Copy or download the generated `config.js`, replace the one in the repo, and redeploy the site. Also put the launcher address in `rigs.manifest.json`.
 

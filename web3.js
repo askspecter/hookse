@@ -113,6 +113,63 @@ export const eth = (wei, d = 4) => {
   const n = Number(formatEther(wei ?? 0n));
   return n === 0 ? "0" : n < 10 ** -d ? `<${10 ** -d}` : n.toLocaleString("en-US", { maximumFractionDigits: d });
 };
+/**
+ * Price with the leading zeros collapsed, like 0.0₈1715 for 0.000000001715.
+ * Numbers at or above 0.001 print normally with `sig` significant digits.
+ */
+export function fmtPrice(n, sig = 4) {
+  if (n == null || !isFinite(n)) return "—";
+  if (n === 0) return "0";
+  if (n >= 1000) return n.toLocaleString("en-US", { maximumFractionDigits: 2 });
+  if (n >= 0.001) return String(+n.toPrecision(sig));
+  // zeros between "0." and the first significant digit
+  const zeros = -Math.floor(Math.log10(n)) - 1;
+  const digits = String(Math.round(n * 10 ** (zeros + sig))).slice(0, sig).replace(/0+$/, "") || "0";
+  const sub = String(zeros).split("").map((d) => "₀₁₂₃₄₅₆₇₈₉"[d]).join("");
+  return `0.0${sub}${digits}`;
+}
+
+export const CHAIN_LOGO = "/assets/robinhood.png";
+
+// ---------------------------------------------------------------- coin details (logo, one-liner)
+
+const metaCache = new Map();
+/** Logo/description for tokens from /api/meta (cached per page). Missing API → empty details. */
+export async function loadMeta(tokens) {
+  const want = [...new Set(tokens.map((t) => t.toLowerCase()))].filter((t) => !metaCache.has(t));
+  for (let i = 0; i < want.length; i += 50) {
+    const part = want.slice(i, i + 50);
+    const json = await fetch(`/api/meta?tokens=${part.join(",")}`).then((r) => (r.ok ? r.json() : {})).catch(() => ({}));
+    part.forEach((t) => metaCache.set(t, json[t] || {}));
+  }
+  return Object.fromEntries(tokens.map((t) => [t.toLowerCase(), metaCache.get(t.toLowerCase()) || {}]));
+}
+export const metaOf = (token) => metaCache.get(String(token).toLowerCase()) || {};
+
+const metaMessage = (token, logo, description, time) =>
+  `Rigs: set the details for coin ${token.toLowerCase()}\nLogo: ${logo || "none"}\nDescription: ${description || "none"}\nTime: ${time}`;
+
+/** Creator signs and saves a coin's logo and one-liner (checked on the server against the chain). */
+export async function saveMeta(token, { logo = "", description = "" }) {
+  const wallet = await walletClient();
+  const time = Math.floor(Date.now() / 1000);
+  const signature = await wallet.signMessage({ account: wallet.account, message: metaMessage(token, logo, description, time) });
+  const res = await fetch("/api/meta", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, logo, description, time, signature }),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.error || `Could not save (${res.status})`);
+  metaCache.set(token.toLowerCase(), json);
+  return json;
+}
+
+/** Round coin avatar: the coin's logo when it has one, else its initials. */
+export function coinAvatar(symbol, logo, cls = "av") {
+  const init = esc(String(symbol || "?").slice(0, 2));
+  return /^https:\/\//.test(logo || "") ? `<div class="${cls}"><img src="${esc(logo)}" alt="" loading="lazy" onerror="this.replaceWith('${init}')" /></div>` : `<div class="${cls}">${init}</div>`;
+}
+
 export const addrLink = (a) => `<a class="mono" href="${CONFIG.explorer}/address/${a}" target="_blank" rel="noopener">${short(a)}</a>`;
 
 let toastTimer;

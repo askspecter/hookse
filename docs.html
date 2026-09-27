@@ -86,7 +86,7 @@ function totalToTreasury() view returns (uint256)</pre>
           <p>Fees are in pips (3000 = 0.30%) and takes in basis points. LP fee is capped at 10%; takes plus up to 0.25% royalty per block are capped at 10% of the swap's unspecified amount.</p>
 
           <h2 id="hook-permissions">Hook permissions</h2>
-          <p>Uniswap v4 reads a hook's permissions from the last 14 bits of its address. RigsHook needs <code>beforeInitialize</code> (bit 13), <code>beforeSwap</code> (7), <code>afterSwap</code> (6) and <code>afterSwapReturnDelta</code> (2), so it is deployed with CREATE2 at a mined salt. Decode any address on <a href="scan.html">Scan</a>.</p>
+          <p>Uniswap v4 reads a hook's permissions from the last 14 bits of its address. RigsHook needs <code>beforeInitialize</code> (bit 13), <code>beforeSwap</code> (7), <code>afterSwap</code> (6) and <code>afterSwapReturnDelta</code> (2), so it is deployed with CREATE2 at a mined salt. Decode any address on <a href="/scan">Scan</a>.</p>
 
           <h2 id="v4-launcher">Direct v4 launcher</h2>
           <p><code>RigsLauncher.launch(name, symbol, supply, startTick, config)</code> mints a fixed supply, opens an ETH/token pool on RigsHook and seeds the whole supply as single-sided liquidity locked in the launcher. <code>collectCreatorFees(token)</code> sends the position's LP fees to the creator.</p>
@@ -105,7 +105,7 @@ function totalToTreasury() view returns (uint256)</pre>
             <tr><td>RigsLauncher</td><td id="addrV4"><code>not deployed yet</code></td></tr>
             <tr><td>RigsAuctions</td><td id="addrAuctions"><code>not deployed yet</code></td></tr>
           </table>
-          <p>Deploy everything from the browser on <a href="deploy.html">deploy.html</a>, then paste the generated <code>config.js</code>.</p>
+          <p>Deploy everything from the browser on <a href="/deploy">/deploy</a>, then paste the generated <code>config.js</code>.</p>
 
           <h2 id="events">Events</h2>
           <pre>PonsLauncher:       Launched(uint256 indexed id, address indexed creator, address indexed token, address curve, address splitter, uint256 devBuy)
