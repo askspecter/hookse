@@ -199,13 +199,27 @@ export async function walletClient() {
   return createWalletClient({ account, chain, transport: custom(transport) });
 }
 
+// Some mobile wallets silently cap a transaction's gas at 1.2M; a revert right at that number means the cap hit.
+const WALLET_CAP = 1_200_000n;
+export function failedTxError(receipt, what = "Transaction") {
+  const link = `${CONFIG.explorer}/tx/${receipt.transactionHash}`;
+  if (receipt.gasUsed >= WALLET_CAP - 20_000n && receipt.gasUsed <= WALLET_CAP) {
+    return Object.assign(new Error(`${what} ran out of gas: your wallet capped the gas limit at 1.2M. Raise the gas limit in the wallet (to at least ${receipt.gasLimitNeeded ?? "the suggested amount"}), or use MetaMask. ${link}`), { link });
+  }
+  return Object.assign(new Error(`${what} failed. Details: ${link}`), { link });
+}
+
+/** Gas estimate plus 25%, passed explicitly so wallets do not pick their own (lower) limit. */
+export const withBuffer = (g) => (g * 125n) / 100n;
+
 /** Simulates (to surface revert reasons), sends from the connected wallet and waits. */
 export async function write(req) {
   const wallet = await walletClient();
   const { request } = await client.simulateContract({ account: wallet.account, ...req });
-  const hash = await wallet.writeContract(request);
+  const gas = withBuffer(await client.estimateContractGas({ account: wallet.account, ...req }));
+  const hash = await wallet.writeContract({ ...request, gas });
   const receipt = await client.waitForTransactionReceipt({ hash });
-  if (receipt.status !== "success") throw new Error("Transaction reverted");
+  if (receipt.status !== "success") throw failedTxError(Object.assign(receipt, { gasLimitNeeded: gas.toLocaleString("en-US") }));
   return receipt;
 }
 

@@ -1,6 +1,7 @@
 // One-time admin deployment from the browser wallet. Progress is kept in localStorage per chain.
 import {
   CONFIG, $, esc, toast, friendlyError, client, walletClient, onAccount, getAccount, isAddress, getAddress, eth, addrLink, write, ABI,
+  withBuffer, failedTxError,
 } from "./web3.js";
 import { parseAbi, encodeDeployData, keccak256, concat, toHex, pad, formatEther } from "https://cdn.jsdelivr.net/npm/viem@2.21.0/+esm";
 import { BLOCKS } from "./hooks-data.js";
@@ -31,10 +32,15 @@ async function hasCode(a) {
 async function deploy(name, args) {
   const wallet = await walletClient();
   const a = await artifact(name);
-  const hash = await wallet.deployContract({ abi: a.abi, bytecode: a.bytecode, args });
+  const data = encodeDeployData({ abi: a.abi, bytecode: a.bytecode, args });
+  // Estimating first surfaces constructor reverts before the wallet opens, and sets an explicit gas limit.
+  const gas = withBuffer(await client.estimateGas({ account: wallet.account, data }));
+  const hash = await wallet.deployContract({ abi: a.abi, bytecode: a.bytecode, args, gas });
   toast(`${name}: waiting for confirmation…`);
   const rc = await client.waitForTransactionReceipt({ hash });
-  if (rc.status !== "success" || !rc.contractAddress) throw new Error(`${name} deployment failed`);
+  if (rc.status !== "success" || !rc.contractAddress) {
+    throw failedTxError(Object.assign(rc, { gasLimitNeeded: gas.toLocaleString("en-US") }), `${name} deployment`);
+  }
   return { address: getAddress(rc.contractAddress), block: Number(rc.blockNumber) };
 }
 
@@ -168,6 +174,9 @@ document.addEventListener("click", async (e) => {
     console.error(err);
     toast(friendlyError(err));
     render();
+    const box = document.getElementById("depError");
+    box.hidden = false;
+    box.innerHTML = `<b>${esc(s.title)} failed.</b> ${esc(err.shortMessage || err.message).replace(/https?:\/\/\S+/, (u) => `<a class="link-pink" href="${u}" target="_blank" rel="noopener">View transaction ↗</a>`)}`;
   }
 });
 

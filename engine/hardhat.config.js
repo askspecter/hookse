@@ -18,8 +18,14 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD, async (args, hre, runSuper) => {
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: {
-    version: "0.8.26",
-    settings: { evmVersion: "cancun", viaIR: true, optimizer: { enabled: true, runs: 44444444 } },
+    compilers: [{ version: "0.8.26", settings: { evmVersion: "cancun", viaIR: true, optimizer: { enabled: true, runs: 44444444 } } }],
+    // Pons contracts are deployed from browser wallets, some of which cap gas at 1.2M per
+    // transaction; optimize them for size so the deployments fit under that cap.
+    overrides: Object.fromEntries(
+      ["contracts/pons/PonsLauncher.sol", "contracts/pons/CreatorFeeSplitter.sol"].map((f) => [
+        f, { version: "0.8.26", settings: { evmVersion: "cancun", viaIR: true, optimizer: { enabled: true, runs: 1 } } },
+      ]),
+    ),
   },
   networks: {
     hardhat: {
