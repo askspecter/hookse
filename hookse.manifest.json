@@ -1,10 +1,18 @@
 {
   "name": "Hookse",
   "description": "Launch coins on Pons V2 with an 80/20 creator fee split; Uniswap v4 hook rule blocks.",
-  "chain": { "id": 4663, "name": "Robinhood Chain", "rpc": "https://rpc.mainnet.chain.robinhood.com", "explorer": "https://robinhoodchain.blockscout.com" },
+  "chain": {
+    "id": 4663,
+    "name": "Robinhood Chain",
+    "rpc": "https://rpc.mainnet.chain.robinhood.com",
+    "explorer": "https://robinhoodchain.blockscout.com"
+  },
   "contracts": {
     "ponsFactory": "0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e",
-    "ponsLauncher": null
+    "ponsLauncher": "0xC8aD3EaeD98980f94c36F842d99ecFB96511E4DD",
+    "poolManager": "0x8366a39CC670B4001A1121B8F6A443A643e40951",
+    "hookseHook": "0x9f383082b9B1C69EC54730b4e6B644a6a81fe0c4",
+    "hookseLauncher": "0x69460B1fE8de1548571e9d7e42677C1B58d2b05b"
   },
   "abis": {
     "ponsLauncher": [
@@ -30,6 +38,10 @@
       "function previewLaunchEconomics(uint256 launchConfigId, address pairToken) view returns (bytes32)"
     ]
   },
-  "feeSplit": { "creatorBps": 8000, "treasuryBps": 2000 },
-  "docs": "docs.html"
+  "feeSplit": {
+    "creatorBps": 8000,
+    "treasuryBps": 2000
+  },
+  "docs": "docs.html",
+  "startBlock": 73912247
 }
