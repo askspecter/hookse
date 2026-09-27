@@ -53,7 +53,7 @@ async function resolve() {
   c.meta = (await loadMeta([token]).catch(() => ({})))[token.toLowerCase()] || {};
   await refreshPrice();
   renderAll();
-  if (c.kind === "v4") loadActivity();
+  loadHistory();
 }
 
 function fail(msg) {
@@ -283,69 +283,157 @@ function renderAll() {
   renderCreator(); renderWinnings();
 }
 
-// ---------------------------------------------------------------- price chart + activity (v4)
+// ---------------------------------------------------------------- price history, chart, activity
 
-let swaps = [];
-async function loadActivity() {
-  const latest = Number(await client.getBlockNumber());
-  const from = Math.max(Number(CONFIG.startBlock || 0), c.launchBlock || 0, latest - 400_000);
-  const logs = [];
-  try {
-    for (let hi = latest; hi >= from && logs.length < 200; hi -= 50_000) {
-      const lo = Math.max(from, hi - 49_999);
-      const chunk = await client.getContractEvents({ address: CONFIG.poolManager, abi: ABI.poolManager, eventName: "Swap", args: { id: c.poolId }, fromBlock: BigInt(lo), toBlock: BigInt(hi) });
-      logs.unshift(...chunk);
+const TRANSFER = [{ type: "event", name: "Transfer", inputs: [{ name: "from", type: "address", indexed: true }, { name: "to", type: "address", indexed: true }, { name: "value", type: "uint256", indexed: false }] }];
+let trades = []; // { t, block, hash, buy, eth (bigint|null), tok, price (ETH per token|null) }
+let historyState = "loading";
+let range = "1D";
+
+/** Collects logs newest-first in shrinking chunks until `from` or `max` logs; halves the chunk on RPC range errors. */
+async function scanBack(fetchRange, latest, from, max) {
+  const out = [];
+  let hi = latest, size = 200_000;
+  while (hi >= from && out.length < max) {
+    const lo = Math.max(from, hi - size + 1);
+    try {
+      out.unshift(...(await fetchRange(BigInt(lo), BigInt(hi))));
+      hi = lo - 1;
+    } catch (err) {
+      if (size <= 2_000) throw err;
+      size = Math.floor(size / 4);
     }
-    swaps = logs.map((l) => ({ block: Number(l.blockNumber), hash: l.transactionHash, buy: l.args.amount0 < 0n, eth: l.args.amount0 < 0n ? -l.args.amount0 : l.args.amount0, tok: l.args.amount1 < 0n ? -l.args.amount1 : l.args.amount1, price: priceFromSqrt(l.args.sqrtPriceX96) }));
+  }
+  return out;
+}
+
+async function loadHistory() {
+  try {
+    const latestBlock = await client.getBlock();
+    const latest = Number(latestBlock.number);
+    const refNum = Math.max(1, latest - 200_000);
+    const ref = await client.getBlock({ blockNumber: BigInt(refNum) });
+    const spb = Math.max(0.01, (Number(latestBlock.timestamp) - Number(ref.timestamp)) / (latest - refNum)); // seconds per block
+    const tOf = (block) => Number(latestBlock.timestamp) - (latest - block) * spb;
+    const startOf = (ts) => Math.max(Number(CONFIG.startBlock || 0), Math.floor(latest - (Number(latestBlock.timestamp) - ts) / spb) - 5_000);
+
+    if (c.kind === "v4") {
+      const logs = await scanBack((fromBlock, toBlock) => client.getContractEvents({ address: CONFIG.poolManager, abi: ABI.poolManager, eventName: "Swap", args: { id: c.poolId }, fromBlock, toBlock }), latest, Math.max(c.launchBlock, Number(CONFIG.startBlock || 0)), 500);
+      trades = logs.map((l) => {
+        const buy = l.args.amount0 < 0n;
+        return { t: tOf(Number(l.blockNumber)), block: Number(l.blockNumber), hash: l.transactionHash, buy, eth: buy ? -l.args.amount0 : l.args.amount0, tok: l.args.amount1 < 0n ? -l.args.amount1 : l.args.amount1, price: priceFromSqrt(l.args.sqrtPriceX96) };
+      });
+    } else {
+      const curve = c.launch.curve;
+      const from = startOf(c.launch.launchedAt);
+      const logs = await scanBack(async (fromBlock, toBlock) => {
+        const [out, inn] = await Promise.all([
+          client.getContractEvents({ address: token, abi: TRANSFER, eventName: "Transfer", args: { from: curve }, fromBlock, toBlock }),
+          client.getContractEvents({ address: token, abi: TRANSFER, eventName: "Transfer", args: { to: curve }, fromBlock, toBlock }),
+        ]);
+        return [...out, ...inn].sort((x, y) => Number(x.blockNumber - y.blockNumber) || x.logIndex - y.logIndex);
+      }, latest, from, 400);
+      trades = logs.filter((l) => l.args.value > 0n && !/^0x0{40}$/i.test(l.args.from) && !/^0x0{40}$/i.test(l.args.to))
+        .map((l) => ({ t: tOf(Number(l.blockNumber)), block: Number(l.blockNumber), hash: l.transactionHash, buy: getAddress(l.args.from) === getAddress(curve), eth: null, tok: l.args.value, price: null }));
+      // Buy price = ETH sent with the transaction ÷ tokens received (fees included). The launch
+      // transaction also pays the Pons fee, so it is left out of the price line.
+      const buys = trades.filter((x) => x.buy).slice(-150);
+      const txs = await Promise.all(buys.map((x) => client.getTransaction({ hash: x.hash }).catch(() => null)));
+      buys.forEach((x, i) => {
+        const tx = txs[i];
+        if (!tx || tx.value === 0n || (tx.to && getAddress(tx.to) === getAddress(CONFIG.ponsLauncher))) return;
+        x.eth = tx.value;
+        x.price = Number(formatEther(tx.value)) / Number(formatUnits(x.tok, c.info.decimals));
+      });
+    }
+    historyState = "ok";
   } catch (err) {
     console.error(err);
-    swaps = null;
+    historyState = "error";
   }
   renderPrice();
   renderActivity();
 }
 
+const RANGES = { "1D": 86_400, "1W": 604_800, All: Infinity };
+const hhmm = (t, span) => { const d = new Date(t * 1000); return span > 172_800 ? d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : d.toISOString().slice(11, span < 3_600 ? 19 : 16); };
+
 function renderPrice() {
-  if (c.kind === "pons") {
-    $("#pricePanel").innerHTML = `<p class="form-h">Price</p><p class="big-num">${fmtEth(c.priceEth)} ETH</p><p class="muted small">Implied by a 0.001 ETH buy on the curve, fees included. The full chart is on <a class="link-pink" href="${CONFIG.ponsCoinUrl}${token}" target="_blank" rel="noopener">Pons ↗</a>.</p>`;
-    return;
-  }
-  const pts = (swaps || []).map((s) => s.price).filter((p) => p > 0);
-  if (c.priceEth) pts.push(c.priceEth);
+  const sym = esc(c.info.symbol);
+  const now = Date.now() / 1000;
+  const pts = trades.filter((x) => x.price > 0 && now - x.t <= RANGES[range]).map((x) => ({ t: x.t, p: x.price }));
+  if (c.priceEth) pts.push({ t: now, p: c.priceEth });
+  const head = `<div class="row-between chart-head"><div><p class="form-h">This ${c.kind === "pons" ? "coin" : "pool"}</p>
+      <p class="muted small">ETH / ${sym} · ETH per ${sym}${c.kind === "pons" ? " · from curve buys" : ""}</p></div>
+      <div class="ranges">${Object.keys(RANGES).map((r) => `<button class="${r === range ? "on" : ""}" data-range="${r}">${r}</button>`).join("")}</div></div>`;
   if (pts.length < 2) {
-    $("#pricePanel").innerHTML = `<p class="form-h">This pool</p><p class="big-num">${fmtEth(c.priceEth)} ETH</p><p class="muted small">${swaps == null ? "Could not read swap history from the RPC." : "The chart appears after the first trades."}</p>`;
+    $("#pricePanel").innerHTML = head + `<p class="big-num">${fmtEth(c.priceEth)} ETH</p><p class="muted small">${historyState === "loading" ? "Reading trade history…" : historyState === "error" ? "Could not read trade history from the RPC." : `No trades in this range yet${range !== "All" ? "; try All" : ""}.`}</p>`;
     return;
   }
-  const W = 600, H = 180, min = Math.min(...pts), max = Math.max(...pts), span = max - min || max || 1;
-  const xy = pts.map((p, i) => `${((i / (pts.length - 1)) * W).toFixed(1)},${(H - ((p - min) / span) * (H - 16) - 8).toFixed(1)}`).join(" ");
-  $("#pricePanel").innerHTML = `<div class="row-between"><div><p class="form-h">This pool</p><p class="muted small">ETH per ${esc(c.info.symbol)} · last ${pts.length - 1} trades</p></div><b class="mono">${fmtEth(c.priceEth)} ETH</b></div>
-    <svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline fill="none" stroke="var(--pink)" stroke-width="2" points="${xy}"/></svg>
-    <div class="row-between dim small mono"><span>low ${fmtEth(min)}</span><span>high ${fmtEth(max)}</span></div>`;
+  const W = 640, H = 220, PADR = 92, PADB = 24;
+  const t0 = pts[0].t, t1 = pts[pts.length - 1].t, span = Math.max(1, t1 - t0);
+  let lo = Math.min(...pts.map((x) => x.p)), hi = Math.max(...pts.map((x) => x.p));
+  if (hi === lo) { hi *= 1.01; lo *= 0.99; }
+  const X = (t) => ((t - t0) / span) * (W - PADR);
+  const Y = (p) => 8 + (1 - (p - lo) / (hi - lo)) * (H - PADB - 16);
+  // step line: price holds until the next trade
+  let d = `M${X(pts[0].t).toFixed(1)},${Y(pts[0].p).toFixed(1)}`;
+  for (let i = 1; i < pts.length; i++) d += ` H${X(pts[i].t).toFixed(1)} V${Y(pts[i].p).toFixed(1)}`;
+  const area = `${d} V${H - PADB} H${X(pts[0].t).toFixed(1)} Z`;
+  const ticks = [0, 1, 2, 3, 4].map((i) => lo + ((hi - lo) * i) / 4);
+  // enough digits that neighbouring labels differ when the range is narrow
+  const sig = Math.min(8, Math.max(4, Math.ceil(-Math.log10((hi - lo) / hi)) + 2));
+  const times = [0, 0.5, 1].map((f) => t0 + span * f);
+  $("#pricePanel").innerHTML = head + `
+    <div class="chart-wrap"><svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" id="chartSvg">
+      <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--pink)" stop-opacity=".35"/><stop offset="1" stop-color="var(--pink)" stop-opacity="0"/></linearGradient></defs>
+      ${ticks.map((v) => `<line x1="0" x2="${W - PADR}" y1="${Y(v)}" y2="${Y(v)}" class="grid"/>`).join("")}
+      <path d="${area}" fill="url(#cg)"/><path d="${d}" fill="none" stroke="var(--pink)" stroke-width="2" vector-effect="non-scaling-stroke"/>
+      <line id="cross" y1="0" y2="${H - PADB}" class="cross" hidden/><circle id="dot" r="4" fill="var(--pink)" hidden/>
+    </svg>
+    <div class="y-labels">${ticks.map((v) => `<span style="top:${(Y(v) / H) * 100}%">${fmtPrice(v, sig)} ETH</span>`).join("")}</div>
+    <div class="x-labels">${times.map((t, i) => `<span style="left:${(X(t) / W) * 100}%;transform:translateX(${i === 0 ? 0 : i === 2 ? -100 : -50}%)">${hhmm(t, span)}</span>`).join("")}</div>
+    <div class="tip" id="tip" hidden></div></div>
+    <p class="dim small">${pts.length - 1} trade${pts.length === 2 ? "" : "s"} · updated ${new Date().toISOString().slice(11, 19)} UTC</p>`;
+  const svg = $("#chartSvg"), tip = $("#tip"), cross = $("#cross"), dot = $("#dot");
+  const move = (ev) => {
+    const r = svg.getBoundingClientRect();
+    const x = ((ev.clientX - r.left) / r.width) * W;
+    const t = t0 + (Math.min(Math.max(x, 0), W - PADR) / (W - PADR)) * span;
+    let k = 0;
+    for (let i = 0; i < pts.length; i++) if (pts[i].t <= t) k = i;
+    const pt = pts[k];
+    cross.setAttribute("x1", X(t)); cross.setAttribute("x2", X(t)); cross.hidden = false;
+    dot.setAttribute("cx", X(t)); dot.setAttribute("cy", Y(pt.p)); dot.hidden = false;
+    tip.hidden = false;
+    tip.textContent = `${fmtPrice(pt.p)} ETH · ${new Date(t * 1000).toISOString().slice(5, 16).replace("T", " ")} UTC`;
+    tip.style.left = `${Math.min(70, (X(t) / W) * 100)}%`;
+  };
+  svg.addEventListener("pointermove", move);
+  svg.addEventListener("pointerdown", move);
+  svg.addEventListener("pointerleave", () => { tip.hidden = cross.hidden = dot.hidden = true; });
 }
 
 function renderActivity() {
-  if (c.kind === "pons") {
-    $("#activityPanel").innerHTML = `<div class="pad"><p class="muted small">Curve trades are listed on <a class="link-pink" href="${CONFIG.ponsCoinUrl}${token}" target="_blank" rel="noopener">Pons ↗</a> and the <a class="link-pink" href="${CONFIG.explorer}/token/${token}" target="_blank" rel="noopener">explorer ↗</a>.</p></div>`;
-    return;
-  }
-  const rows = (swaps || []).slice(-50).reverse().map((s) => `<tr><td><span class="${s.buy ? "up" : "down"}">${s.buy ? "Buy" : "Sell"}</span></td>
-    <td class="r mono">${Number(formatEther(s.eth)).toPrecision(4)} ETH</td><td class="r mono">${Number(formatUnits(s.tok, c.info.decimals)).toLocaleString("en-US", { maximumFractionDigits: 0 })}</td>
-    <td class="r mono dim">${s.block.toLocaleString("en-US")}</td><td class="r"><a class="link-pink" href="${CONFIG.explorer}/tx/${s.hash}" target="_blank" rel="noopener">tx ↗</a></td></tr>`);
-  $("#activityPanel").innerHTML = `<table class="table"><thead><tr><th>Side</th><th class="r">ETH</th><th class="r">${esc(c.info.symbol)}</th><th class="r">Block</th><th class="r"></th></tr></thead><tbody>${rows.join("") || `<tr><td colspan="5" class="dim">${swaps == null ? "Could not read swap history." : "No trades yet."}</td></tr>`}</tbody></table>`;
+  const sym = esc(c.info.symbol);
+  const rows = trades.slice(-50).reverse().map((s) => `<tr><td><span class="${s.buy ? "up" : "down"}">${s.buy ? "Buy" : "Sell"}</span></td>
+    <td class="r mono">${s.eth == null ? "—" : fmtPrice(Number(formatEther(s.eth)), 4) + " ETH"}</td><td class="r mono">${Number(formatUnits(s.tok, c.info.decimals)).toLocaleString("en-US", { maximumFractionDigits: 0 })}</td>
+    <td class="r dim">${hhmm(s.t, 1e9)} ${new Date(s.t * 1000).toISOString().slice(11, 16)}</td><td class="r"><a class="link-pink" href="${CONFIG.explorer}/tx/${s.hash}" target="_blank" rel="noopener">tx ↗</a></td></tr>`);
+  $("#activityPanel").innerHTML = `<table class="table"><thead><tr><th>Side</th><th class="r">ETH</th><th class="r">${sym}</th><th class="r">Time (UTC)</th><th class="r"></th></tr></thead><tbody>${rows.join("") || `<tr><td colspan="5" class="dim">${historyState === "loading" ? "Reading…" : historyState === "error" ? "Could not read trade history." : "No trades yet."}</td></tr>`}</tbody></table>`;
 }
 
 // ---------------------------------------------------------------- actions
 
 document.addEventListener("click", async (e) => {
-  const b = e.target.closest("[data-side],[data-preset],[data-slip],[data-ctab],[data-copy],[data-act],#tGo");
+  const b = e.target.closest("[data-side],[data-preset],[data-slip],[data-ctab],[data-copy],[data-act],[data-range],#tGo");
   if (!b) return;
+  if (b.dataset.range) { range = b.dataset.range; return renderPrice(); }
   if (b.dataset.side) { t.side = b.dataset.side; t.amount = ""; t.quote = null; t.quoteError = null; return renderTrade(); }
   if (b.dataset.slip) { t.slippage = Number(b.dataset.slip); return renderTrade(); }
   if (b.dataset.copy) { navigator.clipboard?.writeText(b.dataset.copy).then(() => toast("Address copied")).catch(() => {}); return; }
   if (b.dataset.ctab) {
     document.querySelectorAll("#ctabs button").forEach((x) => x.classList.toggle("on", x.dataset.ctab === b.dataset.ctab));
     document.querySelectorAll("[data-cpanel]").forEach((p) => (p.hidden = p.dataset.cpanel !== b.dataset.ctab));
-    if (b.dataset.ctab === "activity" && c.kind === "pons") renderActivity();
     if (!b.closest("#ctabs")) $("#ctabs").scrollIntoView({ behavior: "smooth" });
     return;
   }
@@ -407,7 +495,7 @@ async function trade(btn) {
     t.amount = ""; t.quote = null;
     await refreshPrice();
     renderAll();
-    if (c.kind === "v4") loadActivity();
+    loadHistory();
   } catch (err) {
     console.error(err);
     toast(friendlyError(err));

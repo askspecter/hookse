@@ -692,3 +692,16 @@ details.subcard summary { cursor: pointer; }
 .av img, .coin-av img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 .tok .av { overflow: hidden; }
 .coin-desc { font-size: 15px; color: var(--text); max-width: 640px; }
+/* coin chart */
+.chart-head { align-items: flex-start; gap: 12px; }
+.ranges { display: flex; gap: 4px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
+.ranges button { background: none; border: 0; color: var(--muted); padding: 6px 12px; border-radius: 7px; cursor: pointer; font-weight: 600; }
+.ranges button.on { background: var(--panel-2); color: var(--text); }
+.chart-wrap { position: relative; margin: 14px 0 26px; }
+.chart-wrap .chart { width: 100%; height: 220px; display: block; touch-action: pan-y; }
+.chart .grid { stroke: var(--line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.chart .cross { stroke: var(--muted); stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.y-labels span { position: absolute; right: 0; transform: translateY(-50%); font-family: var(--mono); font-size: 11px; color: var(--muted); background: var(--panel); padding-left: 4px; }
+.x-labels { position: absolute; left: 0; right: 0; bottom: -20px; height: 16px; }
+.x-labels span { position: absolute; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.tip { position: absolute; top: -6px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; font-family: var(--mono); font-size: 12px; pointer-events: none; white-space: nowrap; }

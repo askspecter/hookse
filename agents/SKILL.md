@@ -11,7 +11,7 @@ from `/rigs.manifest.json` on the Rigs site (or `/config.js`) before acting; the
 | PoolManager (Uniswap v4) | `0x8366a39CC670B4001A1121B8F6A443A643e40951` |
 | RigsHook | `0x9B2c27AD954b3e20F8739670D9c26a18e9daE0C4` |
 | RigsLauncher | `0x9b33583252B833864e35b555cB3d5F0cFFABeDfa` |
-| RigsRouter | see manifest `contracts.rigsRouter` |
+| RigsRouter | `0x9BfA528A6e01B20552089f7368Da82dF1aB65b8a` |
 | RigsAuctions | `0x4d96761b25bc1E552dBB2d4B2f01A8cF1e64320C` |
 | PonsLauncher (80/20 creator fees) | `0xC8aD3EaeD98980f94c36F842d99ecFB96511E4DD` |
 | Pons V2 factory | `0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e` |

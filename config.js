@@ -13,8 +13,7 @@ export const CONFIG = {
   rigsHook: "0x9B2c27AD954b3e20F8739670D9c26a18e9daE0C4",
   rigsLauncher: "0x9b33583252B833864e35b555cB3d5F0cFFABeDfa",
   rigsAuctions: "0x4d96761b25bc1E552dBB2d4B2f01A8cF1e64320C",
-  // Swap router for coin pages: deploy on deploy.html (step "Deploy swap router").
-  rigsRouter: "",
+  rigsRouter: "0x9BfA528A6e01B20552089f7368Da82dF1aB65b8a",
   // Where hook ideas and integration requests are emailed. Empty hides those forms.
   contactEmail: "support@userigs.fun",
   reownProjectId: "5c559ec7c86f657976f14d599d5e66b5",
