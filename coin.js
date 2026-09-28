@@ -301,6 +301,7 @@ function renderAll() {
 const TRANSFER = [{ type: "event", name: "Transfer", inputs: [{ name: "from", type: "address", indexed: true }, { name: "to", type: "address", indexed: true }, { name: "value", type: "uint256", indexed: false }] }];
 let trades = []; // { t, block, hash, buy, eth (bigint|null), tok, price (ETH per token|null) }
 let historyState = "loading";
+let chainNow = 0; // latest block time: "now" for the chart even when the device clock is behind the chain
 let range = "ALL";
 
 /** Collects logs newest-first in shrinking chunks until `from` or `max` logs; halves the chunk on RPC range errors. */
@@ -324,6 +325,7 @@ async function loadHistory() {
   try {
     const latestBlock = await client.getBlock();
     const latest = Number(latestBlock.number);
+    chainNow = Number(latestBlock.timestamp);
     const refNum = Math.max(1, latest - 200_000);
     const ref = await client.getBlock({ blockNumber: BigInt(refNum) });
     const spb = Math.max(0.01, (Number(latestBlock.timestamp) - Number(ref.timestamp)) / (latest - refNum)); // seconds per block
@@ -373,7 +375,7 @@ const hhmm = (t, span) => { const d = new Date(t * 1000); return span > 172_800 
 
 /** Market cap chart: dollars when the ETH price is known, ETH otherwise. */
 function renderPrice() {
-  const now = Date.now() / 1000;
+  const now = Math.max(Date.now() / 1000, chainNow, ...trades.map((x) => x.t));
   const supply = supplyOf();
   const inUsd = !!c.usd;
   const val = (priceEth) => priceEth * supply * (inUsd ? c.usd : 1);

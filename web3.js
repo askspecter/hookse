@@ -147,7 +147,7 @@ export function fmtUsdShort(n) {
   if (n == null || !isFinite(n)) return "—";
   const a = Math.abs(n);
   const unit = a >= 1e9 ? [1e9, "B"] : a >= 1e6 ? [1e6, "M"] : a >= 1e3 ? [1e3, "k"] : null;
-  if (!unit) return a >= 1 ? "$" + (+n.toFixed(a >= 100 ? 0 : 2)).toLocaleString("en-US") : fmtUsd(n);
+  if (!unit) return a >= 1 ? "$" + (+n.toFixed(a >= 100 ? 0 : 2)).toLocaleString("en-US") : fmtUsd(n, true);
   const v = n / unit[0];
   return "$" + (+v.toFixed(v >= 100 ? 0 : v >= 10 ? 1 : 2)) + unit[1];
 }
