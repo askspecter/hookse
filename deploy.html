@@ -75,14 +75,22 @@
         <div class="dep-steps" id="stepsArc"></div>
       </section>
 
-      <h2 class="h-sm sec-h">5 · Config</h2>
+      <h2 class="h-sm sec-h">5 · Paired coins (NFTs &amp; gacha)</h2>
+      <section class="card pad stack">
+        <label class="dep-field">Keeper wallet (the bot)<input id="pairedKeeper" class="filter mono" placeholder="0x… a separate wallet whose key goes in GitHub secrets" /></label>
+        <label class="dep-field">Treasury (receives 20%)<input id="pairedTreasury" class="filter mono" placeholder="0x… defaults to the Pons treasury, else your wallet" /></label>
+        <p class="dim small">Each step goes through the CREATE2 deployer, so wallets that cap contract creation at 1.2M gas can sign it. The keeper only buys, records and delivers; it can never take vault funds without a one-hour announced withdrawal that you can cancel below.</p>
+        <div class="dep-steps" id="stepsPaired"></div>
+      </section>
+
+      <h2 class="h-sm sec-h">6 · Config</h2>
       <section class="card pad">
         <p class="muted small">Replace <span class="mono">config.js</span> with this, commit and redeploy the site. Visitors see launching, claiming and pool creation switch on.</p>
         <pre class="mono cfg-out" id="cfgOut"></pre>
         <div class="btn-row"><button class="btn btn-primary btn-sm" id="copyCfg">Copy config.js</button><button class="btn btn-dark btn-sm" id="dlCfg">Download config.js</button><button class="btn btn-dark btn-sm" id="resetDep">Forget saved progress</button></div>
       </section>
 
-      <h2 class="h-sm sec-h">6 · Admin</h2>
+      <h2 class="h-sm sec-h">7 · Admin</h2>
       <section class="grid2">
         <div class="card pad stack">
           <p class="form-h">Change treasury (PonsLauncher)</p>
@@ -95,6 +103,18 @@
           <input id="authAddr" class="filter mono" placeholder="0x… author (0x0 to clear)" />
           <input id="authBps" class="filter mono" type="number" min="0" max="25" value="0" placeholder="bps (max 25)" />
           <button class="btn btn-dark btn-sm" id="setAuthor">Set author</button>
+        </div>
+        <div class="card pad stack">
+          <p class="form-h">List a collection or gacha machine (paired)</p>
+          <input id="pListInput" class="filter mono" placeholder="0x… NFT collection, or a machine code like pokemon_50" />
+          <label class="check"><input type="checkbox" id="pListOn" checked /> Listed (untick to delist; launched coins keep working)</label>
+          <button class="btn btn-dark btn-sm" id="pList">Save</button>
+        </div>
+        <div class="card pad stack">
+          <p class="form-h">Change keeper (paired)</p>
+          <input id="pKeeperNew" class="filter mono" placeholder="0x… new keeper wallet" />
+          <button class="btn btn-dark btn-sm" id="pSetKeeper">Set keeper</button>
+          <p class="dim small">To stop a withdrawal the keeper announced, call <span class="mono">cancelWithdrawal()</span> on that coin's vault from the owner wallet; the coin page links it.</p>
         </div>
       </section>
 

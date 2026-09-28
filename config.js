@@ -31,6 +31,20 @@ export const CONFIG = {
     treasury: "0x79b045B9Cd343b993A758aA6e38A1723CfaD8F91",
     launcher: "",
   },
+  // Paired coins: creator fees buy NFTs or Collector Crypt gacha packs, raffled to holders. Set on /deploy.
+  paired: {
+    registry: "",
+    raffles: "",
+    launcher: "", // coins paired with a Robinhood Chain NFT collection
+    externalLauncher: "", // coins paired with a Collector Crypt gacha machine (Solana)
+    startBlock: 0,
+    snapshotBaseUrl: "snapshots/", // raffle snapshots the keeper commits
+    machines: [
+      { code: "pokemon_50", name: "Pokémon $50", priceUsd: 50 },
+      { code: "pokemon_250", name: "Pokémon Legendary $250", priceUsd: 250 },
+    ],
+    collections: [], // { address, name, slug, image } for Robinhood Chain NFT collections
+  },
   // Where hook ideas and integration requests are emailed. Empty hides those forms.
   contactEmail: "support@userigs.fun",
   reownProjectId: "5c559ec7c86f657976f14d599d5e66b5",

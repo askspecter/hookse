@@ -6,6 +6,7 @@ import {
 import { ARC, arcClient, arcChain } from "./arc.js";
 import { parseAbi, encodeDeployData, keccak256, concat, toHex, pad, formatEther } from "https://cdn.jsdelivr.net/npm/viem@2.21.0/+esm";
 import { BLOCKS } from "./hooks-data.js";
+import { PAIRED, PAIRED_ABI, SOLANA_CHAIN, machineId, collectionKey } from "./paired.js";
 
 // From public listings, not verified here. Verify on the explorer before use.
 const SUGGESTED_POOL_MANAGER = "0x8366a39cc670b4001a1121b8f6a443a643e40951";
@@ -20,6 +21,9 @@ let st = { ...load() };
 // Addresses already in config.js count as done.
 for (const k of ["ponsLauncher", "poolManager", "rigsHook", "rigsLauncher", "rigsAuctions", "rigsRouter"]) if (isAddress(CONFIG[k] || "")) st[k] ??= CONFIG[k];
 if (isAddress(ARC.launcher || "")) st.arcLauncher ??= ARC.launcher;
+for (const [k, c] of [["pRegistry", "registry"], ["pRaffles", "raffles"], ["pLauncher", "launcher"], ["pExtLauncher", "externalLauncher"]]) {
+  if (isAddress(PAIRED[c] || "")) st[k] ??= PAIRED[c];
+}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch { /* storage blocked */ } render(); };
 
 const artifacts = {};
@@ -60,28 +64,50 @@ async function deployViaFactory(name, args) {
   return { address, block: Number(rc.blockNumber) };
 }
 
-// Canonical deterministic deployment proxy (calldata = salt ++ initCode), already live on Arc.
-const ARC_CREATE2 = "0x4e59b44847b379578588920cA78FbF26c0B4956C";
+// Canonical deterministic deployment proxy (calldata = salt ++ initCode), live on Robinhood Chain and Arc.
+const CREATE2_PROXY = "0x4e59b44847b379578588920cA78FbF26c0B4956C";
 
 /**
- * Deploys on Arc (gas is paid in USDC) from the same wallet, through the CREATE2 proxy:
- * some mobile wallets (Bitget) cap direct contract creations at 1.2M gas but not ordinary calls.
+ * Deploys through the CREATE2 proxy: some mobile wallets (Bitget) cap direct contract
+ * creations at 1.2M gas but not ordinary calls. None of these constructors read msg.sender.
  */
-async function arcDeploy(name, args) {
-  const wallet = await arcWalletClient(arcChain);
+async function proxyDeploy({ pub, wallet, explorer }, name, args) {
   const a = await artifact(name);
   const initCode = encodeDeployData({ abi: a.abi, bytecode: a.bytecode, args });
   const salt = toHex(crypto.getRandomValues(new Uint8Array(32)));
-  const address = getAddress(`0x${keccak256(concat(["0xff", ARC_CREATE2, salt, keccak256(initCode)])).slice(-40)}`);
-  const tx = { account: wallet.account, to: ARC_CREATE2, data: concat([salt, initCode]) };
-  const gas = withBuffer(await arcClient.estimateGas(tx));
+  const address = getAddress(`0x${keccak256(concat(["0xff", CREATE2_PROXY, salt, keccak256(initCode)])).slice(-40)}`);
+  const tx = { account: wallet.account, to: CREATE2_PROXY, data: concat([salt, initCode]) };
+  const gas = withBuffer(await pub.estimateGas(tx));
   const hash = await wallet.sendTransaction({ ...tx, gas });
-  toast(`${name}: waiting for confirmation on Arc…`);
-  const rc = await arcClient.waitForTransactionReceipt({ hash });
-  const code = rc.status === "success" ? await arcClient.getCode({ address }).catch(() => null) : null;
-  if (!code || code === "0x") throw new Error(`${name} deployment failed (gas limit ${gas.toLocaleString("en-US")}, used ${rc.gasUsed.toLocaleString("en-US")}). Details: ${ARC.explorer}/tx/${hash}`);
-  return address;
+  toast(`${name}: waiting for confirmation…`);
+  const rc = await pub.waitForTransactionReceipt({ hash });
+  const code = rc.status === "success" ? await pub.getCode({ address }).catch(() => null) : null;
+  if (!code || code === "0x") throw new Error(`${name} deployment failed (gas limit ${gas.toLocaleString("en-US")}, used ${rc.gasUsed.toLocaleString("en-US")}). Details: ${explorer}/tx/${hash}`);
+  return { address, block: Number(rc.blockNumber) };
 }
+
+/** Deploys on Arc (gas is paid in USDC) from the same wallet. */
+const arcDeploy = async (name, args) =>
+  (await proxyDeploy({ pub: arcClient, wallet: await arcWalletClient(arcChain), explorer: ARC.explorer }, name, args)).address;
+/** Deploys on Robinhood Chain through the CREATE2 proxy. */
+const rhDeploy = async (name, args) => proxyDeploy({ pub: client, wallet: await walletClient(), explorer: CONFIG.explorer }, name, args);
+
+const SEAPORT = "0x0000000000000068F116a894984e2DB1123eB395"; // Seaport 1.6, for floor buys on Robinhood Chain
+// Collector Crypt machines listed at deploy (pack codes from their gacha API). More can be listed under Admin.
+const DEFAULT_MACHINES = [
+  { code: "pokemon_50", name: "Pokémon $50", priceUsd: 50 },
+  { code: "pokemon_250", name: "Pokémon Legendary $250", priceUsd: 250 },
+];
+const pairedKeeper = () => {
+  const v = $("#pairedKeeper").value.trim() || st.pairedKeeper;
+  if (!isAddress(v || "")) throw new Error("Enter the keeper wallet address (the bot's own wallet, not yours)");
+  return getAddress(v);
+};
+const pairedTreasury = () => {
+  const v = $("#pairedTreasury").value.trim() || st.treasury || getAccount();
+  if (!isAddress(v || "")) throw new Error("Enter a valid treasury address");
+  return getAddress(v);
+};
 
 const arcTreasury = () => {
   const v = $("#arcTreasury").value.trim() || ARC.treasury;
@@ -185,8 +211,44 @@ const STEPS = {
       },
     },
   ],
+  paired: [
+    {
+      id: "pRegistry", title: "Deploy paired registry", note: "Registry: keeper, treasury and the list of collections and gacha machines. Your wallet becomes its owner.",
+      run: async () => {
+        const k = pairedKeeper(), t = pairedTreasury();
+        const r = await rhDeploy("Registry", [getAccount(), k, t]);
+        Object.assign(st, { pRegistry: r.address, pStartBlock: r.block, pairedKeeper: k, pairedTreasury: t });
+      },
+    },
+    { id: "pRaffles", title: "Deploy raffles", note: "Raffles: holder snapshots, a 15-minute wait, then a draw from a future block hash.", needs: ["pRegistry"],
+      run: async () => { st.pRaffles = (await rhDeploy("Raffles", [st.pRegistry])).address; } },
+    { id: "pSweepImpl", title: "Deploy NFT vault template", note: "SweepVault: buys floor NFTs of one Robinhood Chain collection, below a keeper ceiling.", needs: ["pRaffles"],
+      run: async () => { st.pSweepImpl = (await rhDeploy("SweepVault", [st.pRegistry, st.pRaffles])).address; } },
+    { id: "pExtImpl", title: "Deploy gacha vault template", note: "ExternalVault: funds packs on Solana through announced, cancellable withdrawals.", needs: ["pRaffles"],
+      run: async () => { st.pExtImpl = (await rhDeploy("ExternalVault", [st.pRegistry, st.pRaffles])).address; } },
+    { id: "pRouterImpl", title: "Deploy fee router template", note: "FeeRouter: each coin's Pons fee recipient, splits 80% vault / 20% treasury.", needs: ["pRegistry"],
+      run: async () => {
+        const escrow = await client.readContract({ address: CONFIG.ponsFactory, abi: PONS_ABI, functionName: "feeEscrow" });
+        st.pRouterImpl = (await rhDeploy("FeeRouter", [st.pRegistry, escrow])).address;
+      } },
+    { id: "pLauncher", title: "Deploy NFT launcher", note: "Launcher: coins paired with a Robinhood Chain NFT collection.", needs: ["pSweepImpl", "pRouterImpl"],
+      run: async () => { st.pLauncher = (await rhDeploy("Launcher", [CONFIG.ponsFactory, st.pRegistry, st.pSweepImpl, st.pRouterImpl])).address; } },
+    { id: "pExtLauncher", title: "Deploy gacha launcher", note: "ExternalLauncher: coins paired with a Collector Crypt gacha machine.", needs: ["pExtImpl", "pRouterImpl"],
+      run: async () => { st.pExtLauncher = (await rhDeploy("ExternalLauncher", [CONFIG.ponsFactory, st.pRegistry, st.pExtImpl, st.pRouterImpl])).address; } },
+    { id: "pListed", title: "Allow Seaport + list gacha machines", note: `One transaction each: Seaport, then ${DEFAULT_MACHINES.map((m) => m.name).join(", ")}.`, needs: ["pExtLauncher"],
+      run: async () => {
+        const r = (fn, args) => client.readContract({ address: st.pRegistry, abi: PAIRED_ABI.registry, functionName: fn, args });
+        if (!(await r("isMarketplace", [SEAPORT]))) await write({ address: st.pRegistry, abi: PAIRED_ABI.registry, functionName: "setMarketplace", args: [SEAPORT, true] });
+        for (const m of DEFAULT_MACHINES) {
+          const key = collectionKey(SOLANA_CHAIN, machineId(m.code));
+          if (!(await r("isCollection", [key]))) await write({ address: st.pRegistry, abi: PAIRED_ABI.registry, functionName: "setCollection", args: [key, true] });
+        }
+        st.pMachines = DEFAULT_MACHINES;
+        st.pListed = true;
+      } },
+  ],
 };
-const ALL = [...STEPS.pons, ...STEPS.v4, ...STEPS.auctions, ...STEPS.arc];
+const ALL = [...STEPS.pons, ...STEPS.v4, ...STEPS.auctions, ...STEPS.arc, ...STEPS.paired];
 
 function pmReady() {
   return isAddress($("#poolManager").value.trim()) && $("#pmConfirm").checked;
@@ -202,6 +264,20 @@ function stepHtml(s, i) {
     <span class="dep-val">${val}</span>
     <button class="btn ${done ? "btn-dark" : "btn-primary"} btn-xs" data-step="${s.id}" ${blocked || done ? "disabled" : ""}>${done ? "Done" : "Sign"}</button>
   </div>`;
+}
+
+function pairedConfig() {
+  return {
+    ...PAIRED,
+    registry: st.pRegistry || PAIRED.registry || "",
+    raffles: st.pRaffles || PAIRED.raffles || "",
+    launcher: st.pLauncher || PAIRED.launcher || "",
+    externalLauncher: st.pExtLauncher || PAIRED.externalLauncher || "",
+    startBlock: st.pStartBlock || PAIRED.startBlock || 0,
+    machines: PAIRED.machines?.length ? PAIRED.machines : st.pMachines || DEFAULT_MACHINES,
+    collections: PAIRED.collections || [],
+    snapshotBaseUrl: PAIRED.snapshotBaseUrl || "snapshots/",
+  };
 }
 
 function configText() {
@@ -225,6 +301,7 @@ export const CONFIG = {
   official: ${JSON.stringify(CONFIG.official || {})},
   solana: ${JSON.stringify(CONFIG.solana || {})},
   arc: ${JSON.stringify({ ...ARC, launcher: st.arcLauncher || ARC.launcher || "", treasury: st.arcTreasury || ARC.treasury })},
+  paired: ${JSON.stringify(pairedConfig())},
   contactEmail: ${JSON.stringify(CONFIG.contactEmail || "")},
   reownProjectId: ${JSON.stringify(CONFIG.reownProjectId)},
 };
@@ -236,6 +313,8 @@ function render() {
   $("#stepsV4").innerHTML = STEPS.v4.map((s, i) => stepHtml(s, i + STEPS.pons.length)).join("");
   $("#stepsAuctions").innerHTML = STEPS.auctions.map((s, i) => stepHtml(s, i + STEPS.pons.length + STEPS.v4.length)).join("");
   $("#stepsArc").innerHTML = STEPS.arc.map((s, i) => stepHtml(s, i + STEPS.pons.length + STEPS.v4.length + STEPS.auctions.length)).join("");
+  const before = STEPS.pons.length + STEPS.v4.length + STEPS.auctions.length + STEPS.arc.length;
+  $("#stepsPaired").innerHTML = STEPS.paired.map((s, i) => stepHtml(s, i + before)).join("");
   $("#wProg").textContent = `${ALL.filter((s) => st[s.id]).length} / ${ALL.length}`;
   $("#cfgOut").textContent = configText();
 }
@@ -305,6 +384,20 @@ $("#setTreasury").addEventListener("click", async () => {
     toast("Treasury updated");
   } catch (err) { toast(friendlyError(err)); }
 });
+$("#pList").addEventListener("click", async () => {
+  const v = $("#pListInput").value.trim();
+  if (!isAddress(st.pRegistry || "") || !v) return toast("Need a deployed paired registry and a collection address or machine code");
+  const key = isAddress(v) ? getAddress(v) : collectionKey(SOLANA_CHAIN, machineId(v));
+  try {
+    await write({ address: st.pRegistry, abi: PAIRED_ABI.registry, functionName: "setCollection", args: [key, $("#pListOn").checked] });
+    toast(`${isAddress(v) ? "Collection" : `Machine ${v}`} ${$("#pListOn").checked ? "listed" : "delisted"}. Add it to paired.${isAddress(v) ? "collections" : "machines"} in config.js too.`);
+  } catch (err) { toast(friendlyError(err)); }
+});
+$("#pSetKeeper").addEventListener("click", async () => {
+  const k = $("#pKeeperNew").value.trim();
+  if (!isAddress(st.pRegistry || "") || !isAddress(k)) return toast("Need a deployed paired registry and a valid keeper address");
+  try { await write({ address: st.pRegistry, abi: PAIRED_ABI.registry, functionName: "setKeeper", args: [getAddress(k)] }); toast("Keeper updated"); } catch (err) { toast(friendlyError(err)); }
+});
 $("#setAuthor").addEventListener("click", async () => {
   const a = $("#authAddr").value.trim() || "0x0000000000000000000000000000000000000000";
   if (!isAddress(st.rigsHook || "") || !isAddress(a)) return toast("Need a deployed hook and a valid address");
@@ -331,10 +424,11 @@ render();
 // Drop saved addresses whose contracts no longer exist on this chain (e.g. after switching RPC).
 (async () => {
   let changed = false;
-  for (const k of ["splitterImpl", "ponsLauncher", "create2", "rigsHook", "rigsLauncher", "rigsAuctions", "rigsRouter"]) {
+  for (const k of ["splitterImpl", "ponsLauncher", "create2", "rigsHook", "rigsLauncher", "rigsAuctions", "rigsRouter", "pRegistry", "pRaffles", "pSweepImpl", "pExtImpl", "pRouterImpl", "pLauncher", "pExtLauncher"]) {
     if (st[k] && !(await hasCode(st[k]))) { delete st[k]; changed = true; }
   }
   if (!st.rigsHook) delete st.rigsLauncherSet;
+  if (!st.pExtLauncher) delete st.pListed;
   for (const k of ["arcVaultImpl", "arcLauncher"]) {
     if (!st[k]) continue;
     const code = await arcClient.getCode({ address: st[k] }).catch(() => undefined);
