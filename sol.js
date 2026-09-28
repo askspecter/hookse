@@ -1,5 +1,7 @@
 // Solana wallet (Phantom / Solflare / any wallet that injects window.solana) and pump.fun launch helpers.
-const SOL_WEB3 = "https://cdn.jsdelivr.net/npm/@solana/web3.js@1.98.2/+esm";
+import { CONFIG } from "./config.js";
+
+const SOL_WEB3 ="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.98.2/+esm";
 
 export const SOL = {
   explorer: "https://solscan.io",
@@ -75,10 +77,13 @@ export async function solPriceUsd() {
 
 /** Coins launched on pump.fun through Rigs (with market cap and split status), or an empty list. */
 export async function loadSolCoins() {
+  // The treasury in config.js opens launches even when the coin list can't be read (KV or RPC down).
+  const fallback = { enabled: !!CONFIG.solana?.treasury, treasury: CONFIG.solana?.treasury || null, coins: [] };
   try {
     const r = await fetch("/api/sol-coins");
-    return await r.json();
+    const j = await r.json();
+    return { ...fallback, ...j, enabled: !!(j.enabled || fallback.enabled), treasury: j.treasury || fallback.treasury, coins: j.coins || [] };
   } catch {
-    return { enabled: false, coins: [] };
+    return fallback;
   }
 }

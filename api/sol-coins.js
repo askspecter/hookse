@@ -8,7 +8,8 @@ module.exports = async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   const t = treasury();
   try {
-    const list = JSON.parse((await kv("GET", "sol:coins")) || "[]").slice(0, 100);
+    // No KV store yet means no listed coins, not a broken page.
+    const list = JSON.parse((await kv("GET", "sol:coins").catch(() => null)) || "[]").slice(0, 100);
     if (!list.length) {
       res.setHeader("Cache-Control", "public, s-maxage=30");
       return res.status(200).json({ enabled: !!t, treasury: t ? t.toBase58() : null, rigsShareBps: RIGS_SHARE_BPS, coins: [] });
