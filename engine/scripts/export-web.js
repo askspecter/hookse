@@ -14,6 +14,13 @@ const LIST = [
   ["RigsRouter.sol", "RigsRouter"],
   ["arc/ArgusVault.sol", "ArgusVault"],
   ["arc/ArgusLauncher.sol", "ArgusLauncher"],
+  ["paired/Registry.sol", "Registry"],
+  ["paired/Raffles.sol", "Raffles"],
+  ["paired/SweepVault.sol", "SweepVault"],
+  ["paired/FeeRouter.sol", "FeeRouter"],
+  ["paired/Launcher.sol", "Launcher"],
+  ["paired/ExternalVault.sol", "ExternalVault"],
+  ["paired/ExternalLauncher.sol", "ExternalLauncher"],
 ];
 
 fs.mkdirSync(OUT, { recursive: true });
