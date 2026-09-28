@@ -20,9 +20,12 @@ Static pages, no build step. Serve the folder (`python3 -m http.server`) or depl
 | `/scan` | Decode any v4 hook's permission bits from its address |
 | `/integrations`, `/agents`, `rigs.manifest.json` | For integrators and bots |
 | `/learn`, `/docs` | Guides and developer docs |
-| `/community`, `/updates`, `/token`, `/privacy`, `/terms` | Leaderboard, changelog, token, legal |
+| `/token` | $RIGS: official contract address, price, market cap, burned total, treasury and the 10% buyback & burn |
+| `/community`, `/updates`, `/privacy`, `/terms` | Leaderboard, changelog, legal |
 
 Logo uploads go through `api/upload.js` into Vercel KV (connect a KV / Upstash Redis store to the Vercel project) and are served by `api/img.js`. `api/meta.js` serves coin logos and one-liners: Pons coins are read from their launch transaction; any coin's creator can change them by signing a message (checked against the chain). `api/eth-usd.js` returns the ETH/USD spot price (Coinbase, then Kraken, then CoinGecko; cached a minute at the edge) so prices and market caps show in dollars; if no source answers, the pages fall back to ETH. URLs are clean (`/launch`, `/coin?token=…`) via `cleanUrls` in `vercel.json`.
+
+`CONFIG.official` names the official $RIGS coin. It was launched directly on Pons, so the site finds its curve from its launch transaction (verified with a simulated buy) and pins it first on Coins and the home page with an Official badge. Set `official.curve` to skip the lookup.
 
 Shared code: `shell.js` (top bar, mobile tab bar and More sheet, search ⌘K, theme), `web3.js` (viem client, wallet, ABIs), `config.js` (addresses), `hooks-data.js` (rule blocks).
 

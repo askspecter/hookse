@@ -2,7 +2,7 @@
 // pools (trade through RigsRouter). Shows a creator-only claim panel and the viewer's pot winnings.
 import {
   CONFIG, ABI, $, esc, toast, friendlyError, client, live, v4live, routerLive, write, getAccount, onAccount,
-  isAddress, getAddress, zeroAddress, eth, addrLink, tokenInfo, ensureAllowance, loadLaunch, fmtPrice, fmtUsd, fmtUsdShort, ethUsd, CHAIN_LOGO, loadMeta, saveMeta,
+  isAddress, getAddress, zeroAddress, eth, addrLink, tokenInfo, ensureAllowance, loadLaunch, ponsCoinInfo, metaOf, fmtPrice, fmtUsd, fmtUsdShort, ethUsd, CHAIN_LOGO, loadMeta, saveMeta,
 } from "./web3.js";
 import { uploadLogo } from "./upload.js";
 import { BLOCKS, blockIcon } from "./hooks-data.js";
@@ -49,8 +49,15 @@ async function resolve() {
       c.buyCount = Number(buyCount);
     }
   }
-  if (!c.kind) return fail(`$${esc(c.info.symbol)} was not launched through Rigs.`);
-  c.meta = (await loadMeta([token]).catch(() => ({})))[token.toLowerCase()] || {};
+  // The official $RIGS coin was launched directly on Pons: find its curve from its launch transaction.
+  c.official = !!CONFIG.official?.token && getAddress(CONFIG.official.token) === token;
+  if (!c.kind && c.official) {
+    const info = await ponsCoinInfo(token, CONFIG.official.curve).catch((err) => { console.error(err); return null; });
+    if (info?.curve) { c.kind = "pons"; c.external = true; c.launch = { curve: info.curve, launchedAt: info.launchedAt }; c.creator = info.creator; }
+  }
+  if (!c.kind) return fail(c.official ? `Could not read $${esc(c.info.symbol)} from ${esc(CONFIG.chainName)} right now. Refresh to try again.` : `$${esc(c.info.symbol)} was not launched through Rigs.`);
+  await loadMeta([token]).catch(() => ({}));
+  c.meta = metaOf(token);
   await refreshPrice();
   renderAll();
   loadHistory();
@@ -157,7 +164,7 @@ function renderHead() {
       <span class="ch-logo"><span class="ch-av">${logo}</span><img class="ch-chain" src="${CHAIN_LOGO}" alt="${esc(CONFIG.chainName)}" /></span>
       <div class="ch-id">
         <h1>${esc(c.info.name)} <span class="ch-sym">$${sym}</span></h1>
-        <div class="coin-meta"><span class="cc-kind">${c.kind === "pons" ? (c.graduated ? "Graduated" : "Curve") : c.existing ? "v4 pool · existing" : "v4 pool"}</span>
+        <div class="coin-meta">${c.official ? '<span class="cc-kind official">Official</span>' : ""}<span class="cc-kind">${c.kind === "pons" ? (c.graduated ? "Graduated" : "Curve") : c.existing ? "v4 pool · existing" : "v4 pool"}</span>
           <span class="mono dim">${token.slice(0, 8)}…${token.slice(-6)}</span><button class="copy" data-copy="${token}" title="Copy address">⧉</button>
           <span class="dim">by ${addrLink(c.creator)}</span></div>
       </div>
@@ -179,7 +186,7 @@ function renderStats() {
 async function renderCreator() {
   const me = getAccount();
   const box = $("#creatorBox");
-  if (!me || !c.creator || getAddress(c.creator) !== me) { box.hidden = true; return; }
+  if (c.external || !me || !c.creator || getAddress(c.creator) !== me) { box.hidden = true; return; }
   box.hidden = false;
   if (c.kind === "pons") {
     const l = await loadLaunch(c.launch.id);
@@ -222,7 +229,7 @@ async function renderWinnings() {
 function renderRules() {
   if (c.kind === "pons") {
     $("#rulesPanel").innerHTML = `<p class="form-h">Pons V2 curve</p><p class="muted small">This coin trades on a Pons V2 bonding curve and graduates into a locked Uniswap v4 pool when the curve sells out. Pons applies its own launch snipe tax and creator tax.</p>
-      <div class="kv"><span>Fee splitter</span><b>${addrLink(c.launch.splitter)}</b></div><div class="kv"><span>Curve</span><b>${addrLink(c.launch.curve)}</b></div>
+      ${c.external ? "" : `<div class="kv"><span>Fee splitter</span><b>${addrLink(c.launch.splitter)}</b></div>`}<div class="kv"><span>Curve</span><b>${addrLink(c.launch.curve)}</b></div>
       <p class="small"><a class="link-accent" href="${CONFIG.ponsCoinUrl}${token}" target="_blank" rel="noopener">Open on Pons ↗</a></p>`;
     return;
   }
@@ -236,9 +243,11 @@ function renderRules() {
 function renderDetails() {
   const rows = [["Token", addrLink(token)], ["Creator", addrLink(c.creator)], ["Decimals", c.info.decimals], ["Total supply", supplyOf().toLocaleString("en-US")]];
   const withUsd = (wei) => `${eth(wei, 5)} ETH${c.usd ? ` <span class="dim">· ${fmtUsd(toUsd(Number(formatEther(wei))), true)}</span>` : ""}`;
-  if (c.kind === "pons") rows.push(["Paid to creator (80%)", withUsd(c.launch.totalToCreator)], ["Treasury share (20%)", withUsd(c.launch.totalToTreasury)]);
-  else { const tk = takesOf(); rows.push(["Pool fee", `${+(tk.base + tk.lp + tk.pot).toFixed(2)}% <span class="dim">· base ${tk.base}%${tk.burn ? ` · ${tk.burn}% burn on buys` : ""}</span>`], ["Buys counted", c.buyCount.toLocaleString("en-US")]); }
-  if (c.kind === "pons") rows.push(["Pons launcher", addrLink(CONFIG.ponsLauncher)], ["Fee splitter", addrLink(c.launch.splitter)], ["Curve", addrLink(c.launch.curve)]);
+  if (c.kind === "pons" && !c.external) rows.push(["Paid to creator (80%)", withUsd(c.launch.totalToCreator)], ["Treasury share (20%)", withUsd(c.launch.totalToTreasury)]);
+  else if (c.kind === "v4") { const tk = takesOf(); rows.push(["Pool fee", `${+(tk.base + tk.lp + tk.pot).toFixed(2)}% <span class="dim">· base ${tk.base}%${tk.burn ? ` · ${tk.burn}% burn on buys` : ""}</span>`], ["Buys counted", c.buyCount.toLocaleString("en-US")]); }
+  if (c.official) rows.push(["Buyback & burn", `${CONFIG.official.buybackPct}% of Rigs protocol revenue <a class="link-accent" href="/token">details</a>`]);
+  if (c.kind === "pons" && c.external) rows.push(["Launched", "directly on Pons V2"], ["Curve", addrLink(c.launch.curve)]);
+  else if (c.kind === "pons") rows.push(["Pons launcher", addrLink(CONFIG.ponsLauncher)], ["Fee splitter", addrLink(c.launch.splitter)], ["Curve", addrLink(c.launch.curve)]);
   else rows.push(["Pool id", `<span class="mono small">${c.poolId.slice(0, 18)}…</span>`], ["Hook", addrLink(CONFIG.rigsHook)], ["PoolManager", addrLink(CONFIG.poolManager)], ["Launcher", addrLink(CONFIG.rigsLauncher)]);
   $("#detailsPanel").innerHTML = rows.map(([k, v]) => `<div class="kv"><span>${k}</span><b>${v}</b></div>`).join("");
 }
@@ -552,7 +561,7 @@ async function act(b) {
       await write({ address: CONFIG.rigsHook, abi: ABI.rigsHook, functionName: "claim", args: [a === "win-eth" ? zeroAddress : token] });
       toast("Claimed");
     }
-    if (c.kind === "pons") c.launch = await loadLaunch(c.launch.id);
+    if (c.kind === "pons" && !c.external) c.launch = await loadLaunch(c.launch.id);
     renderAll();
   } catch (err) {
     toast(friendlyError(err));

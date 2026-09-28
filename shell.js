@@ -41,7 +41,7 @@ const MORE = [
   ["community", "Community", "people", "Top creators"],
   ["updates", "Updates", "flame", "What changed"],
 ];
-const EXTRA = [["deploy", "Deploy contracts (admin)"], ["token", "Token"], ["index", "Home"], ["privacy", "Privacy"], ["terms", "Terms"]];
+const EXTRA = [["deploy", "Deploy contracts (admin)"], ["token", "$RIGS token"], ["index", "Home"], ["privacy", "Privacy"], ["terms", "Terms"]];
 const ACCENTS = { blue: "#1591ff", cyan: "#22b2ff", green: "#40b66b", amber: "#e0a030" };
 const X_ICON = '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>';
 
@@ -69,7 +69,7 @@ const appearance = `
   <div class="set-row"><span>Theme</span><div class="seg">${["light", "system", "dark"].map((t) => `<button data-theme-set="${t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join("")}</div></div>
   <div class="set-row"><span>Accent</span><div class="accents">${Object.entries(ACCENTS).map(([k, c]) => `<button data-accent="${k}" style="--c:${c}" aria-label="${k} accent"></button>`).join("")}</div></div>
   <div class="set-row"><span>Network</span><span class="net-chip"><img class="chain-ic" src="/assets/robinhood.png" alt="" />Robinhood Chain <em>4663</em></span></div>`;
-const footLinks = `<a href="/token">Token</a><a href="/docs#fee-model">Methodology</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a class="x-link" href="https://x.com/userigsfun" target="_blank" rel="noopener" aria-label="Rigs on X">${X_ICON}@userigsfun</a>`;
+const footLinks = `<a href="/token">$RIGS</a><a href="/docs#fee-model">Methodology</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a class="x-link" href="https://x.com/userigsfun" target="_blank" rel="noopener" aria-label="Rigs on X">${X_ICON}@userigsfun</a>`;
 
 // Desktop: one top bar. Mobile: slim top bar, bottom tabs, and a "More" sheet.
 document.getElementById("sidebar")?.remove();

@@ -1012,3 +1012,30 @@ body { background:
 .usd-hint { min-height: 18px; margin-top: -6px; font-family: var(--mono); font-size: 12.5px; color: var(--dim); }
 .coin-stats b { font-size: 19px; }
 @media (max-width: 640px) { .mc-big { font-size: 32px; } .mc-head .ranges { width: 100%; justify-content: space-between; } .mc-head .ranges button { flex: 1; } }
+/* official $RIGS coin */
+.cc-kinds { display: inline-flex; gap: 6px; }
+.cc-kind.official { color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
+.coin-tile.is-official, .coin-card.is-official { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 9%, var(--panel)), var(--panel)); }
+/* $RIGS token page */
+.ca-card { padding: 20px; display: flex; flex-direction: column; gap: 14px; margin-bottom: 14px; border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.ca-top { display: flex; align-items: center; gap: 10px; }
+.ca-row { display: flex; align-items: center; gap: 10px; }
+.ca-row code { flex: 1; min-width: 0; overflow-wrap: anywhere; font-family: var(--mono); font-size: 17px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.ca-links { display: flex; gap: 20px; flex-wrap: wrap; font-size: 13px; }
+.ca-warn { font-size: 12.5px; color: var(--amber); }
+.tk-stats { margin-bottom: 8px; }
+.tk-stats b a { font-size: 15px; }
+.bb-flow { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); }
+.bb-flow li { padding: 18px; display: flex; flex-direction: column; gap: 8px; border-left: 1px solid var(--line); }
+.bb-flow li:first-child { border-left: 0; }
+.bb-flow .n { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+.bb-flow b { font-size: 15px; }
+.bb-flow p { color: var(--muted); font-size: 13px; line-height: 1.55; }
+.bb-note { margin-top: 12px; line-height: 1.6; }
+@media (max-width: 900px) {
+  .bb-flow { grid-template-columns: 1fr; }
+  .bb-flow li { border-left: 0; border-top: 1px solid var(--line); }
+  .bb-flow li:first-child { border-top: 0; }
+  .ca-row { flex-direction: column; align-items: stretch; }
+  .ca-row code { font-size: 14px; }
+}

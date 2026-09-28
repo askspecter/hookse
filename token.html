@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Token · Rigs</title>
-  <meta name="description" content="The Rigs token." />
+  <title>$RIGS · Rigs</title>
+  <meta name="description" content="$RIGS, the official Rigs coin on Pons V2. 10% of Rigs protocol revenue buys back and burns $RIGS." />
   <link rel="canonical" href="https://userigs.fun/token" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Rigs" />
-  <meta property="og:title" content="Token · Rigs" />
-  <meta property="og:description" content="The Rigs token." />
+  <meta property="og:title" content="$RIGS · Rigs" />
+  <meta property="og:description" content="$RIGS, the official Rigs coin on Pons V2. 10% of Rigs protocol revenue buys back and burns $RIGS." />
   <meta property="og:url" content="https://userigs.fun/token" />
   <meta property="og:image" content="https://userigs.fun/assets/og.png" />
   <meta property="og:image:width" content="1200" />
@@ -17,8 +17,8 @@
   <meta property="og:image:alt" content="Rigs: composable markets, built with hooks. Launch on Pons V2 and keep 80% of every creator fee." />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@userigsfun" />
-  <meta name="twitter:title" content="Token · Rigs" />
-  <meta name="twitter:description" content="The Rigs token." />
+  <meta name="twitter:title" content="$RIGS · Rigs" />
+  <meta name="twitter:description" content="$RIGS, the official Rigs coin on Pons V2. 10% of Rigs protocol revenue buys back and burns $RIGS." />
   <meta name="twitter:image" content="https://userigs.fun/assets/og.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -35,12 +35,34 @@
     <aside id="sidebar"></aside>
     <main class="app-main">
 
-      <div class="app-head"><div><p class="kicker">Token</p><h1>Rigs token</h1><p class="lede muted">There is no official Rigs token yet.</p></div></div>
-      <div class="notice">Any coin calling itself the Rigs token is not official until its address is published on this page. Always check the address.</div>
-      <div class="grid2 sec-gap">
-        <div class="card pad"><b>Treasury</b><p class="muted small">The treasury receives 20% of creator fees from coins launched through Rigs. Its address is readable on-chain from <span class="mono">PonsLauncher.treasury()</span>.</p><p class="small mono" id="treasury">—</p></div>
-        <div class="card pad"><b>Launches so far</b><p class="muted small">Every coin launched through the Rigs launcher.</p><p class="small mono" id="count">—</p></div>
+      <div class="app-head">
+        <div><p class="kicker">Official token</p><h1>$RIGS</h1>
+        <p class="lede muted">The official Rigs coin, live on Pons V2 on Robinhood Chain. 10% of Rigs protocol revenue buys $RIGS back and burns it.</p></div>
+        <div class="btn-row"><a class="btn btn-primary btn-sm" id="tradeBtn" href="/app">Trade $RIGS</a></div>
       </div>
+
+      <section class="card ca-card">
+        <div class="ca-top"><span class="cc-kind official">Official</span><span class="dim small">Contract address · Robinhood Chain</span></div>
+        <div class="ca-row"><code id="ca">—</code><button class="btn btn-ghost btn-sm" id="copyCa">Copy</button></div>
+        <div class="ca-links"><a class="link-accent" id="exLink" target="_blank" rel="noopener">Explorer ↗</a><a class="link-accent" id="ponsLink" target="_blank" rel="noopener">Pons ↗</a><a class="link-accent" id="coinLink">Coin page →</a></div>
+        <p class="ca-warn">This is the only official $RIGS address. Any other coin using the name is not ours. We never DM first.</p>
+      </section>
+
+      <section class="card coin-stats tk-stats" id="tkStats">
+        <div><small>Price</small><b id="tkPrice">—</b></div>
+        <div><small>Market cap</small><b id="tkMcap">—</b></div>
+        <div><small>Burned so far</small><b id="tkBurned">—</b></div>
+        <div><small>Treasury</small><b id="treasury">—</b></div>
+      </section>
+
+      <h2 class="h-sm sec-h">Buyback &amp; burn</h2>
+      <ol class="bb-flow">
+        <li><span class="n">01</span><b>Coins launch on Rigs</b><p>Every coin launched through Rigs pays creator fees on its trades.</p></li>
+        <li><span class="n">02</span><b>20% goes to the treasury</b><p>Each coin's own fee splitter sends 80% to its creator and 20% to the Rigs treasury.</p></li>
+        <li><span class="n">03</span><b>10% of that buys $RIGS</b><p>10% of what the treasury earns is used to buy $RIGS on the market.</p></li>
+        <li><span class="n">04</span><b>Bought $RIGS is burned</b><p>It is sent to the dead address, where no one can ever move it. The total above is read live from the chain.</p></li>
+      </ol>
+      <p class="muted small bb-note">Buybacks are carried out by the Rigs team from the treasury, not by a contract. Every buyback and burn is posted on <a class="link-accent" href="https://x.com/userigsfun" target="_blank" rel="noopener">@userigsfun</a> with its transaction. Burn address: <a class="mono link-accent" id="deadLink" target="_blank" rel="noopener">0x…dEaD</a></p>
 
     </main>
   </div>

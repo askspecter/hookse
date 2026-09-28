@@ -14,6 +14,8 @@ export const CONFIG = {
   rigsLauncher: "0x9b33583252B833864e35b555cB3d5F0cFFABeDfa",
   rigsAuctions: "0x4d96761b25bc1E552dBB2d4B2f01A8cF1e64320C",
   rigsRouter: "0x9BfA528A6e01B20552089f7368Da82dF1aB65b8a",
+  // The official $RIGS coin, launched directly on Pons. `curve` is optional: the site finds it from the launch transaction.
+  official: { token: "0x02BB02536762aD8dE1f211C0f5dd25bC033A7194", curve: "", buybackPct: 10 },
   // Where hook ideas and integration requests are emailed. Empty hides those forms.
   contactEmail: "support@userigs.fun",
   reownProjectId: "5c559ec7c86f657976f14d599d5e66b5",
