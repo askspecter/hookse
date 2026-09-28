@@ -2,6 +2,7 @@
 import {
   createPublicClient, createWalletClient, custom, http, defineChain, parseAbi,
   formatEther, parseEther, isAddress, toHex, getAddress, zeroAddress,
+  formatUnits, keccak256, encodePacked, encodeAbiParameters, pad,
 } from "https://cdn.jsdelivr.net/npm/viem@2.21.0/+esm";
 import { CONFIG } from "./config.js";
 
@@ -127,6 +128,78 @@ export function fmtPrice(n, sig = 4) {
   const digits = String(Math.round(n * 10 ** (zeros + sig))).slice(0, sig).replace(/0+$/, "") || "0";
   const sub = String(zeros).split("").map((d) => "₀₁₂₃₄₅₆₇₈₉"[d]).join("");
   return `0.0${sub}${digits}`;
+}
+
+/** Dollars: $38,751.33 · $1.25 · $0.000039 · $0.0₇12 for very small amounts. `cents` rounds amounts of money to $0.01. */
+export function fmtUsd(n, cents = false) {
+  if (n == null || !isFinite(n)) return "—";
+  if (n === 0) return "$0";
+  if (n >= 1) return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (n >= 0.01) return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: cents ? 2 : 4 });
+  if (cents) return "<$0.01";
+  const zeros = -Math.floor(Math.log10(n)) - 1;
+  if (zeros <= 5) return "$" + n.toFixed(zeros + 2).replace(/(\.\d*?[1-9])0+$/, "$1");
+  return "$" + fmtPrice(n, 3);
+}
+
+/** Short dollars for headlines and axes: $38.8k · $1.25M · $950. */
+export function fmtUsdShort(n) {
+  if (n == null || !isFinite(n)) return "—";
+  const a = Math.abs(n);
+  const unit = a >= 1e9 ? [1e9, "B"] : a >= 1e6 ? [1e6, "M"] : a >= 1e3 ? [1e3, "k"] : null;
+  if (!unit) return a >= 1 ? "$" + (+n.toFixed(a >= 100 ? 0 : 2)).toLocaleString("en-US") : fmtUsd(n);
+  const v = n / unit[0];
+  return "$" + (+v.toFixed(v >= 100 ? 0 : v >= 10 ? 1 : 2)) + unit[1];
+}
+
+let usdCache = null;
+/** ETH price in dollars from /api/eth-usd (cached a minute); last known value if the lookup fails; null if never known. */
+export async function ethUsd() {
+  if (usdCache && Date.now() - usdCache.at < 60_000) return usdCache.usd;
+  try {
+    const r = await fetch("/api/eth-usd");
+    const j = await r.json();
+    if (!(j.usd > 0)) throw new Error("no price");
+    usdCache = { usd: j.usd, at: Date.now() };
+    try { localStorage.setItem("rigs-eth-usd", String(j.usd)); } catch { /* storage blocked */ }
+    return j.usd;
+  } catch {
+    let last = null;
+    try { last = Number(localStorage.getItem("rigs-eth-usd")) || null; } catch { /* storage blocked */ }
+    return usdCache?.usd ?? last;
+  }
+}
+
+/** Pool id of a v4 pool key. */
+export const poolIdOf = (k) => keccak256(encodeAbiParameters(
+  [{ type: "address" }, { type: "address" }, { type: "uint24" }, { type: "int24" }, { type: "address" }],
+  [k.currency0, k.currency1, k.fee, k.tickSpacing, k.hooks]));
+
+const PRICE_PROBE = "0x000000000000000000000000000000000000c0de"; // funded by a state override for read-only quotes
+/**
+ * Market cap in ETH for a Rigs coin: a Pons coin is priced by a small simulated curve buy (fees included),
+ * a v4 pool coin by its pool's current sqrtPrice. Returns null when it cannot be read (e.g. a graduated curve).
+ */
+export async function marketCapEth({ kind, token, curve, poolId }) {
+  const [supply, decimals] = await Promise.all([
+    client.readContract({ address: token, abi: ABI.erc20Full, functionName: "totalSupply" }),
+    client.readContract({ address: token, abi: ABI.erc20Full, functionName: "decimals" }).then(Number).catch(() => 18),
+  ]);
+  let price = null;
+  if (kind === "v4") {
+    const slot = keccak256(encodePacked(["bytes32", "bytes32"], [poolId, pad(toHex(6), { size: 32 })]));
+    const raw = await client.readContract({ address: CONFIG.poolManager, abi: ABI.poolManager, functionName: "extsload", args: [slot] });
+    const p = (Number(BigInt(raw) & ((1n << 160n) - 1n)) / 2 ** 96) ** 2;
+    price = p > 0 ? 10 ** (decimals - 18) / p : null;
+  } else {
+    const probe = parseEther("0.001");
+    const { result } = await client.simulateContract({
+      address: curve, abi: ABI.ponsCurve, functionName: "buy", args: [probe, 0n, PRICE_PROBE], value: probe,
+      account: PRICE_PROBE, stateOverride: [{ address: PRICE_PROBE, balance: parseEther("1") }],
+    });
+    price = 0.001 / Number(formatUnits(result, decimals));
+  }
+  return price == null ? null : price * Number(formatUnits(supply, decimals));
 }
 
 export const CHAIN_LOGO = "/assets/robinhood.png";

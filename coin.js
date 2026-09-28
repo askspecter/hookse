@@ -2,7 +2,7 @@
 // pools (trade through RigsRouter). Shows a creator-only claim panel and the viewer's pot winnings.
 import {
   CONFIG, ABI, $, esc, toast, friendlyError, client, live, v4live, routerLive, write, getAccount, onAccount,
-  isAddress, getAddress, zeroAddress, eth, addrLink, tokenInfo, ensureAllowance, loadLaunch, fmtPrice, CHAIN_LOGO, loadMeta, saveMeta,
+  isAddress, getAddress, zeroAddress, eth, addrLink, tokenInfo, ensureAllowance, loadLaunch, fmtPrice, fmtUsd, fmtUsdShort, ethUsd, CHAIN_LOGO, loadMeta, saveMeta,
 } from "./web3.js";
 import { uploadLogo } from "./upload.js";
 import { BLOCKS, blockIcon } from "./hooks-data.js";
@@ -70,6 +70,7 @@ function priceFromSqrt(sqrtP) {
 }
 
 async function refreshPrice() {
+  const usdP = ethUsd();
   if (c.kind === "v4") {
     const slot = keccak256(encodePacked(["bytes32", "bytes32"], [c.poolId, pad(toHex(6), { size: 32 })]));
     const raw = await client.readContract({ address: CONFIG.poolManager, abi: ABI.poolManager, functionName: "extsload", args: [slot] });
@@ -87,6 +88,7 @@ async function refreshPrice() {
     }
     c.priceEth = out ? Number(formatEther(probe)) / Number(formatUnits(out, c.info.decimals)) : null;
   }
+  c.usd = await usdP;
   $("#asOf").textContent = new Date().toUTCString().slice(5, 22) + " UTC";
 }
 
@@ -133,6 +135,9 @@ async function quote() {
 // ---------------------------------------------------------------- render
 
 const fmtEth = (n) => fmtPrice(n);
+/** Dollar value of an ETH amount, or null while the ETH price is unknown. */
+const toUsd = (ethAmt) => (c.usd && ethAmt != null ? ethAmt * c.usd : null);
+const supplyOf = () => Number(formatUnits(c.supply, c.info.decimals));
 const takesOf = () => {
   if (c.kind !== "v4") return null;
   const on = (bit) => (Number(c.cfg.blocks) & bit) !== 0;
@@ -162,20 +167,13 @@ function renderHead() {
 }
 
 function renderStats() {
-  const supply = Number(formatUnits(c.supply, c.info.decimals));
+  const supply = supplyOf();
   const mcap = c.priceEth != null ? c.priceEth * supply : null;
-  const tk = takesOf();
-  const cells = [
-    ["Price", `${fmtEth(c.priceEth)} ETH`, `1 ${esc(c.info.symbol)}${c.kind === "pons" ? " · incl. curve fees" : ""}`],
-    ["Market cap", `${fmtEth(mcap)} ETH`, `${supply.toLocaleString("en-US")} supply`],
-    c.kind === "pons"
-      ? ["Paid to creator", `${eth(c.launch.totalToCreator, 5)} ETH`, "80% of creator fees"]
-      : ["Buys counted", c.buyCount.toLocaleString("en-US"), "qualifying buys (pot counter)"],
-    c.kind === "pons"
-      ? ["Treasury share", `${eth(c.launch.totalToTreasury, 5)} ETH`, "20% of creator fees"]
-      : ["Pool fee", `${+(tk.base + tk.lp + tk.pot).toFixed(2)}%`, `base ${tk.base}% + rules${tk.burn ? ` · ${tk.burn}% burn on buys` : ""}`],
-  ];
-  $("#stats").innerHTML = cells.map(([k, v, s]) => `<div><small>${k}</small><b>${v}</b><small>${s}</small></div>`).join("");
+  const market = c.kind === "pons" ? (c.graduated ? "Graduated" : "Bonding curve") : "v4 pool";
+  const cells = c.usd
+    ? [["Price", fmtUsd(toUsd(c.priceEth))], ["Market cap", fmtUsd(toUsd(mcap))], ["Price in ETH", `${fmtEth(c.priceEth)} ETH`], ["Market", market]]
+    : [["Price", `${fmtEth(c.priceEth)} ETH`], ["Market cap", `${fmtEth(mcap)} ETH`], ["Supply", supply.toLocaleString("en-US")], ["Market", market]];
+  $("#stats").innerHTML = cells.map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join("");
 }
 
 async function renderCreator() {
@@ -236,10 +234,20 @@ function renderRules() {
 }
 
 function renderDetails() {
-  const rows = [["Token", addrLink(token)], ["Creator", addrLink(c.creator)], ["Decimals", c.info.decimals], ["Total supply", Number(formatUnits(c.supply, c.info.decimals)).toLocaleString("en-US")]];
+  const rows = [["Token", addrLink(token)], ["Creator", addrLink(c.creator)], ["Decimals", c.info.decimals], ["Total supply", supplyOf().toLocaleString("en-US")]];
+  const withUsd = (wei) => `${eth(wei, 5)} ETH${c.usd ? ` <span class="dim">· ${fmtUsd(toUsd(Number(formatEther(wei))), true)}</span>` : ""}`;
+  if (c.kind === "pons") rows.push(["Paid to creator (80%)", withUsd(c.launch.totalToCreator)], ["Treasury share (20%)", withUsd(c.launch.totalToTreasury)]);
+  else { const tk = takesOf(); rows.push(["Pool fee", `${+(tk.base + tk.lp + tk.pot).toFixed(2)}% <span class="dim">· base ${tk.base}%${tk.burn ? ` · ${tk.burn}% burn on buys` : ""}</span>`], ["Buys counted", c.buyCount.toLocaleString("en-US")]); }
   if (c.kind === "pons") rows.push(["Pons launcher", addrLink(CONFIG.ponsLauncher)], ["Fee splitter", addrLink(c.launch.splitter)], ["Curve", addrLink(c.launch.curve)]);
   else rows.push(["Pool id", `<span class="mono small">${c.poolId.slice(0, 18)}…</span>`], ["Hook", addrLink(CONFIG.rigsHook)], ["PoolManager", addrLink(CONFIG.poolManager)], ["Launcher", addrLink(CONFIG.rigsLauncher)]);
   $("#detailsPanel").innerHTML = rows.map(([k, v]) => `<div class="kv"><span>${k}</span><b>${v}</b></div>`).join("");
+}
+
+/** "≈ $12.34" for the amount typed into the trade box. */
+function payUsd() {
+  const n = Number(t.amount);
+  if (!c.usd || !(n > 0)) return "";
+  return `≈ ${fmtUsd(toUsd(t.side === "buy" ? n : n * (c.priceEth || 0)), true)}`;
 }
 
 function renderTrade() {
@@ -255,7 +263,8 @@ function renderTrade() {
   }
   const tk = takesOf();
   const minOut = t.quote != null ? (t.quote * BigInt(Math.round((100 - t.slippage) * 100))) / 10000n : null;
-  const outFmt = (v) => (v == null ? "—" : buy ? `${Number(formatUnits(v, c.info.decimals)).toLocaleString("en-US", { maximumFractionDigits: 2 })} ${sym}` : `${fmtPrice(Number(formatEther(v)), 5)} ETH`);
+  const outUsd = (v) => (v == null || !c.usd ? "" : ` <span class="dim">≈ ${fmtUsd(buy ? toUsd(Number(formatUnits(v, c.info.decimals)) * c.priceEth) : toUsd(Number(formatEther(v))), true)}</span>`);
+  const outFmt = (v) => (v == null ? "—" : (buy ? `${Number(formatUnits(v, c.info.decimals)).toLocaleString("en-US", { maximumFractionDigits: 2 })} ${sym}` : `${fmtPrice(Number(formatEther(v)), 5)} ETH`) + outUsd(v));
   const me = getAccount();
   const label = !me ? "Connect wallet" : !t.amount ? "Enter an amount" : !buy && !t.allowanceOk ? `Approve ${sym}` : buy ? `Buy ${sym}` : `Sell ${sym}`;
   $("#trade").innerHTML = `
@@ -263,6 +272,7 @@ function renderTrade() {
     <div class="subtabs"><button class="${buy ? "on buy-t" : ""}" data-side="buy">Buy</button><button class="${!buy ? "on sell-t" : ""}" data-side="sell">Sell</button></div>
     <p class="muted small">You pay · ${buy ? "ETH" : sym}</p>
     <label class="big-inp"><input id="tAmt" type="number" min="0" step="any" placeholder="0.0" value="${esc(t.amount)}" /><em>${buy ? "ETH" : sym}</em></label>
+    <p class="usd-hint" id="tUsd">${payUsd()}</p>
     <div class="presets">${(buy ? ["0.001", "0.01", "0.1"] : ["25%", "50%", "100%"]).map((p) => `<button data-preset="${p}">${p}</button>`).join("")}<button data-preset="max">Max</button></div>
     <div class="row-between"><span class="muted">Slippage</span><div class="presets slip">${[0.5, 1, 2, 5].map((s) => `<button class="${t.slippage === s ? "on" : ""}" data-slip="${s}">${s}%</button>`).join("")}</div></div>
     <div class="quote-box">
@@ -278,7 +288,7 @@ function renderTrade() {
       ? "Your wallet trades directly with the Pons V2 curve. The quote is a simulation of the same call; the minimum protects you if the price moves before it lands."
       : "Your wallet calls RigsRouter, which swaps in the Uniswap v4 pool. The pool's hook applies its rules during the swap. You are passed as the buyer, so pot winnings are credited to you."}</p></details>
     <button class="btn btn-primary btn-lg" id="tGo" ${me && (!t.amount || t.quoting) ? "disabled" : ""}>${label}</button>`;
-  $("#tAmt").addEventListener("input", (e) => { t.amount = e.target.value; t.quoteError = null; clearTimeout(t.timer); t.timer = setTimeout(quote, 350); });
+  $("#tAmt").addEventListener("input", (e) => { t.amount = e.target.value; t.quoteError = null; $("#tUsd").textContent = payUsd(); clearTimeout(t.timer); t.timer = setTimeout(quote, 350); });
 }
 
 function renderAll() {
@@ -291,7 +301,7 @@ function renderAll() {
 const TRANSFER = [{ type: "event", name: "Transfer", inputs: [{ name: "from", type: "address", indexed: true }, { name: "to", type: "address", indexed: true }, { name: "value", type: "uint256", indexed: false }] }];
 let trades = []; // { t, block, hash, buy, eth (bigint|null), tok, price (ETH per token|null) }
 let historyState = "loading";
-let range = "1D";
+let range = "ALL";
 
 /** Collects logs newest-first in shrinking chunks until `from` or `max` logs; halves the chunk on RPC range errors. */
 async function scanBack(fetchRange, latest, from, max) {
@@ -358,46 +368,56 @@ async function loadHistory() {
   renderActivity();
 }
 
-const RANGES = { "1D": 86_400, "1W": 604_800, All: Infinity };
+const RANGES = { "5M": 300, "1H": 3_600, "6H": 21_600, "1D": 86_400, ALL: Infinity };
 const hhmm = (t, span) => { const d = new Date(t * 1000); return span > 172_800 ? d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : d.toISOString().slice(11, span < 3_600 ? 19 : 16); };
 
+/** Market cap chart: dollars when the ETH price is known, ETH otherwise. */
 function renderPrice() {
-  const sym = esc(c.info.symbol);
   const now = Date.now() / 1000;
-  const pts = trades.filter((x) => x.price > 0 && now - x.t <= RANGES[range]).map((x) => ({ t: x.t, p: x.price }));
-  if (c.priceEth) pts.push({ t: now, p: c.priceEth });
-  const head = `<div class="row-between chart-head"><div><p class="form-h">This ${c.kind === "pons" ? "coin" : "pool"}</p>
-      <p class="muted small">ETH / ${sym} · ETH per ${sym}${c.kind === "pons" ? " · from curve buys" : ""}</p></div>
+  const supply = supplyOf();
+  const inUsd = !!c.usd;
+  const val = (priceEth) => priceEth * supply * (inUsd ? c.usd : 1);
+  const short = (v) => (inUsd ? fmtUsdShort(v) : `${fmtPrice(v)} ETH`);
+  const pts = trades.filter((x) => x.price > 0 && now - x.t <= RANGES[range]).map((x) => ({ t: x.t, v: val(x.price), p: x.price }));
+  if (c.priceEth) pts.push({ t: now, v: val(c.priceEth), p: c.priceEth });
+  const last = pts.length ? pts[pts.length - 1].v : null;
+  const chg = pts.length >= 2 && pts[0].v > 0 ? ((last - pts[0].v) / pts[0].v) * 100 : null;
+  const head = `<div class="mc-head">
+      <div><p class="mc-label">Market cap</p><p class="mc-big">${last != null ? short(last) : "—"}</p>
+        <p class="mc-chg">${chg == null ? '<span class="dim">no trades in this range</span>' : `<span class="${chg >= 0 ? "up" : "down"}">${chg >= 0 ? "+" : ""}${chg.toFixed(2)}%</span> <span class="dim">${range}</span>`}</p></div>
       <div class="ranges">${Object.keys(RANGES).map((r) => `<button class="${r === range ? "on" : ""}" data-range="${r}">${r}</button>`).join("")}</div></div>`;
   if (pts.length < 2) {
-    $("#pricePanel").innerHTML = head + `<p class="big-num">${fmtEth(c.priceEth)} ETH</p><p class="muted small">${historyState === "loading" ? "Reading trade history…" : historyState === "error" ? "Could not read trade history from the RPC." : `No trades in this range yet${range !== "All" ? "; try All" : ""}.`}</p>`;
+    $("#pricePanel").innerHTML = head + `<p class="muted small chart-empty">${historyState === "loading" ? "Reading trade history…" : historyState === "error" ? "Could not read trade history from the RPC." : `No trades in the last ${range}${range !== "ALL" ? "; try ALL" : ""}.`}</p>`;
     return;
   }
-  const W = 640, H = 220, PADR = 92, PADB = 24;
+  const W = 640, H = 240, PADR = 64, PADB = 24;
   const t0 = pts[0].t, t1 = pts[pts.length - 1].t, span = Math.max(1, t1 - t0);
-  let lo = Math.min(...pts.map((x) => x.p)), hi = Math.max(...pts.map((x) => x.p));
-  if (hi === lo) { hi *= 1.01; lo *= 0.99; }
+  let lo = Math.min(...pts.map((x) => x.v)), hi = Math.max(...pts.map((x) => x.v));
+  if (hi === lo) { hi *= 1.02; lo *= 0.98; }
+  const pad = (hi - lo) * 0.08; hi += pad; lo = Math.max(0, lo - pad);
   const X = (t) => ((t - t0) / span) * (W - PADR);
-  const Y = (p) => 8 + (1 - (p - lo) / (hi - lo)) * (H - PADB - 16);
-  // step line: price holds until the next trade
-  let d = `M${X(pts[0].t).toFixed(1)},${Y(pts[0].p).toFixed(1)}`;
-  for (let i = 1; i < pts.length; i++) d += ` H${X(pts[i].t).toFixed(1)} V${Y(pts[i].p).toFixed(1)}`;
-  const area = `${d} V${H - PADB} H${X(pts[0].t).toFixed(1)} Z`;
-  const ticks = [0, 1, 2, 3, 4].map((i) => lo + ((hi - lo) * i) / 4);
-  // enough digits that neighbouring labels differ when the range is narrow
-  const sig = Math.min(8, Math.max(4, Math.ceil(-Math.log10((hi - lo) / hi)) + 2));
-  const times = [0, 0.5, 1].map((f) => t0 + span * f);
+  const Y = (v) => 8 + (1 - (v - lo) / (hi - lo)) * (H - PADB - 16);
+  const d = pts.map((q, i) => `${i ? "L" : "M"}${X(q.t).toFixed(1)},${Y(q.v).toFixed(1)}`).join(" ");
+  const area = `${d} L${X(t1).toFixed(1)},${H - PADB} L${X(t0).toFixed(1)},${H - PADB} Z`;
+  const ticks = [0.25, 0.75].map((f) => lo + (hi - lo) * f);
+  const labels = ticks.map(short);
+  const tickLabel = (v, i) => (labels[0] === labels[1] ? (inUsd ? fmtUsd(v) : `${fmtPrice(v, 6)} ETH`) : labels[i]);
+  const times = [0, 1 / 3, 2 / 3, 1].map((f) => t0 + span * f);
+  const up = chg == null || chg >= 0;
+  const lastX = X(t1), lastY = Y(last);
   $("#pricePanel").innerHTML = head + `
     <div class="chart-wrap"><svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" id="chartSvg">
-      <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".35"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
+      <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".28"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
       ${ticks.map((v) => `<line x1="0" x2="${W - PADR}" y1="${Y(v)}" y2="${Y(v)}" class="grid"/>`).join("")}
-      <path d="${area}" fill="url(#cg)"/><path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke"/>
-      <line id="cross" y1="0" y2="${H - PADB}" class="cross" hidden/><circle id="dot" r="4" fill="var(--accent)" hidden/>
+      <path d="${area}" fill="url(#cg)"/><path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+      <line id="cross" y1="0" y2="${H - PADB}" class="cross" hidden/>
     </svg>
-    <div class="y-labels">${ticks.map((v) => `<span style="top:${(Y(v) / H) * 100}%">${fmtPrice(v, sig)} ETH</span>`).join("")}</div>
-    <div class="x-labels">${times.map((t, i) => `<span style="left:${(X(t) / W) * 100}%;transform:translateX(${i === 0 ? 0 : i === 2 ? -100 : -50}%)">${hhmm(t, span)}</span>`).join("")}</div>
+    <span class="chart-dot ${up ? "" : "is-down"}" style="left:${(lastX / W) * 100}%;top:${(lastY / H) * 100}%"></span>
+    <span class="chart-dot hover" id="dot" hidden></span>
+    <div class="y-labels">${ticks.map((v, i) => `<span style="top:${(Y(v) / H) * 100}%">${tickLabel(v, i)}</span>`).join("")}</div>
+    <div class="x-labels">${times.map((t, i) => `<span style="left:${(X(t) / W) * 100}%;transform:translateX(${i === 0 ? 0 : i === 3 ? -100 : -50}%)">${hhmm(t, span)}</span>`).join("")}</div>
     <div class="tip" id="tip" hidden></div></div>
-    <p class="dim small">${pts.length - 1} trade${pts.length === 2 ? "" : "s"} · updated ${new Date().toISOString().slice(11, 19)} UTC</p>`;
+    <p class="dim small">${pts.length - 1} trade${pts.length === 2 ? "" : "s"} in range${inUsd ? ` · ETH at ${fmtUsd(c.usd)}` : ""} · updated ${new Date().toISOString().slice(11, 19)} UTC</p>`;
   const svg = $("#chartSvg"), tip = $("#tip"), cross = $("#cross"), dot = $("#dot");
   const move = (ev) => {
     const r = svg.getBoundingClientRect();
@@ -406,11 +426,11 @@ function renderPrice() {
     let k = 0;
     for (let i = 0; i < pts.length; i++) if (pts[i].t <= t) k = i;
     const pt = pts[k];
-    cross.setAttribute("x1", X(t)); cross.setAttribute("x2", X(t)); cross.hidden = false;
-    dot.setAttribute("cx", X(t)); dot.setAttribute("cy", Y(pt.p)); dot.hidden = false;
+    cross.setAttribute("x1", X(pt.t)); cross.setAttribute("x2", X(pt.t)); cross.hidden = false;
+    dot.style.left = `${(X(pt.t) / W) * 100}%`; dot.style.top = `${(Y(pt.v) / H) * 100}%`; dot.hidden = false;
     tip.hidden = false;
-    tip.textContent = `${fmtPrice(pt.p)} ETH · ${new Date(t * 1000).toISOString().slice(5, 16).replace("T", " ")} UTC`;
-    tip.style.left = `${Math.min(70, (X(t) / W) * 100)}%`;
+    tip.textContent = `${short(pt.v)} · ${inUsd ? fmtUsd(pt.p * c.usd) : `${fmtPrice(pt.p)} ETH`} · ${new Date(pt.t * 1000).toISOString().slice(5, 16).replace("T", " ")}`;
+    tip.style.left = `${Math.min(62, (X(pt.t) / W) * 100)}%`;
   };
   svg.addEventListener("pointermove", move);
   svg.addEventListener("pointerdown", move);
@@ -420,9 +440,9 @@ function renderPrice() {
 function renderActivity() {
   const sym = esc(c.info.symbol);
   const rows = trades.slice(-50).reverse().map((s) => `<tr><td><span class="${s.buy ? "up" : "down"}">${s.buy ? "Buy" : "Sell"}</span></td>
-    <td class="r mono">${s.eth == null ? "—" : fmtPrice(Number(formatEther(s.eth)), 4) + " ETH"}</td><td class="r mono">${Number(formatUnits(s.tok, c.info.decimals)).toLocaleString("en-US", { maximumFractionDigits: 0 })}</td>
+    <td class="r mono" title="${s.eth == null ? "" : fmtPrice(Number(formatEther(s.eth)), 6) + " ETH"}">${s.eth == null ? "—" : c.usd ? fmtUsd(toUsd(Number(formatEther(s.eth))), true) : fmtPrice(Number(formatEther(s.eth)), 4) + " ETH"}</td><td class="r mono">${Number(formatUnits(s.tok, c.info.decimals)).toLocaleString("en-US", { maximumFractionDigits: 0 })}</td>
     <td class="r dim">${hhmm(s.t, 1e9)} ${new Date(s.t * 1000).toISOString().slice(11, 16)}</td><td class="r"><a class="link-accent" href="${CONFIG.explorer}/tx/${s.hash}" target="_blank" rel="noopener">tx ↗</a></td></tr>`);
-  $("#activityPanel").innerHTML = `<table class="table"><thead><tr><th>Side</th><th class="r">ETH</th><th class="r">${sym}</th><th class="r">Time (UTC)</th><th class="r"></th></tr></thead><tbody>${rows.join("") || `<tr><td colspan="5" class="dim">${historyState === "loading" ? "Reading…" : historyState === "error" ? "Could not read trade history." : "No trades yet."}</td></tr>`}</tbody></table>`;
+  $("#activityPanel").innerHTML = `<table class="table"><thead><tr><th>Side</th><th class="r">${c.usd ? "Value" : "ETH"}</th><th class="r">${sym}</th><th class="r">Time (UTC)</th><th class="r"></th></tr></thead><tbody>${rows.join("") || `<tr><td colspan="5" class="dim">${historyState === "loading" ? "Reading…" : historyState === "error" ? "Could not read trade history." : "No trades yet."}</td></tr>`}</tbody></table>`;
 }
 
 // ---------------------------------------------------------------- actions

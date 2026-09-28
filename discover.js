@@ -12,19 +12,23 @@ let pools = [];
 let auctions = [];
 let shown = 24;
 let web3 = null;
+let usd = null;
+const mcaps = new Map(); // token -> market cap in ETH (null when unreadable)
 
 function coinCard(c) {
   const av = web3.coinAvatar(c.symbol, web3.metaOf(c.token).logo);
   const desc = web3.metaOf(c.token).description;
   const rules = c.kind === "v4" ? BLOCKS.filter((b) => c.blocks & b.bit) : [];
+  const mc = mcaps.get(c.token);
+  const mcCell = `<div><span>Market cap</span><b>${mc == null ? (mcaps.has(c.token) ? "—" : "…") : usd ? web3.fmtUsdShort(mc * usd) : `${web3.fmtPrice(mc)} ETH`}</b></div>`;
   const foot = c.kind === "pons"
-    ? `<div><span>Creator earned</span><b>${web3.eth(c.totalToCreator, 4)} ETH</b></div><div><span>Launched</span><b>${ago(c.launchedAt)}</b></div>`
-    : `<div><span>Base fee</span><b>${(c.baseFee / 10000).toFixed(2)}%</b></div><div><span>Rules</span><b class="rule-dots">${BLOCKS.map((b) => `<i class="${c.blocks & b.bit ? "on" : ""}" title="${b.name}"></i>`).join("")}</b></div>`;
+    ? `${mcCell}<div><span>Creator earned</span><b>${usd ? web3.fmtUsd(Number(web3.formatEther(c.totalToCreator)) * usd, true) : `${web3.eth(c.totalToCreator, 4)} ETH`}</b></div>`
+    : `${mcCell}<div><span>Rules</span><b class="rule-dots">${BLOCKS.map((b) => `<i class="${c.blocks & b.bit ? "on" : ""}" title="${b.name}"></i>`).join("")}</b></div>`;
   return `<article class="coin-tile">
     <a class="ct-main" href="/coin?token=${c.token}">
       <div class="cc-top">${av}<span class="cc-kind">${c.kind === "pons" ? "Curve" : "v4 pool"}</span></div>
       <b class="cc-name">${esc(c.name || "Unknown")}</b>
-      <span class="cc-sym">$${esc(c.symbol || "?")} · by ${short(c.creator)}</span>
+      <span class="cc-sym">$${esc(c.symbol || "?")} · by ${short(c.creator)}${c.launchedAt ? ` · ${ago(c.launchedAt)}` : ""}</span>
       <p class="ct-desc">${esc(desc) || (rules.length ? rules.map((b) => b.name).join(" · ") : "No description yet.")}</p>
     </a>
     <div class="ct-foot">${foot}</div>
@@ -69,6 +73,7 @@ function render() {
       ...(tab !== "curve" ? pools.map((p) => ({ kind: "v4", ...p })) : []),
     ].filter(match);
     if ($("#sort").value === "earned") list = list.sort((a, b) => earned(b) - earned(a));
+    if ($("#sort").value === "mcap") list = list.sort((a, b) => (mcaps.get(b.token) ?? -1) - (mcaps.get(a.token) ?? -1));
     total = list.length;
     html = list.slice(0, shown).map(coinCard).join("")
       || empty(!web3 ? "Reading the chain…" : q ? "Nothing matches." : 'No coins here yet. <a class="link-accent" href="/launch">Launch the first one →</a>');
@@ -92,7 +97,7 @@ async function loadPools({ client, CONFIG, ABI }) {
       r("launches", [id]), r("getPool", [id], CONFIG.rigsHook, ABI.rigsHook),
       r("name", [], token, ABI.erc20).catch(() => ""), r("symbol", [], token, ABI.erc20).catch(() => ""),
     ]);
-    return { token, creator, name, symbol, blocks: Number(cfg.blocks), baseFee: Number(cfg.baseFee) };
+    return { token, creator, name, symbol, poolId: id, blocks: Number(cfg.blocks), baseFee: Number(cfg.baseFee) };
   }));
 }
 
@@ -122,11 +127,28 @@ async function load() {
     if (web3.v4live) pools = await loadPools(web3);
     await web3.loadMeta([...launches, ...pools].map((c) => c.token)).catch(() => {});
     if (web3.auctionsLive) auctions = await loadAuctions(web3);
+    usd = await web3.ethUsd();
+    loadMcaps();
     $("#updated").innerHTML = `<i class="dot-green"></i>${launches.length + pools.length} coins · ${auctions.length} auctions · updated ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
   } catch (err) {
     console.error(err);
     $("#updated").textContent = "Could not reach Robinhood Chain. Press ↻ to retry.";
   }
+  render();
+}
+
+/** Market caps for every coin, a few at a time, re-rendering as they arrive. */
+async function loadMcaps() {
+  const queue = [...launches.map((l) => ({ kind: "pons", token: l.token, curve: l.curve })), ...pools.map((p) => ({ kind: "v4", token: p.token, poolId: p.poolId }))]
+    .filter((x) => !mcaps.has(x.token));
+  const worker = async () => {
+    for (let x = queue.shift(); x; x = queue.shift()) {
+      mcaps.set(x.token, await web3.marketCapEth(x).catch(() => null));
+    }
+  };
+  const tick = setInterval(render, 800);
+  await Promise.all(Array.from({ length: 6 }, worker));
+  clearInterval(tick);
   render();
 }
 

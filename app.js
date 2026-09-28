@@ -33,10 +33,11 @@ $("#faqList").innerHTML = FAQ.map(([q, a]) => `<details><summary>${q}</summary><
 
 /* ---------- live data ---------- */
 let w = null;
+let usd = null;
+const mcaps = new Map();
 function coinCard(c) {
-  const foot = c.kind === "pons"
-    ? `<span>Creator earned</span><b>${w.eth(c.totalToCreator, 4)} ETH</b>`
-    : `<span>Rules on</span><b>${BLOCKS.filter((b) => c.blocks & b.bit).length} / 5</b>`;
+  const mc = mcaps.get(c.token);
+  const foot = `<span>Market cap</span><b>${mc == null ? (mcaps.has(c.token) ? "—" : "…") : usd ? w.fmtUsdShort(mc * usd) : `${w.fmtPrice(mc)} ETH`}</b>`;
   return `<a class="coin-card" href="/coin?token=${c.token}">
     <div class="cc-top">${w.coinAvatar(c.symbol, w.metaOf(c.token).logo)}<span class="cc-kind">${c.kind === "pons" ? "Curve" : "v4 pool"}</span></div>
     <b class="cc-name">${esc(c.name || "Unknown")}</b>
@@ -65,7 +66,7 @@ function renderRail(coins, failed) {
     set("#stPools", nP.toLocaleString("en-US"));
     set("#stAuctions", nA.toLocaleString("en-US"));
     const launches = await Promise.all(Array.from({ length: Math.min(nL, 100) }, (_, i) => w.loadLaunch(nL - 1 - i)));
-    set("#stPaid", w.eth(launches.reduce((s, l) => s + l.totalToCreator, 0n), 4));
+    set("#stPaid", `${w.eth(launches.reduce((s, l) => s + l.totalToCreator, 0n), 4)} ETH`);
     const { encodeAbiParameters, keccak256 } = await import("https://cdn.jsdelivr.net/npm/viem@2.21.0/+esm");
     const pools = await Promise.all(Array.from({ length: Math.min(nP, 8) }, async (_, i) => {
       const token = await client.readContract({ address: CONFIG.rigsLauncher, abi: ABI.rigsLauncher, functionName: "tokens", args: [BigInt(nP - 1 - i)] });
@@ -75,10 +76,14 @@ function renderRail(coins, failed) {
         client.readContract({ address: CONFIG.rigsHook, abi: ABI.rigsHook, functionName: "getPool", args: [id] }),
         w.tokenInfo(token),
       ]);
-      return { kind: "v4", token, name: info.name, symbol: info.symbol, blocks: Number(cfg.blocks) };
+      return { kind: "v4", token, poolId: id, name: info.name, symbol: info.symbol, blocks: Number(cfg.blocks) };
     }));
     const coins = [...launches.slice(0, 12).map((l) => ({ kind: "pons", ...l })), ...pools].slice(0, 12);
     await w.loadMeta(coins.map((c) => c.token)).catch(() => {});
+    renderRail(coins, false);
+    usd = await w.ethUsd();
+    if (usd) set("#stPaid", w.fmtUsdShort(Number(w.formatEther(launches.reduce((s, l) => s + l.totalToCreator, 0n))) * usd));
+    await Promise.all(coins.map(async (c) => mcaps.set(c.token, await w.marketCapEth(c).catch(() => null))));
     renderRail(coins, false);
   } catch (err) {
     console.error(err);
