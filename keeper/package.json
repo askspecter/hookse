@@ -1,0 +1,25 @@
+{
+  "name": "rigs-paired-keeper",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Harvests Pons fees of Rigs paired coins, buys NFT floors or Collector Crypt gacha packs, and raffles them to holders",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "once": "node src/index.js --once",
+    "test": "node --test test/*.test.js",
+    "gacha-check": "node scripts/gacha-check.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@openzeppelin/merkle-tree": "^1.0.8",
+    "@solana/spl-token": "^0.4.15",
+    "@solana/web3.js": "^1.99.0",
+    "bs58": "^6.0.0",
+    "dotenv": "^16.6.1",
+    "viem": "^2.56.8"
+  }
+}
