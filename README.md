@@ -9,7 +9,7 @@ Static pages, no build step. Serve the folder (`python3 -m http.server`) or depl
 | Page | What it does |
 | --- | --- |
 | `/` | Landing page |
-| `/deploy` | Admin: deploy every contract from your wallet, generate `config.js`, change treasury and royalties |
+| `/deploy` | Admin: deploy every contract from your wallet (Robinhood Chain and Arc), generate `config.js`, change treasury and royalties |
 | `/app` | Coins: every Rigs coin as a card (curve, v4 pools, auctions) |
 | `/launch` | Launch a coin on Pons V2 (wallet signs) |
 | `/portfolio` | Earn: claim your 80% of creator fees, harvest, look up a coin (`/claim` redirects here) |
@@ -36,6 +36,14 @@ Recommended on the Vercel project (Settings → Environment Variables), then red
 | `SOL_TREASURY` | Optional. Overrides the Rigs Solana treasury (default `CeEtCANnK4a5H2WHhpCqZiJMwEZSzJ7bWTLYL6ZK1hVk`, also in `config.js`). |
 | `SOLANA_RPC_URL` | A Solana mainnet RPC URL (Helius, QuickNode, …). The public RPC rate-limits. |
 
+### Arc (ArgusPad)
+
+Arc launches go through Argus Portal #7 (`CONFIG.arc`, addresses from the official `arguspad.io/argus-v4.json` bundle, version 3). Argus credits the creator's share of every tax and LP fee to whoever called `Portal.launch`, and its splitter's `claim(account)` is permissionless. So each Rigs coin on Arc launches from its own `ArgusVault` (a minimal-proxy clone made by `ArgusLauncher`), which becomes the Argus creator. `release()` on the vault, callable by anyone, claims from Argus and pays 80% to the creator and 20% to the Rigs Arc treasury, in USDC (and in the coin, for the token leg). A creator payout that fails is kept for the next release and never blocks the treasury share.
+
+The site mines each launch's hook salt in the browser: it first checks the Portal's own salt formula and hook deployer against `predictHook`, and uses a salt only after `predictHook` says it is valid. The launch curve (starting and bonding market cap) is read from the newest USDC launch on Portal #7, so Rigs coins open on the same curve as ArgusPad's own. Taxes are 1–10% per side; the creator share can include buyback & burn. Coins show on `/app#arc`, creators claim on `/portfolio#arc`.
+
+To go live, open `/deploy`, sign the two Arc steps (vault template, launcher; gas is USDC on Arc), and put the generated `arc.launcher` into `config.js`.
+
 `CONFIG.official` names the official $RIGS coin. It was launched directly on Pons, so the site finds its curve from its launch transaction (verified with a simulated buy) and pins it first on Coins and the home page with an Official badge. Set `official.curve` to skip the lookup.
 
 Shared code: `shell.js` (top bar, mobile tab bar and More sheet, search ⌘K, theme), `web3.js` (viem client, wallet, ABIs), `config.js` (addresses), `hooks-data.js` (rule blocks).
@@ -54,4 +62,4 @@ Until the addresses are set in `config.js`, launching, claiming, pool creation a
 
 ## Contracts
 
-See `engine/` — Hardhat project with tests (`npm test`). Not audited.
+See `engine/` — Hardhat project with tests (`npm test`). Arc contracts are in `engine/contracts/arc/`. Not audited.

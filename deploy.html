@@ -43,7 +43,7 @@
       <div class="card kv-grid">
         <div><small>Wallet</small><b id="wAddr">—</b><small id="wBal">not connected</small></div>
         <div><small>Network</small><b id="wNet">—</b><small id="wNetNote">must be chain 4663</small></div>
-        <div><small>Progress</small><b id="wProg">0 / 8</b><small>saved in this browser</small></div>
+        <div><small>Progress</small><b id="wProg">0 / 10</b><small>saved in this browser</small></div>
       </div>
 
       <div class="notice sec-gap" id="depError" hidden></div>
@@ -68,14 +68,21 @@
       <h2 class="h-sm sec-h">3 · Router &amp; auctions</h2>
       <section class="card pad stack"><div class="dep-steps" id="stepsAuctions"></div></section>
 
-      <h2 class="h-sm sec-h">4 · Config</h2>
+      <h2 class="h-sm sec-h">4 · Arc (ArgusPad launches)</h2>
+      <section class="card pad stack">
+        <label class="dep-field">Arc treasury (receives 20%)<input id="arcTreasury" class="filter mono" placeholder="0x… defaults to the treasury in config.js" /></label>
+        <p class="dim small">Your wallet switches to Arc (chain 5042) for these two steps. Gas is paid in USDC on Arc.</p>
+        <div class="dep-steps" id="stepsArc"></div>
+      </section>
+
+      <h2 class="h-sm sec-h">5 · Config</h2>
       <section class="card pad">
         <p class="muted small">Replace <span class="mono">config.js</span> with this, commit and redeploy the site. Visitors see launching, claiming and pool creation switch on.</p>
         <pre class="mono cfg-out" id="cfgOut"></pre>
         <div class="btn-row"><button class="btn btn-primary btn-sm" id="copyCfg">Copy config.js</button><button class="btn btn-dark btn-sm" id="dlCfg">Download config.js</button><button class="btn btn-dark btn-sm" id="resetDep">Forget saved progress</button></div>
       </section>
 
-      <h2 class="h-sm sec-h">5 · Admin</h2>
+      <h2 class="h-sm sec-h">6 · Admin</h2>
       <section class="grid2">
         <div class="card pad stack">
           <p class="form-h">Change treasury (PonsLauncher)</p>

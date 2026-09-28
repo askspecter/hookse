@@ -294,12 +294,21 @@ const NETWORK = {
   rpcUrls: { default: { http: [CONFIG.rpcUrl] } },
   blockExplorers: { default: { name: "Blockscout", url: CONFIG.explorer } },
 };
+// Arc (Argus launches). USDC is Arc's gas token; wallets show it with 18 decimals.
+const ARC = CONFIG.arc || {};
+const ARC_NETWORK = ARC.chainId ? {
+  id: ARC.chainId, name: ARC.chainName || "Arc", chainNamespace: "eip155", caipNetworkId: `eip155:${ARC.chainId}`,
+  nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
+  rpcUrls: { default: { http: [ARC.rpcUrl] } },
+  blockExplorers: { default: { name: "ArcScan", url: ARC.explorer } },
+} : null;
+const NETWORKS = ARC_NETWORK ? [NETWORK, ARC_NETWORK] : [NETWORK];
 let kitPromise = null;
 function appKit() {
   kitPromise ||= import("https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.8.24/dist/appkit.js").then(({ createAppKit, WagmiAdapter }) => {
     const projectId = CONFIG.reownProjectId;
     const kit = createAppKit({
-      adapters: [new WagmiAdapter({ projectId, networks: [NETWORK] })], networks: [NETWORK], defaultNetwork: NETWORK, projectId,
+      adapters: [new WagmiAdapter({ projectId, networks: NETWORKS })], networks: NETWORKS, defaultNetwork: NETWORK, projectId,
       metadata: { name: "Rigs", description: "Open Rigs pools on Uniswap v4 and Pons V2", url: location.origin, icons: [new URL("/assets/icon-512.png", location.href).href] },
       features: { analytics: false, email: false, socials: false, swaps: false, onramp: false, send: false },
       allowUnsupportedChain: true,
@@ -349,19 +358,30 @@ async function connectInjected() {
 
 export const connect = () => (CONFIG.reownProjectId ? connectReown() : connectInjected());
 
-async function ensureChain(transport) {
+async function ensureChain(transport, net = NETWORK) {
   const hex = await transport.request({ method: "eth_chainId" }).catch(() => null);
-  if (hex && Number(hex) === CONFIG.chainId) return;
+  if (hex && Number(hex) === net.id) return;
   try {
-    await transport.request({ method: "wallet_switchEthereumChain", params: [{ chainId: toHex(CONFIG.chainId) }] });
+    await transport.request({ method: "wallet_switchEthereumChain", params: [{ chainId: toHex(net.id) }] });
   } catch (err) {
-    if (err?.code !== 4902) throw new Error(`Switch your wallet to ${CONFIG.chainName} and try again.`);
+    if (err?.code !== 4902 && err?.data?.originalError?.code !== 4902) throw new Error(`Switch your wallet to ${net.name} and try again.`);
     await transport.request({
       method: "wallet_addEthereumChain",
-      params: [{ chainId: toHex(CONFIG.chainId), chainName: CONFIG.chainName, rpcUrls: [CONFIG.rpcUrl],
-        nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 }, blockExplorerUrls: [CONFIG.explorer] }],
+      params: [{ chainId: toHex(net.id), chainName: net.name, rpcUrls: net.rpcUrls.default.http,
+        nativeCurrency: net.nativeCurrency, blockExplorerUrls: [net.blockExplorers.default.url] }],
     });
   }
+}
+
+/** A wallet client on Arc for the connected account (switches or adds the network in the wallet). */
+export async function arcWalletClient(arcChain) {
+  if (!ARC_NETWORK) throw new Error("Arc is not configured");
+  if (!account) await connect();
+  const transport = provider || window.ethereum;
+  if (!transport) throw new Error("No wallet connected");
+  if (!account) throw new Error("Connect your wallet first.");
+  await ensureChain(transport, ARC_NETWORK);
+  return createWalletClient({ account, chain: arcChain, transport: custom(transport) });
 }
 
 export async function walletClient() {

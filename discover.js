@@ -17,9 +17,11 @@ let official = null; // the official $RIGS coin, pinned first
 const mcaps = new Map(); // token -> market cap in ETH (null when unreadable)
 let solCoins = []; // coins launched on pump.fun through Rigs (still paying the Rigs share)
 let solUsd = null;
+let arcCoins = []; // coins launched on Argus (Arc) through Rigs; market caps are in USDC
+let arcCfg = null;
 
 /** Market cap in dollars for sorting (null when unknown). */
-const mcapUsd = (c) => (c.chain === "solana"
+const mcapUsd = (c) => (c.chain === "arc" ? c.marketCap : c.chain === "solana"
   ? (c.marketCapSol != null && solUsd ? c.marketCapSol * solUsd : null)
   : (mcaps.get(c.token) != null && usd ? mcaps.get(c.token) * usd : null));
 
@@ -35,6 +37,20 @@ function solCard(c) {
     </a>
     <div class="ct-foot"><div><span>Market cap</span><b>${mc}</b></div><div><span>Fee split</span><b>80 / 20</b></div></div>
     <div class="ct-acts"><a class="btn btn-primary btn-xs" href="${pumpUrl}" target="_blank" rel="noopener">Trade ↗</a><a class="btn btn-ghost btn-xs" href="https://solscan.io/token/${c.mint}" target="_blank" rel="noopener">Solscan ↗</a></div>
+  </article>`;
+}
+
+function arcCard(c) {
+  const scan = `${arcCfg.explorer}/address/${c.token}`;
+  return `<article class="coin-tile">
+    <a class="ct-main" href="${scan}" target="_blank" rel="noopener">
+      <div class="cc-top">${web3.coinAvatar(c.symbol, c.logo)}<span class="cc-kinds"><span class="cc-kind chain-arc"><img class="via-ic" src="/assets/arc.jpg" alt="" />Arc</span><span class="cc-kind"><img class="via-ic" src="/assets/argus.jpg" alt="" />${c.bonded ? "Bonded" : "Argus"}</span></span></div>
+      <b class="cc-name">${esc(c.name || "Unknown")}</b>
+      <span class="cc-sym">$${esc(c.symbol || "?")} · by ${short(c.creator)}${c.launchedAt ? ` · ${ago(c.launchedAt)}` : ""}</span>
+      <p class="ct-desc">Launched on ArgusPad through Rigs. Tax ${Number(c.buyTaxBps) / 100}% buy / ${Number(c.sellTaxBps) / 100}% sell, creator share split 80/20 in USDC.</p>
+    </a>
+    <div class="ct-foot"><div><span>Market cap</span><b>${c.marketCap == null ? "—" : web3.fmtUsdShort(c.marketCap)}</b></div><div><span>Fee split</span><b>80 / 20</b></div></div>
+    <div class="ct-acts"><a class="btn btn-primary btn-xs" href="${arcCfg.argusUrl}" target="_blank" rel="noopener">Trade on Argus ↗</a><a class="btn btn-ghost btn-xs" href="/portfolio#arc">Fees</a></div>
   </article>`;
 }
 
@@ -95,21 +111,23 @@ function render() {
     html = !web3?.auctionsLive ? empty('Auctions appear once RigsAuctions is deployed. <a class="link-accent" href="/auctions">Auctions →</a>')
       : list.slice(0, shown).map(auctionCard).join("") || empty(q ? "Nothing matches." : 'No auctions yet. <a class="link-accent" href="/auctions#create">Create one →</a>');
   } else {
-    const evm = tab !== "solana";
+    const evm = tab !== "solana" && tab !== "arc";
     let list = [
       ...(evm && tab !== "pools" && official ? [official] : []),
       ...(evm && tab !== "pools" ? launches.filter((l) => !official || l.token.toLowerCase() !== official.token.toLowerCase()).map((l) => ({ kind: "pons", ...l, creator: l.creator || l.creatorAtLaunch })) : []),
       ...(evm && tab !== "curve" ? pools.map((p) => ({ kind: "v4", ...p })) : []),
       ...(tab === "all" || tab === "solana" ? solCoins.map((c) => ({ chain: "solana", token: c.mint, ...c })) : []),
+      ...(tab === "all" || tab === "arc" ? arcCoins.map((c) => ({ chain: "arc", ...c })) : []),
     ].filter(match);
     const pinned = (a, b) => (b.official ? 1 : 0) - (a.official ? 1 : 0);
     if ($("#sort").value === "earned") list = list.sort((a, b) => pinned(a, b) || earned(b) - earned(a));
     if ($("#sort").value === "mcap") list = list.sort((a, b) => pinned(a, b) || (mcapUsd(b) ?? -1) - (mcapUsd(a) ?? -1));
     if ($("#sort").value === "new") list = list.sort((a, b) => pinned(a, b) || (b.launchedAt || 0) - (a.launchedAt || 0));
     total = list.length;
-    html = list.slice(0, shown).map((c) => (c.chain === "solana" ? solCard(c) : coinCard(c))).join("")
+    html = list.slice(0, shown).map((c) => (c.chain === "solana" ? solCard(c) : c.chain === "arc" ? arcCard(c) : coinCard(c))).join("")
       || empty(!web3 ? "Reading the chain…" : q ? "Nothing matches."
         : tab === "solana" ? 'No Solana coins yet. <a class="link-accent" href="/launch#solana">Launch one on pump.fun →</a>'
+        : tab === "arc" ? 'No Arc coins yet. <a class="link-accent" href="/launch#arc">Launch one on ArgusPad →</a>'
         : 'No coins here yet. <a class="link-accent" href="/launch">Launch the first one →</a>');
   }
   $("#grid").innerHTML = html;
@@ -158,6 +176,12 @@ async function load() {
       const [data, px] = await Promise.all([s.loadSolCoins(), s.solPriceUsd()]);
       solCoins = (data.coins || []).filter((c) => c.listed);
       solUsd = px;
+      render();
+    }).catch((err) => console.error(err));
+    // Arc coins are read from Arc directly.
+    import("./arc.js").then(async (a) => {
+      arcCfg = a.ARC;
+      arcCoins = await a.loadArcCoins();
       render();
     }).catch((err) => console.error(err));
     official = await loadOfficial().catch((err) => { console.error(err); return null; });
@@ -228,7 +252,7 @@ $("#grid").addEventListener("click", async (e) => {
 });
 
 // Old links: #tokens / #launches / #hooks.
-const initial = { tokens: "all", launches: "curve", curve: "curve", pools: "pools", auctions: "auctions", solana: "solana" }[location.hash.slice(1)];
+const initial = { tokens: "all", launches: "curve", curve: "curve", pools: "pools", auctions: "auctions", solana: "solana", arc: "arc" }[location.hash.slice(1)];
 if (location.hash === "#hooks") location.replace("/hooks");
 if (initial) document.querySelector(`#tabs [data-tab="${initial}"]`).click();
 render();

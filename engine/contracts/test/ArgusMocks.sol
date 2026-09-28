@@ -55,6 +55,10 @@ contract MockArgusSplitter {
         creditedToken += t;
     }
 
+    function claimableQuote6(address account) external view returns (uint256) {
+        return account == creator ? creditedQuote : 0;
+    }
+
     function claim(address account) external returns (uint256, uint256, uint256) {
         require(account == creator, "NothingToClaim");
         (uint256 q, uint256 t) = (creditedQuote, creditedToken);
@@ -67,6 +71,22 @@ contract MockArgusSplitter {
     }
 }
 
+contract MockArgusHook {
+    bytes32 public poolId;
+    bool public bonded;
+
+    constructor(bytes32 id) {
+        poolId = id;
+    }
+}
+
+/// @dev Every pool sits at the same price: ~$5,000 market cap for a 1B coin paired with 6-decimal USDC.
+contract MockStateView {
+    function getSlot0(bytes32) external pure returns (uint160, int24, uint24, uint24) {
+        return (uint160(177078580816648765440), -398400, 0, 10000);
+    }
+}
+
 /// @dev launch(): creator = msg.sender, pulls the dev buy from msg.sender, sends 1000 coins per quote unit
 /// back for 90% of it and refunds the rest (like a partially filled dev buy).
 contract MockArgusPortal {
@@ -74,9 +94,61 @@ contract MockArgusPortal {
         address creator;
         address splitter;
         address quote;
+        address hook;
     }
 
     mapping(address => Rec) internal recs;
+    address[] public allTokens;
+    bool public enforceHook;
+    uint160 public constant FLAGS = 0x2044;
+
+    function setEnforceHook(bool on) external {
+        enforceHook = on;
+    }
+
+    function tokenCount() external view returns (uint256) {
+        return allTokens.length;
+    }
+
+    function getTokens(uint256 offset, uint256 limit) external view returns (address[] memory out) {
+        uint256 end = offset + limit > allTokens.length ? allTokens.length : offset + limit;
+        out = new address[](end > offset ? end - offset : 0);
+        for (uint256 i = offset; i < end; i++) out[i - offset] = allTokens[i];
+    }
+
+    function predictSplitter(address creator, bytes32 salt) public pure returns (address) {
+        return address(uint160(uint256(keccak256(abi.encode("splitter", creator, salt)))));
+    }
+
+    function hookInitCodeHash(address splitter_, uint16 buyTaxBps, uint16 sellTaxBps, address quote)
+        public
+        pure
+        returns (bytes32)
+    {
+        return keccak256(abi.encode(splitter_, buyTaxBps, sellTaxBps, quote));
+    }
+
+    function hookCreate2Salt(address creator, bytes32 hookSalt) public pure returns (bytes32) {
+        return keccak256(abi.encode(creator, hookSalt));
+    }
+
+    function predictHook(address creator, bytes32 salt, bytes32 hookSalt, uint16 buyTaxBps, uint16 sellTaxBps, address quote)
+        public
+        view
+        returns (address hook, uint160 mask, bool valid)
+    {
+        bytes32 h = keccak256(
+            abi.encodePacked(
+                bytes1(0xff),
+                address(this),
+                hookCreate2Salt(creator, hookSalt),
+                hookInitCodeHash(predictSplitter(creator, salt), buyTaxBps, sellTaxBps, quote)
+            )
+        );
+        hook = address(uint160(uint256(h)));
+        mask = FLAGS;
+        valid = uint160(hook) & 0x3fff == FLAGS;
+    }
     IArgusPortal.LaunchParams public lastParams;
     bytes32 public lastSalt;
     bytes32 public lastHookSalt;
@@ -88,6 +160,10 @@ contract MockArgusPortal {
         bytes32 hookSalt
     ) external returns (address token) {
         require(p.creatorBps + p.burnBps + p.dividendBps + p.liquidityBps == 10_000, "InvalidAllocation");
+        if (enforceHook) {
+            (,, bool valid) = predictHook(msg.sender, salt, hookSalt, p.buyTaxBps, p.sellTaxBps, p.quoteAsset);
+            require(valid, "HookSaltInvalid");
+        }
         lastParams = p;
         lastSalt = salt;
         lastHookSalt = hookSalt;
@@ -100,7 +176,9 @@ contract MockArgusPortal {
             ERC20(p.quoteAsset).transfer(msg.sender, p.devBuyQuote - spent);
         }
         MockArgusSplitter s = new MockArgusSplitter(msg.sender, ERC20(p.quoteAsset), t);
-        recs[token] = Rec(msg.sender, address(s), p.quoteAsset);
+        MockArgusHook hook = new MockArgusHook(keccak256(abi.encode(token)));
+        recs[token] = Rec(msg.sender, address(s), p.quoteAsset, address(hook));
+        allTokens.push(token);
         t.transfer(0x000000000000000000000000000000000000dEaD, 1 ether);
     }
 
@@ -110,7 +188,7 @@ contract MockArgusPortal {
         returns (address, int24, bool, address, address, address, uint16, uint16, uint256, int24, address)
     {
         Rec memory r = recs[token];
-        return (r.creator, 0, true, address(0), address(0), r.splitter, 0, 0, 0, 0, r.quote);
+        return (r.creator, -398400, true, address(0), r.hook, r.splitter, 300, 300, 0, -373600, r.quote);
     }
 
     /// @dev Test helper: coins for a trader.

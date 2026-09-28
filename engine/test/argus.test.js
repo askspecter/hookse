@@ -52,6 +52,7 @@ describe("Argus (Arc) launch (80% creator / 20% treasury)", () => {
     expect(await portal.lastSalt()).to.equal(ethers.id("s1"));
     expect(await portal.lastHookSalt()).to.equal(ethers.id("hook"));
     expect(await launcher.idOf(l.token)).to.equal(0n);
+    expect(await launcher.logoOf(l.token)).to.equal("https://userigs.fun/api/img?id=x");
     expect(await launcher.launchesOf(creator.address)).to.deep.equal([0n]);
   });
 

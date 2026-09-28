@@ -1061,3 +1061,7 @@ body { background:
 .cc-kind.chain-sol { color: #14f195; border-color: color-mix(in srgb, #14f195 40%, transparent); }
 @media (max-width: 1000px) { .sol-grid { grid-template-columns: 1fr; } }
 @media (max-width: 640px) { .chain-pick { grid-template-columns: 1fr 1fr 1fr; gap: 8px; } .chain-pick button { flex-direction: column; text-align: center; gap: 6px; padding: 10px 6px; } .chain-pick b { font-size: 12.5px; } .chain-pick small { display: none; } }
+
+.row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.cc-kind.chain-arc { color: #9fb6d9; border-color: color-mix(in srgb, #9fb6d9 40%, transparent); }
+@media (max-width: 640px) { .row3 { grid-template-columns: 1fr 1fr; } }

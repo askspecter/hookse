@@ -40,7 +40,7 @@
         <p class="lede muted">Creator fees from the coins you launched, and your liquidity positions.</p></div>
         <div class="btn-row"><a href="/launch" class="btn btn-dark btn-sm">Launch a coin</a></div>
       </div>
-      <div class="subtabs" id="ptabs"><button class="on" data-p="fees">Creator fees</button><button data-p="positions">Positions</button></div>
+      <div class="subtabs" id="ptabs"><button class="on" data-p="fees">Creator fees</button><button data-p="arc"><img class="via-ic" src="/assets/arc.jpg" alt="" /> Arc fees</button><button data-p="positions">Positions</button></div>
       <div class="notice" id="notLive" hidden>Claiming is off until the Rigs Pons launcher is deployed and set in <span class="mono">config.js</span>.</div>
       <section id="p-fees">
         <section class="card claim-top">
@@ -61,6 +61,15 @@
         </div>
         <p class="fine">Claimable shows fees already swept into the splitter or the Pons escrow. Fees still on a coin's bonding curve are swept when you claim. Anyone can press Harvest to push fees through; your 80% always stays yours.</p>
       </section>
+      <section id="p-arc" hidden>
+        <div class="card table-card">
+          <table class="table">
+            <thead><tr><th>Coin</th><th>Vault</th><th class="r">Claimable</th><th class="r">Paid to you</th><th class="r"></th></tr></thead>
+            <tbody id="arcRows"><tr><td colspan="5" class="dim">Connect your wallet to see coins you launched on Arc.</td></tr></tbody>
+          </table>
+        </div>
+        <p class="fine">Arc coins pay in USDC. Claim pulls the coin's creator share from Argus and splits it on the spot: 80% to you, 20% to Rigs. Anyone can press it; your 80% always goes to you.</p>
+      </section>
       <section id="p-positions" hidden>
         <div class="empty">
           <b>Liquidity positions</b>
@@ -75,5 +84,6 @@
   <script type="module" src="shell.js"></script>
   <script type="module" src="claim.js"></script>
   <script type="module" src="portfolio.js"></script>
+  <script type="module" src="arc-earn.js"></script>
 </body>
 </html>

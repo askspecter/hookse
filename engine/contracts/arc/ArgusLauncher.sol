@@ -28,6 +28,8 @@ contract ArgusLauncher is Ownable {
 
     Launch[] public launches;
     mapping(address token => uint256) public idOf;
+    /// @dev The logo URL passed to Argus (also in its TokenCreated event), kept here so the site can read it directly.
+    mapping(address token => string) public logoOf;
     mapping(address creator => uint256[]) internal _byCreator;
 
     event Launched(uint256 indexed id, address indexed creator, address indexed token, address vault, uint256 devBuy);
@@ -73,6 +75,7 @@ contract ArgusLauncher is Ownable {
         id = launches.length;
         launches.push(Launch(token, address(vault), msg.sender, uint64(block.timestamp)));
         idOf[token] = id;
+        logoOf[token] = meta.imageURI;
         _byCreator[msg.sender].push(id);
         emit Launched(id, msg.sender, token, address(vault), p.devBuyQuote);
     }

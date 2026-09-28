@@ -1,8 +1,9 @@
 // One-time admin deployment from the browser wallet. Progress is kept in localStorage per chain.
 import {
   CONFIG, $, esc, toast, friendlyError, client, walletClient, onAccount, getAccount, isAddress, getAddress, eth, addrLink, write, ABI,
-  withBuffer, failedTxError,
+  withBuffer, failedTxError, arcWalletClient,
 } from "./web3.js";
+import { ARC, arcClient, arcChain } from "./arc.js";
 import { parseAbi, encodeDeployData, keccak256, concat, toHex, pad, formatEther } from "https://cdn.jsdelivr.net/npm/viem@2.21.0/+esm";
 import { BLOCKS } from "./hooks-data.js";
 
@@ -18,6 +19,7 @@ const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; }
 let st = { ...load() };
 // Addresses already in config.js count as done.
 for (const k of ["ponsLauncher", "poolManager", "rigsHook", "rigsLauncher", "rigsAuctions", "rigsRouter"]) if (isAddress(CONFIG[k] || "")) st[k] ??= CONFIG[k];
+if (isAddress(ARC.launcher || "")) st.arcLauncher ??= ARC.launcher;
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch { /* storage blocked */ } render(); };
 
 const artifacts = {};
@@ -57,6 +59,25 @@ async function deployViaFactory(name, args) {
   if (!(await hasCode(address))) throw new Error(`${name} not found at ${address}`);
   return { address, block: Number(rc.blockNumber) };
 }
+
+/** Deploys on Arc (gas is paid in USDC) from the same wallet. */
+async function arcDeploy(name, args) {
+  const wallet = await arcWalletClient(arcChain);
+  const a = await artifact(name);
+  const data = encodeDeployData({ abi: a.abi, bytecode: a.bytecode, args });
+  const gas = withBuffer(await arcClient.estimateGas({ account: wallet.account, data }));
+  const hash = await wallet.deployContract({ abi: a.abi, bytecode: a.bytecode, args, gas });
+  toast(`${name}: waiting for confirmation on Arc…`);
+  const rc = await arcClient.waitForTransactionReceipt({ hash });
+  if (rc.status !== "success" || !rc.contractAddress) throw new Error(`${name} deployment failed. Details: ${ARC.explorer}/tx/${hash}`);
+  return getAddress(rc.contractAddress);
+}
+
+const arcTreasury = () => {
+  const v = $("#arcTreasury").value.trim() || ARC.treasury;
+  if (!isAddress(v || "")) throw new Error("Enter a valid Arc treasury address");
+  return getAddress(v);
+};
 
 /** Finds a CREATE2 salt that puts the hook on an address carrying exactly its v4 permission bits. */
 async function mineSalt(factory, initCode, onProgress) {
@@ -140,8 +161,22 @@ const STEPS = {
       run: async () => { st.rigsAuctions = (await deployViaFactory("RigsAuctions", [])).address; },
     },
   ],
+  arc: [
+    {
+      id: "arcVaultImpl", title: "Deploy Arc vault template", note: "ArgusVault on Arc: each coin's Argus creator, splits 80/20 in USDC.",
+      run: async () => { st.arcVaultImpl = await arcDeploy("ArgusVault", [ARC.usdc]); },
+    },
+    {
+      id: "arcLauncher", title: "Deploy Arc launcher", note: "ArgusLauncher, bound to Argus Portal #7. Your wallet becomes its owner.", needs: ["arcVaultImpl"],
+      run: async () => {
+        const t = arcTreasury();
+        st.arcLauncher = await arcDeploy("ArgusLauncher", [ARC.portal, st.arcVaultImpl, getAccount(), t]);
+        st.arcTreasury = t;
+      },
+    },
+  ],
 };
-const ALL = [...STEPS.pons, ...STEPS.v4, ...STEPS.auctions];
+const ALL = [...STEPS.pons, ...STEPS.v4, ...STEPS.auctions, ...STEPS.arc];
 
 function pmReady() {
   return isAddress($("#poolManager").value.trim()) && $("#pmConfirm").checked;
@@ -177,6 +212,9 @@ export const CONFIG = {
   rigsLauncher: ${JSON.stringify(st.rigsLauncherSet || CONFIG.rigsLauncher ? v("rigsLauncher") : "")},
   rigsAuctions: ${JSON.stringify(v("rigsAuctions"))},
   rigsRouter: ${JSON.stringify(v("rigsRouter"))},
+  official: ${JSON.stringify(CONFIG.official || {})},
+  solana: ${JSON.stringify(CONFIG.solana || {})},
+  arc: ${JSON.stringify({ ...ARC, launcher: st.arcLauncher || ARC.launcher || "", treasury: st.arcTreasury || ARC.treasury })},
   contactEmail: ${JSON.stringify(CONFIG.contactEmail || "")},
   reownProjectId: ${JSON.stringify(CONFIG.reownProjectId)},
 };
@@ -187,6 +225,7 @@ function render() {
   $("#stepsPons").innerHTML = STEPS.pons.map(stepHtml).join("");
   $("#stepsV4").innerHTML = STEPS.v4.map((s, i) => stepHtml(s, i + STEPS.pons.length)).join("");
   $("#stepsAuctions").innerHTML = STEPS.auctions.map((s, i) => stepHtml(s, i + STEPS.pons.length + STEPS.v4.length)).join("");
+  $("#stepsArc").innerHTML = STEPS.arc.map((s, i) => stepHtml(s, i + STEPS.pons.length + STEPS.v4.length + STEPS.auctions.length)).join("");
   $("#wProg").textContent = `${ALL.filter((s) => st[s.id]).length} / ${ALL.length}`;
   $("#cfgOut").textContent = configText();
 }
@@ -286,5 +325,10 @@ render();
     if (st[k] && !(await hasCode(st[k]))) { delete st[k]; changed = true; }
   }
   if (!st.rigsHook) delete st.rigsLauncherSet;
+  for (const k of ["arcVaultImpl", "arcLauncher"]) {
+    if (!st[k]) continue;
+    const code = await arcClient.getCode({ address: st[k] }).catch(() => undefined);
+    if (code === "0x" || code === null) { delete st[k]; changed = true; } // unknown (RPC down) keeps it
+  }
   if (changed) save();
 })();

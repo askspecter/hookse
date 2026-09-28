@@ -13,9 +13,11 @@ function pick(chain) {
   document.querySelectorAll("#chainPick button").forEach((b) => b.classList.toggle("on", b.dataset.chain === chain));
   $("#evmLaunch").hidden = chain !== "robinhood";
   $("#solLaunch").hidden = chain !== "solana";
+  $("#arcLaunch").hidden = chain !== "arc";
   $("#netState").hidden = chain !== "robinhood";
   try { localStorage.setItem("rigs-launch-chain", chain); } catch { /* storage blocked */ }
   if (chain === "solana") render();
+  document.dispatchEvent(new CustomEvent("rigs-chain", { detail: chain }));
 }
 
 function render(result) {
@@ -105,4 +107,5 @@ onSolAccount(() => { if (!$("#solLaunch").hidden) render(); });
 loadSolCoins().then((s) => { status = { enabled: !!s.enabled, treasury: s.treasury || null }; if (!$("#solLaunch").hidden) render(); });
 let saved = null;
 try { saved = localStorage.getItem("rigs-launch-chain"); } catch { /* storage blocked */ }
-if (location.hash === "#solana" || saved === "solana") pick("solana");
+if (location.hash === "#solana" || location.hash === "#arc") pick(location.hash.slice(1));
+else if (saved === "solana" || saved === "arc") pick(saved);
