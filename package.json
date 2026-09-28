@@ -1,9 +1,11 @@
 {
   "name": "rigs-site",
   "private": true,
-  "description": "Static site; Vercel functions in api/ (logo uploads and coin details in Vercel KV). No build step.",
+  "description": "Static site; Vercel functions in api/ (logo uploads, coin details, prices and pump.fun launches). No build step.",
   "engines": { "node": ">=20" },
   "dependencies": {
+    "@pump-fun/pump-sdk": "2.0.0",
+    "@solana/web3.js": "^1.98.2",
     "viem": "2.21.0"
   }
 }

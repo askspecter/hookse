@@ -1039,3 +1039,25 @@ body { background:
   .ca-row { flex-direction: column; align-items: stretch; }
   .ca-row code { font-size: 14px; }
 }
+
+/* launch: chain picker and the Solana (pump.fun) form */
+.chain-pick { display: grid; grid-template-columns: repeat(3, minmax(0, 300px)); gap: 10px; margin-bottom: 18px; }
+.chain-pick button { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); color: var(--muted); cursor: pointer; text-align: left; }
+.chain-pick button:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
+.chain-pick button.on { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
+.chain-pick img { width: 34px; height: 34px; border-radius: 50%; flex: none; object-fit: cover; }
+.chain-pick b { display: block; font-size: 14px; color: var(--text); }
+.chain-pick small { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--dim); }
+.chain-pick button:disabled { opacity: .55; cursor: not-allowed; }
+.chain-pick button:disabled:hover { border-color: var(--line); }
+.chain-pick img.via-ic, .via-ic { width: 14px; height: 14px; border-radius: 50%; object-fit: cover; flex: none; }
+.cc-kind .via-ic { margin-right: 4px; vertical-align: -2px; }
+.wiz-h-logo { display: flex; align-items: center; gap: 10px; }
+.wiz-h-logo img { border-radius: 50%; object-fit: cover; }
+.sol-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
+.sol-logo { width: 56px; height: 56px; border-radius: 12px; object-fit: cover; flex: none; }
+.sol-logo.empty { display: grid; place-items: center; border: 1px dashed var(--line); color: var(--dim); }
+.sol-split { margin: 10px 0 12px; }
+.cc-kind.chain-sol { color: #14f195; border-color: color-mix(in srgb, #14f195 40%, transparent); }
+@media (max-width: 1000px) { .sol-grid { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .chain-pick { grid-template-columns: 1fr 1fr 1fr; gap: 8px; } .chain-pick button { flex-direction: column; text-align: center; gap: 6px; padding: 10px 6px; } .chain-pick b { font-size: 12.5px; } .chain-pick small { display: none; } }

@@ -36,10 +36,17 @@
     <main class="app-main">
 
       <div class="app-head">
-        <div><p class="kicker">Launch · Robinhood Chain</p><h1>Launch a coin</h1>
-        <p class="lede muted">Five short steps, one signature. Your draft is saved in this browser as you go.</p></div>
+        <div><p class="kicker">Launch</p><h1>Launch a coin</h1>
+        <p class="lede muted">Pick a chain. Your wallet signs, you are the creator, and 80% of the creator fees are yours.</p></div>
         <span class="badge gray" id="netState">Reading chain…</span>
       </div>
+      <div class="chain-pick" id="chainPick" role="tablist" aria-label="Chain">
+        <button class="on" data-chain="robinhood" role="tab"><img src="/assets/robinhood.png" alt="" /><span><b>Robinhood Chain</b><small>Pons V2 curve or a hooked v4 pool</small></span></button>
+        <button data-chain="solana" role="tab"><img src="/assets/solana.jpg" alt="" /><span><b>Solana</b><small><img class="via-ic" src="/assets/pumpfun.jpg" alt="" />pump.fun, 80/20 fee sharing</small></span></button>
+        <button data-chain="arc" role="tab" disabled title="Coming soon"><img src="/assets/arc.jpg" alt="" /><span><b>Arc</b><small><img class="via-ic" src="/assets/argus.jpg" alt="" />ArgusPad · coming soon</small></span></button>
+      </div>
+      <section id="solLaunch" hidden></section>
+      <div id="evmLaunch">
       <div class="stepbar" id="stepbar">
         <button class="sb-btn" id="sbPrev" aria-label="Previous step">‹</button>
         <div class="sb-mid"><b id="sbCount">Step 1 of 5</b><span id="sbName">Intent</span></div>
@@ -55,11 +62,13 @@
           <div class="card pad"><p class="form-h">Draft</p><dl class="draft" id="draft"></dl><button class="btn btn-dark btn-xs" id="discard">Discard draft</button></div>
         </aside>
       </div>
+      </div>
 
     </main>
   </div>
   <div class="toast" id="toast"></div>
   <script type="module" src="shell.js"></script>
   <script type="module" src="launch.js"></script>
+  <script type="module" src="sol-launch.js"></script>
 </body>
 </html>

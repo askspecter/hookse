@@ -16,6 +16,9 @@ export const CONFIG = {
   rigsRouter: "0x9BfA528A6e01B20552089f7368Da82dF1aB65b8a",
   // The official $RIGS coin, launched directly on Pons. `curve` is optional: the site finds it from the launch transaction.
   official: { token: "0x02BB02536762aD8dE1f211C0f5dd25bC033A7194", curve: "", buybackPct: 10 },
+  // Other chains. Solana launches go through pump.fun (api/sol-launch.js); Arc (ArgusPad) is planned.
+  solana: { treasury: "CeEtCANnK4a5H2WHhpCqZiJMwEZSzJ7bWTLYL6ZK1hVk" },
+  arc: { treasury: "0x79b045B9Cd343b993A758aA6e38A1723CfaD8F91" },
   // Where hook ideas and integration requests are emailed. Empty hides those forms.
   contactEmail: "support@userigs.fun",
   reownProjectId: "5c559ec7c86f657976f14d599d5e66b5",
