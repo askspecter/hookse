@@ -46,7 +46,7 @@ export class Gacha {
 
   /**
    * Buys and opens one pack from `code` with the keeper's Solana wallet.
-   * Returns { mint, memo, paySignature, sendSignature, rarity, name }.
+   * Returns { mint, memo, paySignature, sendSignature, rarity, name, image }.
    */
   async pull(code, solana, dryRun) {
     const { memo, transaction } = await this.#req("POST", "/api/generatePack", { playerAddress: solana.address, packType: code });
@@ -69,9 +69,11 @@ export class Gacha {
     }
     const mint = opened.nft_address || opened.nftAddress || opened.nftWon?.id;
     if (!mint) throw new Error(`openPack for ${memo} returned no NFT address`);
-    const name = opened.nftWon?.content?.metadata?.name || "card";
+    const content = opened.nftWon?.content || {};
+    const name = content.metadata?.name || "card";
+    const image = content.links?.image || content.files?.[0]?.uri || "";
     this.log(`pulled ${name} (${opened.rarity}) ${mint} ✓ ${opened.transactionSignature}`);
-    return { mint, memo, paySignature: sub.signature, sendSignature: opened.transactionSignature, rarity: opened.rarity, name };
+    return { mint, memo, paySignature: sub.signature, sendSignature: opened.transactionSignature, rarity: opened.rarity, name, image };
   }
 }
 

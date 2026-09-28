@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gacha · Rigs</title>
+  <meta name="description" content="Launch a coin paired to a real Collector Crypt gacha machine. Trades fill the vault, the keeper rips a pack, and every graded card it pulls is raffled to holders." />
+  <link rel="canonical" href="https://userigs.fun/gacha" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Rigs" />
+  <meta property="og:title" content="Gacha · Rigs" />
+  <meta property="og:description" content="Launch a coin paired to a real Collector Crypt gacha machine. Trades fill the vault, the keeper rips a pack, and every graded card it pulls is raffled to holders." />
+  <meta property="og:url" content="https://userigs.fun/gacha" />
+  <meta property="og:image" content="https://userigs.fun/assets/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Rigs: composable markets, built with hooks. Launch on Pons V2 and keep 80% of every creator fee." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@userigsfun" />
+  <meta name="twitter:title" content="Gacha · Rigs" />
+  <meta name="twitter:description" content="Launch a coin paired to a real Collector Crypt gacha machine. Trades fill the vault, the keeper rips a pack, and every graded card it pulls is raffled to holders." />
+  <meta name="twitter:image" content="https://userigs.fun/assets/og.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png" />
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+  <meta name="theme-color" content="#05070c" />
+  <script>try{var t=localStorage.getItem("rigs-theme");if(t==="light"||(t==="system"&&matchMedia("(prefers-color-scheme: light)").matches))document.documentElement.dataset.theme="light"}catch(e){}</script>
+</head>
+<body data-nav="gacha">
+  <div class="app">
+    <aside id="sidebar"></aside>
+    <main class="app-main">
+
+      <div class="app-head">
+        <div><p class="kicker">Paired coins · Collector Crypt</p><h1>Gacha</h1>
+        <p class="lede muted">Launch a coin paired to a real gacha machine. Every trade fills its vault, the keeper rips a pack, and whatever it pulls, a real graded card, is raffled to holders.</p></div>
+        <a class="btn btn-primary btn-sm" href="/launch#gacha">Launch a gacha coin</a>
+      </div>
+      <div id="gachaView"><div class="empty"><b>Reading…</b></div></div>
+
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script type="module" src="shell.js"></script>
+  <script type="module" src="gacha.js"></script>
+</body>
+</html>

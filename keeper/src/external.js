@@ -318,7 +318,7 @@ export class ExternalKeeper {
       address: l.vault, abi: extVaultAbi, functionName: "recordPurchase", args: [tokenId, ethSpent, keccak256(toHex(pulled.paySignature))],
     });
     this.receipts?.(l, tokenId, pulled.paySignature, {
-      mint: pulled.mint, machine: m.code, name: pulled.name, rarity: pulled.rarity, memo: pulled.memo, sendSignature: pulled.sendSignature,
+      mint: pulled.mint, machine: m.code, name: pulled.name, rarity: pulled.rarity, image: pulled.image, memo: pulled.memo, sendSignature: pulled.sendSignature,
     });
   }
 }

@@ -20,6 +20,7 @@ const ICON = {
   gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
   home: '<path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
+  cards: '<rect x="7" y="4" width="12" height="16" rx="2"/><path d="M4 7v11a2 2 0 0 0 2 2"/><path d="m13 9 1.2 2.4 2.3.3-1.7 1.6.4 2.4-2.2-1.2-2.2 1.2.4-2.4-1.7-1.6 2.3-.3z"/>',
   dots: '<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>',
 };
 export const icon = (k, size = 16) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>`;
@@ -27,6 +28,7 @@ export const icon = (k, size = 16) => `<svg width="${size}" height="${size}" vie
 const NAV = [
   ["app", "Coins", "discover"],
   ["launch", "Launch", "launch"],
+  ["gacha", "Gacha", "cards"],
   ["portfolio", "Earn", "portfolio"],
   ["auctions", "Auctions", "gavel"],
   ["builder", "Build", "builder"],
@@ -114,7 +116,7 @@ sheet.innerHTML = `
   <div class="sheet-panel" role="dialog" aria-label="More">
     <div class="sheet-grab"></div>
     <div class="sheet-head"><b>More</b><button class="icon-btn" id="sheetClose" aria-label="Close">×</button></div>
-    <div class="sheet-grid">${[["index", "Home", "home", "Start page"], ["builder", "Build", "builder", "Compose a hook"], ...MORE].map(([h, l, ic, d]) => `<a href="${url(h)}" class="${active === h ? "on" : ""}">${icon(ic, 18)}<span><b>${l}</b><small>${d}</small></span></a>`).join("")}</div>
+    <div class="sheet-grid">${[["index", "Home", "home", "Start page"], ["gacha", "Gacha", "cards", "Coins that rip real packs"], ["builder", "Build", "builder", "Compose a hook"], ...MORE].map(([h, l, ic, d]) => `<a href="${url(h)}" class="${active === h ? "on" : ""}">${icon(ic, 18)}<span><b>${l}</b><small>${d}</small></span></a>`).join("")}</div>
     <div class="sheet-set">${appearance}</div>
     <nav class="set-links sheet-links">${footLinks}</nav>
   </div>`;
