@@ -60,17 +60,27 @@ async function deployViaFactory(name, args) {
   return { address, block: Number(rc.blockNumber) };
 }
 
-/** Deploys on Arc (gas is paid in USDC) from the same wallet. */
+// Canonical deterministic deployment proxy (calldata = salt ++ initCode), already live on Arc.
+const ARC_CREATE2 = "0x4e59b44847b379578588920cA78FbF26c0B4956C";
+
+/**
+ * Deploys on Arc (gas is paid in USDC) from the same wallet, through the CREATE2 proxy:
+ * some mobile wallets (Bitget) cap direct contract creations at 1.2M gas but not ordinary calls.
+ */
 async function arcDeploy(name, args) {
   const wallet = await arcWalletClient(arcChain);
   const a = await artifact(name);
-  const data = encodeDeployData({ abi: a.abi, bytecode: a.bytecode, args });
-  const gas = withBuffer(await arcClient.estimateGas({ account: wallet.account, data }));
-  const hash = await wallet.deployContract({ abi: a.abi, bytecode: a.bytecode, args, gas });
+  const initCode = encodeDeployData({ abi: a.abi, bytecode: a.bytecode, args });
+  const salt = toHex(crypto.getRandomValues(new Uint8Array(32)));
+  const address = getAddress(`0x${keccak256(concat(["0xff", ARC_CREATE2, salt, keccak256(initCode)])).slice(-40)}`);
+  const tx = { account: wallet.account, to: ARC_CREATE2, data: concat([salt, initCode]) };
+  const gas = withBuffer(await arcClient.estimateGas(tx));
+  const hash = await wallet.sendTransaction({ ...tx, gas });
   toast(`${name}: waiting for confirmation on Arc…`);
   const rc = await arcClient.waitForTransactionReceipt({ hash });
-  if (rc.status !== "success" || !rc.contractAddress) throw new Error(`${name} deployment failed. Details: ${ARC.explorer}/tx/${hash}`);
-  return getAddress(rc.contractAddress);
+  const code = rc.status === "success" ? await arcClient.getCode({ address }).catch(() => null) : null;
+  if (!code || code === "0x") throw new Error(`${name} deployment failed (gas limit ${gas.toLocaleString("en-US")}, used ${rc.gasUsed.toLocaleString("en-US")}). Details: ${ARC.explorer}/tx/${hash}`);
+  return address;
 }
 
 const arcTreasury = () => {
@@ -163,11 +173,11 @@ const STEPS = {
   ],
   arc: [
     {
-      id: "arcVaultImpl", title: "Deploy Arc vault template", note: "ArgusVault on Arc: each coin's Argus creator, splits 80/20 in USDC.",
+      id: "arcVaultImpl", title: "Deploy Arc vault template", note: "ArgusVault on Arc: each coin's Argus creator, splits 80/20 in USDC. Sent through the CREATE2 deployer.",
       run: async () => { st.arcVaultImpl = await arcDeploy("ArgusVault", [ARC.usdc]); },
     },
     {
-      id: "arcLauncher", title: "Deploy Arc launcher", note: "ArgusLauncher, bound to Argus Portal #7. Your wallet becomes its owner.", needs: ["arcVaultImpl"],
+      id: "arcLauncher", title: "Deploy Arc launcher", note: "ArgusLauncher, bound to Argus Portal #7. Your wallet becomes its owner. Sent through the CREATE2 deployer.", needs: ["arcVaultImpl"],
       run: async () => {
         const t = arcTreasury();
         st.arcLauncher = await arcDeploy("ArgusLauncher", [ARC.portal, st.arcVaultImpl, getAccount(), t]);
