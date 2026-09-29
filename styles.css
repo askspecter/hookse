@@ -1014,8 +1014,6 @@ body { background:
 @media (max-width: 640px) { .mc-big { font-size: 32px; } .mc-head .ranges { width: 100%; justify-content: space-between; } .mc-head .ranges button { flex: 1; } }
 /* official $RIGS coin */
 .cc-kinds { display: inline-flex; gap: 6px; }
-.cc-kind.official { color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
-.coin-tile.is-official, .coin-card.is-official { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 9%, var(--panel)), var(--panel)); }
 /* $RIGS token page */
 .ca-card { padding: 20px; display: flex; flex-direction: column; gap: 14px; margin-bottom: 14px; border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
 .ca-top { display: flex; align-items: center; gap: 10px; }

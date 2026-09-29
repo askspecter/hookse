@@ -217,13 +217,7 @@ export async function loadMeta(tokens) {
   }
   return Object.fromEntries(tokens.map((t) => [t.toLowerCase(), metaCache.get(t.toLowerCase()) || {}]));
 }
-/** True for the official $RIGS coin. */
-export const isOfficial = (token) => !!CONFIG.official?.token && String(token).toLowerCase() === CONFIG.official.token.toLowerCase();
-const OFFICIAL_META = { logo: /^https:/.test(location.origin) ? `${location.origin}/assets/logo-256.png` : "", description: "The official Rigs coin." };
-export const metaOf = (token) => {
-  const m = metaCache.get(String(token).toLowerCase()) || {};
-  return isOfficial(token) ? { ...OFFICIAL_META, ...Object.fromEntries(Object.entries(m).filter(([, v]) => v)) } : m;
-};
+export const metaOf = (token) => metaCache.get(String(token).toLowerCase()) || {};
 
 const metaMessage = (token, logo, description, time) =>
   `Rigs: set the details for coin ${token.toLowerCase()}\nLogo: ${logo || "none"}\nDescription: ${description || "none"}\nTime: ${time}`;
@@ -443,57 +437,6 @@ export async function ensureAllowance(token, spender, amount) {
   const allowed = await client.readContract({ address: token, abi: ABI.erc20Full, functionName: "allowance", args: [getAccount(), spender] });
   if (allowed >= amount) return;
   await write({ address: token, abi: ABI.erc20Full, functionName: "approve", args: [spender, amount] });
-}
-
-const TRANSFER_EVENT = { type: "event", name: "Transfer", inputs: [{ name: "from", type: "address", indexed: true }, { name: "to", type: "address", indexed: true }, { name: "value", type: "uint256", indexed: false }] };
-
-/**
- * A coin launched directly on Pons (not through the Rigs launcher): finds its bonding curve, creator and launch time
- * from the transaction that minted it. The curve is the contract in that transaction that answers a simulated buy
- * (or, once graduated, the one that received the most tokens). Cached per browser; `knownCurve` skips the search.
- */
-export async function ponsCoinInfo(token, knownCurve = "") {
-  const key = `rigs-pons-${token.toLowerCase()}`;
-  try { const hit = JSON.parse(localStorage.getItem(key) || "null"); if (hit?.curve) return hit; } catch { /* storage blocked */ }
-  const latest = Number(await client.getBlockNumber());
-  let mint = null;
-  for (let hi = latest, size = 500_000; hi >= 0 && !mint;) {
-    const lo = Math.max(0, hi - size + 1);
-    try {
-      const logs = await client.getLogs({ address: token, event: TRANSFER_EVENT, args: { from: zeroAddress }, fromBlock: BigInt(lo), toBlock: BigInt(hi) });
-      if (logs.length) mint = logs[0];
-      hi = lo - 1;
-    } catch (err) {
-      if (size <= 5_000) throw err;
-      size = Math.floor(size / 5);
-    }
-  }
-  if (!mint) throw new Error("Launch transaction not found");
-  const [tx, receipt, block] = await Promise.all([
-    client.getTransaction({ hash: mint.transactionHash }),
-    client.getTransactionReceipt({ hash: mint.transactionHash }),
-    client.getBlock({ blockNumber: mint.blockNumber }),
-  ]);
-  const received = new Map();
-  for (const l of receipt.logs) {
-    if (getAddress(l.address) !== getAddress(token) || l.topics.length < 3) continue;
-    const to = getAddress("0x" + l.topics[2].slice(26));
-    received.set(to, (received.get(to) || 0n) + BigInt(l.data));
-  }
-  const candidates = [...received.entries()].sort((a, b) => (b[1] > a[1] ? 1 : -1)).map(([a]) => a);
-  let curve = knownCurve ? getAddress(knownCurve) : null;
-  for (const a of candidates) {
-    if (curve) break;
-    const code = await client.getCode({ address: a }).catch(() => null);
-    if (!code || code.length <= 2) continue; // wallets are not curves
-    const probe = parseEther("0.0001");
-    const ok = await client.simulateContract({ address: a, abi: ABI.ponsCurve, functionName: "buy", args: [probe, 0n, PRICE_PROBE], value: probe,
-      account: PRICE_PROBE, stateOverride: [{ address: PRICE_PROBE, balance: parseEther("1") }] }).then(() => true).catch(() => false);
-    if (ok) curve = a;
-  }
-  const info = { curve: curve || candidates[0] || null, creator: tx.from, launchedAt: Number(block.timestamp), block: Number(mint.blockNumber) };
-  if (info.curve) try { localStorage.setItem(key, JSON.stringify(info)); } catch { /* storage blocked */ }
-  return info;
 }
 
 export async function loadLaunch(id) {

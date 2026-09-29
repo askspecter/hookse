@@ -298,7 +298,6 @@ export const CONFIG = {
   rigsLauncher: ${JSON.stringify(st.rigsLauncherSet || CONFIG.rigsLauncher ? v("rigsLauncher") : "")},
   rigsAuctions: ${JSON.stringify(v("rigsAuctions"))},
   rigsRouter: ${JSON.stringify(v("rigsRouter"))},
-  official: ${JSON.stringify(CONFIG.official || {})},
   solana: ${JSON.stringify(CONFIG.solana || {})},
   arc: ${JSON.stringify({ ...ARC, launcher: st.arcLauncher || ARC.launcher || "", treasury: st.arcTreasury || ARC.treasury })},
   paired: ${JSON.stringify(pairedConfig())},

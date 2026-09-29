@@ -2,6 +2,15 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "functions": {
-    "api/sol-launch.js": { "maxDuration": 60 }
-  }
+    "api/sol-launch.js": {
+      "maxDuration": 60
+    }
+  },
+  "redirects": [
+    {
+      "source": "/token",
+      "destination": "/app",
+      "permanent": false
+    }
+  ]
 }

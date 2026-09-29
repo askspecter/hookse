@@ -38,8 +38,8 @@ const mcaps = new Map();
 function coinCard(c) {
   const mc = mcaps.get(c.token);
   const foot = `<span>Market cap</span><b>${mc == null ? (mcaps.has(c.token) ? "—" : "…") : usd ? w.fmtUsdShort(mc * usd) : `${w.fmtPrice(mc)} ETH`}</b>`;
-  return `<a class="coin-card${c.official ? " is-official" : ""}" href="/coin?token=${c.token}">
-    <div class="cc-top">${w.coinAvatar(c.symbol, w.metaOf(c.token).logo)}<span class="cc-kind${c.official ? " official" : ""}">${c.official ? "Official" : c.kind === "pons" ? "Curve" : "v4 pool"}</span></div>
+  return `<a class="coin-card" href="/coin?token=${c.token}">
+    <div class="cc-top">${w.coinAvatar(c.symbol, w.metaOf(c.token).logo)}<span class="cc-kind">${c.kind === "pons" ? "Curve" : "v4 pool"}</span></div>
     <b class="cc-name">${esc(c.name || "Unknown")}</b>
     <span class="cc-sym">$${esc(c.symbol || "?")}${c.launchedAt ? ` · ${ago(c.launchedAt)}` : ""}</span>
     <div class="cc-foot">${foot}</div>
@@ -78,12 +78,7 @@ function renderRail(coins, failed) {
       ]);
       return { kind: "v4", token, poolId: id, name: info.name, symbol: info.symbol, blocks: Number(cfg.blocks) };
     }));
-    const o = CONFIG.official?.token ? w.getAddress(CONFIG.official.token) : null;
-    const official = o ? await Promise.all([w.tokenInfo(o), w.ponsCoinInfo(o, CONFIG.official.curve)])
-      .then(([info, pons]) => ({ kind: "pons", official: true, token: o, name: info.name, symbol: info.symbol, curve: pons.curve, launchedAt: pons.launchedAt }))
-      .catch((err) => { console.error(err); return null; }) : null;
-    const others = [...launches.slice(0, 12).map((l) => ({ kind: "pons", ...l })), ...pools].filter((c) => !o || c.token.toLowerCase() !== o.toLowerCase());
-    const coins = [...(official ? [official] : []), ...others].slice(0, 12);
+    const coins = [...launches.slice(0, 12).map((l) => ({ kind: "pons", ...l })), ...pools].slice(0, 12);
     await w.loadMeta(coins.map((c) => c.token)).catch(() => {});
     renderRail(coins, false);
     usd = await w.ethUsd();

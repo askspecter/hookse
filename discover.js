@@ -13,7 +13,6 @@ let auctions = [];
 let shown = 24;
 let web3 = null;
 let usd = null;
-let official = null; // the official $RIGS coin, pinned first
 const mcaps = new Map(); // token -> market cap in ETH (null when unreadable)
 let solCoins = []; // coins launched on pump.fun through Rigs (still paying the Rigs share)
 let solUsd = null;
@@ -60,22 +59,18 @@ function coinCard(c) {
   const rules = c.kind === "v4" ? BLOCKS.filter((b) => c.blocks & b.bit) : [];
   const mc = mcaps.get(c.token);
   const mcCell = `<div><span>Market cap</span><b>${mc == null ? (mcaps.has(c.token) ? "—" : "…") : usd ? web3.fmtUsdShort(mc * usd) : `${web3.fmtPrice(mc)} ETH`}</b></div>`;
-  const foot = c.official
-    ? `${mcCell}<div><span>Buyback &amp; burn</span><b>${web3.CONFIG.official.buybackPct}% revenue</b></div>`
-    : c.kind === "pons"
+  const foot = c.kind === "pons"
     ? `${mcCell}<div><span>Creator earned</span><b>${usd ? web3.fmtUsd(Number(web3.formatEther(c.totalToCreator)) * usd, true) : `${web3.eth(c.totalToCreator, 4)} ETH`}</b></div>`
     : `${mcCell}<div><span>Rules</span><b class="rule-dots">${BLOCKS.map((b) => `<i class="${c.blocks & b.bit ? "on" : ""}" title="${b.name}"></i>`).join("")}</b></div>`;
-  return `<article class="coin-tile${c.official ? " is-official" : ""}">
+  return `<article class="coin-tile">
     <a class="ct-main" href="/coin?token=${c.token}">
-      <div class="cc-top">${av}<span class="cc-kinds">${c.official ? '<span class="cc-kind official">Official</span>' : ""}<span class="cc-kind">${c.kind === "pons" ? "Curve" : "v4 pool"}</span></span></div>
+      <div class="cc-top">${av}<span class="cc-kinds"><span class="cc-kind">${c.kind === "pons" ? "Curve" : "v4 pool"}</span></span></div>
       <b class="cc-name">${esc(c.name || "Unknown")}</b>
       <span class="cc-sym">$${esc(c.symbol || "?")} · by ${short(c.creator)}${c.launchedAt ? ` · ${ago(c.launchedAt)}` : ""}</span>
       <p class="ct-desc">${esc(desc) || (rules.length ? rules.map((b) => b.name).join(" · ") : "No description yet.")}</p>
     </a>
     <div class="ct-foot">${foot}</div>
-    <div class="ct-acts"><a class="btn btn-primary btn-xs" href="/coin?token=${c.token}">Trade</a>${c.official
-      ? `<a class="btn btn-ghost btn-xs" href="/token">Token info</a>`
-      : c.kind === "pons"
+    <div class="ct-acts"><a class="btn btn-primary btn-xs" href="/coin?token=${c.token}">Trade</a>${c.kind === "pons"
       ? `<a class="btn btn-ghost btn-xs" href="/portfolio?token=${c.token}">Fees</a>`
       : `<button class="btn btn-ghost btn-xs" data-collect="${c.token}" title="Send this pool's LP fees to its creator">Send LP fees</button>`}</div>
   </article>`;
@@ -113,16 +108,14 @@ function render() {
   } else {
     const evm = tab !== "solana" && tab !== "arc";
     let list = [
-      ...(evm && tab !== "pools" && official ? [official] : []),
-      ...(evm && tab !== "pools" ? launches.filter((l) => !official || l.token.toLowerCase() !== official.token.toLowerCase()).map((l) => ({ kind: "pons", ...l, creator: l.creator || l.creatorAtLaunch })) : []),
+      ...(evm && tab !== "pools" ? launches.map((l) => ({ kind: "pons", ...l, creator: l.creator || l.creatorAtLaunch })) : []),
       ...(evm && tab !== "curve" ? pools.map((p) => ({ kind: "v4", ...p })) : []),
       ...(tab === "all" || tab === "solana" ? solCoins.map((c) => ({ chain: "solana", token: c.mint, ...c })) : []),
       ...(tab === "all" || tab === "arc" ? arcCoins.map((c) => ({ chain: "arc", ...c })) : []),
     ].filter(match);
-    const pinned = (a, b) => (b.official ? 1 : 0) - (a.official ? 1 : 0);
-    if ($("#sort").value === "earned") list = list.sort((a, b) => pinned(a, b) || earned(b) - earned(a));
-    if ($("#sort").value === "mcap") list = list.sort((a, b) => pinned(a, b) || (mcapUsd(b) ?? -1) - (mcapUsd(a) ?? -1));
-    if ($("#sort").value === "new") list = list.sort((a, b) => pinned(a, b) || (b.launchedAt || 0) - (a.launchedAt || 0));
+    if ($("#sort").value === "earned") list = list.sort((a, b) => earned(b) - earned(a));
+    if ($("#sort").value === "mcap") list = list.sort((a, b) => (mcapUsd(b) ?? -1) - (mcapUsd(a) ?? -1));
+    if ($("#sort").value === "new") list = list.sort((a, b) => (b.launchedAt || 0) - (a.launchedAt || 0));
     total = list.length;
     html = list.slice(0, shown).map((c) => (c.chain === "solana" ? solCard(c) : c.chain === "arc" ? arcCard(c) : coinCard(c))).join("")
       || empty(!web3 ? "Reading the chain…" : q ? "Nothing matches."
@@ -184,7 +177,6 @@ async function load() {
       arcCoins = await a.loadArcCoins();
       render();
     }).catch((err) => console.error(err));
-    official = await loadOfficial().catch((err) => { console.error(err); return null; });
     if (web3.live) {
       const { client, CONFIG, ABI, loadLaunch } = web3;
       const n = Number(await client.readContract({ address: CONFIG.ponsLauncher, abi: ABI.launcher, functionName: "launchCount" }));
@@ -195,7 +187,7 @@ async function load() {
     if (web3.auctionsLive) auctions = await loadAuctions(web3);
     usd = await web3.ethUsd();
     loadMcaps();
-    $("#updated").innerHTML = `<i class="dot-green"></i>${launches.length + pools.length + (official ? 1 : 0)} coins · ${auctions.length} auctions · updated ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+    $("#updated").innerHTML = `<i class="dot-green"></i>${launches.length + pools.length} coins · ${auctions.length} auctions · updated ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
   } catch (err) {
     console.error(err);
     $("#updated").textContent = "Could not reach Robinhood Chain. Press ↻ to retry.";
@@ -203,18 +195,9 @@ async function load() {
   render();
 }
 
-/** The official $RIGS coin (launched directly on Pons), shown first in the feed. */
-async function loadOfficial() {
-  const o = web3.CONFIG.official;
-  if (!o?.token) return null;
-  const token = web3.getAddress(o.token);
-  const [info, pons] = await Promise.all([web3.tokenInfo(token), web3.ponsCoinInfo(token, o.curve)]);
-  return { kind: "pons", official: true, token, name: info.name, symbol: info.symbol, curve: pons.curve, creator: pons.creator, launchedAt: pons.launchedAt, totalToCreator: 0n };
-}
-
 /** Market caps for every coin, a few at a time, re-rendering as they arrive. */
 async function loadMcaps() {
-  const queue = [...(official?.curve ? [{ kind: "pons", token: official.token, curve: official.curve }] : []), ...launches.map((l) => ({ kind: "pons", token: l.token, curve: l.curve })), ...pools.map((p) => ({ kind: "v4", token: p.token, poolId: p.poolId }))]
+  const queue = [...launches.map((l) => ({ kind: "pons", token: l.token, curve: l.curve })), ...pools.map((p) => ({ kind: "v4", token: p.token, poolId: p.poolId }))]
     .filter((x) => !mcaps.has(x.token));
   const worker = async () => {
     for (let x = queue.shift(); x; x = queue.shift()) {
